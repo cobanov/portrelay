@@ -189,6 +189,36 @@ reboot, helper-isolation and uninstall checks in alpha.1.
 Packages include checksums, license notices, `Cargo.lock`, and a CycloneDX SBOM.
 They are unsigned experimental packages, not a signed stable release.
 
+## Website and one-command installers (2026-09-09)
+
+The static website was observed in a browser at 320, 390, 680, 681, 768, 1024,
+and 1440 CSS pixels. Desktop/tablet demo-card edges align, mobile device actions
+remain in their rows, and the page has no horizontal overflow at those widths.
+Screenshots cover desktop and mobile layouts, including connected device states.
+Printer, Bluetooth-adapter, USB-drive, local sharing, and OS-selection concepts
+were exercised. Both installer commands were copied and pasted into a local test
+field and matched their source strings exactly. These remain simulated devices.
+
+[Bootstrap CI run 34282750543](https://github.com/cobanov/portrelay/actions/runs/34282750543)
+passed against the published alpha.3 packages:
+
+- A fresh Ubuntu 24.04 runner executed the shell bootstrap through a pipe,
+  installed the package, repeated installation, and removed it using apt.
+- Debian 13 and Ubuntu 24.04 downloaded the correct release asset and verified
+  its pinned SHA-256. Corrupt downloads and unsupported ARM architecture were
+  rejected, and temporary downloads were removed.
+- Windows PowerShell 5.1 verified the release installer, installed it, executed
+  the public `Invoke-Expression` path for a repeat install, and uninstalled it.
+  Corrupt downloads, ARM64, and the runner's real Server platform were rejected.
+  GitHub's Windows runner uses Server, so the successful bootstrap test supplies
+  a Client OS-detection fixture and adds silent installer flags in the test only.
+  It does not extend support to Server or replace a Windows 11 graphical/UAC test.
+
+The bootstrap scripts select a fixed version and hash; they are not an update
+service or publisher signatures. Native binaries, USB setup, and device-support
+boundaries are unchanged. No new physical-device or zero-terminal desktop
+acceptance is claimed by these checks.
+
 ## Automated checks
 
 Linux has 13 Rust tests covering protocol size/path validation, invitation
@@ -200,9 +230,9 @@ are explicitly gated; a macOS test pass does not imply a USB backend exists.
 
 Formatting, Clippy with warnings denied, local UI JavaScript syntax, website
 syntax/build checks, and the packaged binary are checked separately. The test
-suite's in-memory streams are distinct from the kernel tests above. Browser
-rendering, real desktop-menu launch, and usability with a non-technical person
-have not been observed in this session.
+suite's in-memory streams are distinct from the kernel tests above. The installed app's browser UI, real desktop-menu launch, and usability with a
+non-technical person remain separate acceptance gates; the public website QA
+is recorded above.
 
 `cargo audit` against the advisory database on this date found **zero known
 vulnerabilities** and one unmaintained-dependency warning: `paste 1.0.15`,

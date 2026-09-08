@@ -47,6 +47,21 @@ local sharing, OS selection, and the copy button are exercised separately from
 syntax/build and installer checks. These are website tests, not native app
 or physical-device acceptance.
 
+## One-command installers
+
+`/install.sh` selects the Ubuntu 24.04 or Debian 13 amd64 package. `/install.ps1`
+opens the existing Windows 11 x64 installer. Both verify the release's pinned
+SHA-256 before installing, preserve normal administrator prompts, and clean up
+temporary downloads. They install alpha.3, without auto-updates or automatic
+USB sharing. The website serves their source as plain text with revalidation.
+
+When publishing a new application release, update the version and expected
+hashes in both scripts together with the download links. Run the dedicated
+[bootstrap workflow](../.github/workflows/bootstrap.yml) against the published
+assets. Its [first passing run](https://github.com/cobanov/portrelay/actions/runs/34282750543)
+exercised Ubuntu installation and Windows PowerShell 5.1 installation/update;
+see the precise fixture boundaries in [validation](validation.md).
+
 ## Build and deployment
 
 `npm run dev` serves `web/` on loopback. `npm run check` checks JavaScript syntax.

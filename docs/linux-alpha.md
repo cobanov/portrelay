@@ -1,6 +1,6 @@
 # Set up PortRelay
 
-The Linux alpha shares USB devices between two Linux computers. Start with a
+The Linux alpha shares USB devices with Windows or other Linux computers. Start with a
 test device: physical USB and Bluetooth compatibility is still unvalidated.
 The current packages are for Intel/AMD 64-bit Linux with systemd.
 
