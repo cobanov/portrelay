@@ -1,0 +1,31 @@
+[package]
+name = "portrelay"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+anyhow = "1"
+axum = "0.8"
+base64 = "0.22"
+clap = { version = "4", features = ["derive"] }
+directories = "6"
+fs2 = "0.4"
+hex = "0.4"
+iroh = { version = "=1.1.0", default-features = false, features = ["tls-ring"] }
+rand = "0.9"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+subtle = "2"
+tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0.7", features = ["rt"] }
+
+[target.'cfg(unix)'.dependencies]
+nix = { version = "0.30", features = ["user", "fs"] }
+
+[dev-dependencies]
+tempfile = "3"

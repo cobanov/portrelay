@@ -1,10 +1,12 @@
 # Contributing to PortRelay
 
-The repository contains research, a proposed architecture, and a static product
-website with an interactive desktop concept. Start with
-[the roadmap](docs/roadmap.md). Website development commands are in the
-[README](README.md#website-and-desktop-preview); there is no native application
-build or installer yet.
+The repository contains the Linux application, restricted root helper, local
+control UI, research, and a separate static product demo. Start with
+[the roadmap](docs/roadmap.md) and [validation record](docs/validation.md).
+Build and check the Rust workspace with `cargo build --locked`,
+`cargo test --locked --workspace`, and
+`cargo clippy --locked --workspace --all-targets -- -D warnings`.
+Website commands are in the [README](README.md#website-development).
 
 Keep changes focused on a documented milestone. For backend changes, include the
 operating system, kernel or driver version, device identifiers, and what a real

@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PortRelay</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head>
+<body><main>
+<header><a href="/" class="brand">⇄ <span>PortRelay</span></a><span class="badge">Linux alpha</span></header>
+<div id="message" role="status" aria-live="polite">Connecting to your local application…</div>
+<section class="intro"><div><p class="eyebrow">THIS COMPUTER</p><h1 id="computer-name">Your devices. Connected.</h1><p id="network"></p></div><button id="invite">Pair a computer</button></section>
+<section id="setup" class="notice" hidden></section>
+<section class="pairing" id="pairing" hidden><div><h2>Connect your computers</h2><p>Paste the invitation on the other computer, then approve it here. Invitations expire after 10 minutes.</p><textarea id="invitation-out" rows="3" readonly aria-label="Your pairing invitation"></textarea><button id="copy-invitation" class="secondary">Copy invitation</button></div><div><h2>Have an invitation?</h2><label for="invitation-in">Invitation from the other computer</label><textarea id="invitation-in" rows="3" placeholder="portrelay1:…"></textarea><button id="pair">Request pairing</button></div></section>
+<section class="computers"><div class="section-heading"><h2>Your computers</h2><span id="identity" class="muted"></span></div><div id="peers" class="peer-grid"></div></section>
+<section class="devices"><div class="section-heading"><div class="tabs" role="group" aria-label="Device location"><button id="local-tab" class="active" aria-pressed="true">This computer</button><button id="remote-tab" aria-pressed="false">Other computer</button></div><button id="refresh" class="secondary">Refresh devices</button></div><div id="device-list"></div></section>
+<section><div class="section-heading"><h2>Connections</h2><span class="muted">One computer per device</span></div><div id="sessions"></div></section>
+<footer><span id="version"></span><span>Private until you share. Encrypted between peers.</span><a href="https://github.com/cobanov/portrelay" target="_blank" rel="noreferrer">Source & help ↗</a></footer>
+</main></body></html>

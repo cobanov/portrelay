@@ -74,9 +74,9 @@ const localDevices = [
 ];
 const platforms = {
   linux: {
-    stage: "FIRST IN LINE",
-    title: "Starting with Linux.",
-    description: "USB sharing first. Dedicated Bluetooth adapters next.",
+    stage: "DEVELOPER ALPHA",
+    title: "Linux can connect.",
+    description: "Kernel USB transfer and recovery tested. Physical devices and Bluetooth still need validation.",
   },
   windows: {
     stage: "PLANNED NEXT",
@@ -86,7 +86,7 @@ const platforms = {
   macos: {
     stage: "UNDER INVESTIGATION",
     title: "Exploring macOS.",
-    description: "USB support depends on Apple’s device permissions.",
+    description: "The control agent builds. USB export and attachment are not implemented.",
   },
 };
 const examples = {
@@ -381,7 +381,7 @@ for (const button of document.querySelectorAll("[data-example]")) {
       button.dataset.example === "bluetooth"
         ? "Connect the adapter. Its Bluetooth range stays at Studio PC."
         : button.dataset.example === "drive"
-          ? "Try connecting a USB drive across the internet."
+          ? "A future concept: storage devices are blocked in the current alpha."
           : "Click Connect to bring the printer over here.",
     );
   });

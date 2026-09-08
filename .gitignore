@@ -21,3 +21,7 @@
 *.swp
 
 # Dependency lockfiles must be committed when dependencies are introduced.
+
+# Python test harness bytecode
+__pycache__/
+*.pyc

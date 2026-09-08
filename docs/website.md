@@ -1,8 +1,9 @@
 # Product website
 
 Production: **[portrelay.cobanov.dev](https://portrelay.cobanov.dev)**, hosted on
-Cloudflare Pages. The desktop agent, real device sharing, and installers remain
-unreleased. This website is a working interface concept.
+Cloudflare Pages. The website links to the experimental Linux installer and
+validation record. Its interactive device examples remain a simulated concept,
+separate from the real installed application.
 
 ## Design
 
@@ -26,7 +27,7 @@ below the example. No installer or support claim is fabricated.
 All state stays in browser memory and resets on reload. No device APIs, local
 agents, pairing secrets, or real network sessions are used. Busy devices remain
 unavailable, local sharing can be toggled, and the example local keyboard stays
-protected. Linux, Windows, and macOS statuses reflect the development plan.
+protected. Linux is a developer alpha; Windows and macOS USB backends remain pending.
 
 The Bluetooth example lends a whole adapter; it does not imply general
 virtualization of individual Bluetooth peripherals. Device compatibility still

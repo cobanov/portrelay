@@ -1,0 +1,14 @@
+[workspace]
+members = ["crates/portrelay"]
+resolver = "3"
+
+[workspace.package]
+version = "0.1.0-alpha.1"
+edition = "2024"
+rust-version = "1.97"
+license = "MIT"
+repository = "https://github.com/cobanov/portrelay"
+
+[profile.release]
+lto = "thin"
+strip = true

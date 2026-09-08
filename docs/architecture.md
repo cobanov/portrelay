@@ -2,7 +2,9 @@
 
 Date: 2026-09-08
 
-Status: selected initial direction; implementation and hardware validation pending.
+Status: original design. The implemented Linux alpha and the local-browser UI
+adjustment are recorded in [ADR 0002](adr-0002-linux-alpha.md). Physical hardware
+validation and additional platform backends remain pending.
 
 The [research](research.md) supplies the upstream evidence. The design below is
 PortRelay's engineering decision, not a claim that these components already work
@@ -133,7 +135,8 @@ once; applications may need to reconnect or retry their own operation.
 
 ## Platform plan
 
-Every entry is **planned or under investigation**, not implemented support.
+This table preserves the original platform plan. Current implementation and test
+status are in [the validation record](validation.md); it supersedes this table.
 
 | Capability | Linux | Windows | macOS |
 | --- | --- | --- | --- |

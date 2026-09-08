@@ -1,7 +1,9 @@
 # Roadmap
 
-This is an implementation plan, not a release announcement. There are no
-published installers, tested device pairs, or scheduled release dates yet.
+The Linux developer alpha implements the first encrypted USB path. See
+[validation](validation.md) for kernel-fixture evidence and remaining limits.
+Physical USB/Bluetooth compatibility and the complete non-technical setup gate
+remain open. Completed code is not a claim of universal device support.
 
 ## 0. Project bootstrap
 
@@ -20,16 +22,18 @@ published installers, tested device pairs, or scheduled release dates yet.
 - [x] Redesign around visual printer, Bluetooth-adapter, and USB-drive examples.
 - [x] Configure public Cloudflare Pages hosting at portrelay.cobanov.dev.
 
-This does not close the native desktop, device-sharing, or installer milestones.
+The website demo does not provide hardware validation. The separate Linux
+application below supplies the implemented device path.
 
 ## 1. Prove the device path
 
-- [ ] Create the Rust agent/CLI workspace and pin dependency versions.
-- [ ] Implement Linux USB inventory, backend detection, and explicit capability
+- [x] Create the Rust agent/CLI workspace and pin dependency versions.
+- [x] Implement Linux USB inventory, backend detection, and explicit capability
       reporting without detaching devices during discovery.
-- [ ] Prove one approved device can pass from Linux export to Linux native
-      import through a restricted local bridge and encrypted connection.
-- [ ] Implement pairing, device permissions, exclusive leases, revocation,
+- [x] Prove one approved device can pass from Linux export to Linux native
+      import through a restricted local bridge and encrypted connection
+      (kernel virtual serial fixture; physical hardware remains pending).
+- [x] Implement pairing, device permissions, exclusive leases, revocation,
       bounded I/O, and failure cleanup in that same path.
 - [ ] Verify a dedicated USB Bluetooth adapter can be lent, pair to a nearby
       device from the receiving OS, and return to its original owner.
@@ -42,13 +46,16 @@ concurrent claims are rejected; disconnect and owner recovery are verified.
 
 ## 2. Make two-computer LAN setup understandable
 
-- [ ] Add the Tauri desktop shell using the same agent as the CLI.
-- [ ] Add local peer discovery, manual fallback, and paired-computer management.
-- [ ] Build first-run setup, dependency checks, local device sharing, remote
+- [x] Add an embedded local control window using the same agent as the CLI.
+- [ ] Package a native desktop shell if needed; Tauri deferred in ADR 0002.
+- [x] Add invitation entry and paired-computer management.
+- [ ] Add automatic local peer discovery and address refresh.
+- [x] Build first-run setup, dependency checks, local device sharing, remote
       device connection, busy state, and owner reclaim flows.
-- [ ] Add permission, unplugged, missing-driver, blocked-network, and restore
+- [x] Add permission, unplugged, missing-driver, blocked-network, and restore
       failure messages with actionable recovery.
-- [ ] Package and uninstall on a fresh Linux desktop with no developer tools.
+- [x] Provide a Linux binary installer with helper and agent services.
+- [ ] Validate installation and menu launch on a fresh graphical Linux desktop.
 - [ ] Observe a non-technical user complete first sharing without CLI commands.
 
 Exit gate: both computers can be installed and paired, and a tested device
@@ -56,8 +63,9 @@ connected and returned entirely through the application on an isolated LAN.
 
 ## 3. Internet operation
 
-- [ ] Add identity-bound invitation import/export and expiry handling.
-- [ ] Test direct connections across separate NATs and forced relay fallback.
+- [x] Add identity-bound invitation import/export and expiry handling.
+- [x] Test a forced external relay with direct IP transports disabled.
+- [ ] Test direct connectivity across two independent NATs.
 - [ ] Publish and test a self-hosted relay deployment with configurable endpoints.
 - [ ] Measure latency, throughput, resource limits, and behavior under packet
       loss for the tested device classes. Clearly identify relayed sessions.
