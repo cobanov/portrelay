@@ -41,6 +41,8 @@ jobs:
           retention-days: 30
   windows-package:
     runs-on: windows-2025
+    env:
+      CARGO_TARGET_DIR: target/rust-windows
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -52,6 +54,8 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           cache-on-failure: true
+          prefix-key: windows-rust-v2
+          workspaces: . -> target/rust-windows
       - run: ./windows/build.ps1
       - uses: actions/upload-artifact@v4
         if: always()

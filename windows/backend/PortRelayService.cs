@@ -151,6 +151,7 @@ sealed class PortRelayService : BackgroundService
             if (op == "health")
             {
                 if (!File.Exists(client)) throw new IOException("Install the Windows USB drivers and restart Windows");
+                PortRelayController.RequirePrivate();
                 // Querying the virtual controller proves it is loaded, including
                 // driver-signature/required-reboot failures after installation.
                 _ = await Command(client, ["port"], token);
@@ -205,6 +206,7 @@ sealed class PortRelayService : BackgroundService
             }
             else if (op == "import")
             {
+                PortRelayController.RequirePrivate();
                 var device = request.GetProperty("device").Deserialize<PortRelayDevice>(PortRelayWire.Json) ?? throw new InvalidDataException("Missing USB metadata");
                 PortRelayWire.Validate(device);
                 using var listener = new TcpListener(IPAddress.Loopback, 0);

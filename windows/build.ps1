@@ -30,7 +30,8 @@ if ((Get-FileHash $driver -Algorithm SHA256).Hash -ne '81F426741F7EE2ED991FEBE24
 Push-Location $repo
 try {
     if (-not $SkipAgent) { cargo +1.97.0 build --locked --release }
-    Copy-Item target/release/portrelay.exe,target/release/portrelay-desktop.exe $stage
+    $rustTarget = if ($env:CARGO_TARGET_DIR) { $env:CARGO_TARGET_DIR } else { 'target' }
+    Copy-Item (Join-Path $rustTarget 'release/portrelay.exe'),(Join-Path $rustTarget 'release/portrelay-desktop.exe') $stage
     Copy-Item windows/packaging/*.ps1,LICENSE $stage
     Copy-Item windows/THIRD-PARTY-NOTICES.md $stage
     python scripts/dependency-notices.py

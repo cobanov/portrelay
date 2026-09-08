@@ -22,6 +22,10 @@ try {
             throw 'An existing usbipd-win or VirtualBox USB service is installed. PortRelay will not replace it. Remove that USB service first if you want PortRelay to manage these devices.'
         }
     }
+    $client = Join-Path $env:ProgramFiles 'USBip\usbip.exe'
+    if ((Test-Path $client) -and (-not (Test-Path $registry) -or (Get-ItemPropertyValue $registry InstalledClient -ErrorAction SilentlyContinue) -ne 1)) {
+        throw 'An existing USBip installation is present. PortRelay needs its own USB controller. Uninstall USBip first if you want PortRelay to manage it.'
+    }
     # Keep service configuration, logs, and recovery journals administrator-only.
     if ((Test-Path $root) -and ((Get-Item $root).Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw 'The service data directory must not be a link.' }
     $null = New-Item -ItemType Directory -Force $root
@@ -40,7 +44,6 @@ try {
     $clientInstaller = Join-Path $install 'drivers\USBip-0.9.8.0-x64.exe'
     $hash = (Get-FileHash -LiteralPath $clientInstaller -Algorithm SHA256).Hash
     if ($hash -ne '81F426741F7EE2ED991FEBE24A22DACA8400B6AE2F171054E3FB404897E15D39') { throw 'The USB driver download failed integrity verification. Reinstall PortRelay.' }
-    $client = Join-Path $env:ProgramFiles 'USBip\usbip.exe'
     if (-not (Test-Path $client)) {
         $process = Start-Process -FilePath $clientInstaller -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /COMPONENTS=main,client' -Wait -PassThru
         if ($process.ExitCode -notin @(0, 3010)) { throw "The signed USB driver installer failed ($($process.ExitCode)). Restart Windows and retry." }
@@ -48,6 +51,7 @@ try {
     } elseif ((Get-Item $client).VersionInfo.FileVersion -notlike '0.9.8.0*') {
         throw 'A different USBip client version is installed. Update it to the signed 0.9.8.0 release before continuing.'
     }
+    & (Join-Path $install 'protect-controller.ps1')
     $null = New-Item -Force $usbRegistry
     New-ItemProperty -Path $usbRegistry -Name APPLICATIONFOLDER -Value (Join-Path $install 'device-service') -PropertyType String -Force | Out-Null
     New-ItemProperty -Path $usbRegistry -Name Version -Value '5.3.0' -PropertyType String -Force | Out-Null
