@@ -41,7 +41,8 @@ server binds to loopback and serves only the website directory.
 
 The site can be served by any static host. `.openai/hosting.json` records the
 existing Sites project and the `dist` output directory. The initial Sites
-deployment is an owner-only preview, not a public product launch. Device
+deployment is an [owner-only preview](https://portrelay.cobanovdev.chatgpt.site),
+not a public product launch. Device
 functionality and public release availability must remain separate from the
 website's deployment status.
 
