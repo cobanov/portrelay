@@ -1,0 +1,23 @@
+# Build outputs
+/target/
+**/node_modules/
+**/dist/
+*.log
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+/local-data/
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Dependency lockfiles must be committed when dependencies are introduced.
