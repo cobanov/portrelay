@@ -25,3 +25,5 @@
 # Python test harness bytecode
 __pycache__/
 *.pyc
+windows/**/bin/
+windows/**/obj/

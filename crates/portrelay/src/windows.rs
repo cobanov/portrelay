@@ -21,8 +21,8 @@ use windows_sys::Win32::{
             GetNamedSecurityInfoW, SE_FILE_OBJECT, SetNamedSecurityInfoW,
         },
         DACL_SECURITY_INFORMATION, GetSecurityDescriptorDacl, GetTokenInformation,
-        OWNER_SECURITY_INFORMATION, PROTECTED_DACL_SECURITY_INFORMATION, TOKEN_QUERY, TOKEN_USER,
-        TokenUser,
+        OWNER_SECURITY_INFORMATION, PROTECTED_DACL_SECURITY_INFORMATION, TOKEN_INFORMATION_CLASS,
+        TOKEN_OWNER, TOKEN_QUERY, TOKEN_USER, TokenOwner, TokenUser,
     },
     System::{
         Pipes::GetNamedPipeServerProcessId,
@@ -62,6 +62,9 @@ unsafe fn sid_text(sid: *mut c_void) -> Result<String> {
     Ok(result)
 }
 fn process_sid(process: HANDLE) -> Result<String> {
+    process_identity(process, TokenUser)
+}
+fn process_identity(process: HANDLE, class: TOKEN_INFORMATION_CLASS) -> Result<String> {
     unsafe {
         let mut token = ptr::null_mut();
         if OpenProcessToken(process, TOKEN_QUERY, &mut token) == 0 {
@@ -69,14 +72,17 @@ fn process_sid(process: HANDLE) -> Result<String> {
         }
         let token = Handle(token);
         let mut length = 0;
-        GetTokenInformation(token.0, TokenUser, ptr::null_mut(), 0, &mut length);
+        GetTokenInformation(token.0, class, ptr::null_mut(), 0, &mut length);
         if length == 0 || length > 16384 {
             bail!("Invalid Windows account token");
         }
         let mut storage = vec![0usize; (length as usize).div_ceil(std::mem::size_of::<usize>())];
         if GetTokenInformation(
             token.0,
-            TokenUser,
+            class,
+            TokenOwner,
+            TOKEN_OWNER,
+            TOKEN_INFORMATION_CLASS,
             storage.as_mut_ptr().cast(),
             length,
             &mut length,
@@ -84,7 +90,11 @@ fn process_sid(process: HANDLE) -> Result<String> {
         {
             bail!("Cannot read the Windows account token");
         }
-        sid_text((*(storage.as_ptr().cast::<TOKEN_USER>())).User.Sid)
+        sid_text(if class == TokenOwner {
+            (*(storage.as_ptr().cast::<TOKEN_OWNER>())).Owner
+        } else {
+            (*(storage.as_ptr().cast::<TOKEN_USER>())).User.Sid
+        })
     }
 }
 pub fn current_sid() -> Result<String> {
@@ -116,7 +126,10 @@ pub fn protect_state(dir: &Path) -> Result<()> {
         }
         let owner_text = sid_text(owner);
         LocalFree(descriptor);
-        if owner_text? != sid {
+        let owner_text = owner_text?;
+        // Elevated tokens create directories owned by Administrators.
+        // Accept only this account or the current token's default owner.
+        if owner_text != sid && owner_text != process_identity(GetCurrentProcess(), TokenOwner)? {
             bail!("The state directory must belong to the current Windows user");
         }
         let text = wide(format!(

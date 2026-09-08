@@ -9,7 +9,7 @@ $packages = Join-Path $repo 'target\packages'
 New-Item -ItemType Directory -Force $stage,$packages | Out-Null
 if (-not (Test-Path $source)) {
     git clone --branch v5.3.0 --single-branch https://github.com/dorssel/usbipd-win $source
-    git -C $source switch -c portrelay-build
+    git -C $source switch -c main
     python (Join-Path $PSScriptRoot 'backend\prepare.py') $source
 }
 $revision = (git -C $source rev-parse HEAD).Trim()
@@ -31,6 +31,9 @@ try {
     Copy-Item target/release/portrelay.exe,target/release/portrelay-desktop.exe $stage
     Copy-Item windows/packaging/*.ps1,LICENSE $stage
     Copy-Item windows/THIRD-PARTY-NOTICES.md $stage
+    python scripts/dependency-notices.py
+    python scripts/sbom.py
+    Copy-Item target/packages/THIRD_PARTY_NOTICES.txt,target/packages/SBOM.cdx.json,Cargo.lock $stage
     $version = ((Select-String '^version = "([^"]+)"' Cargo.toml).Matches.Groups[1].Value)
     $compiler = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
     & $compiler "/DAppVersion=$version" "/DStage=$stage" "/DOutput=$packages" windows/packaging/portrelay.iss
@@ -42,6 +45,8 @@ try {
     tar -xf (Join-Path $target 'upstream.tar') -C $corresponding
     Copy-Item "$source\Usbipd\*.cs" "$corresponding\Usbipd" -Force
     Copy-Item "$source\Usbipd\Usbipd.csproj","$source\Usbipd\NativeMethods.txt" "$corresponding\Usbipd" -Force
+    Copy-Item "$source\global.json" $corresponding -Force
+    Copy-Item windows/backend/packages.lock.json "$corresponding\Usbipd" -Force
     Copy-Item windows "$corresponding\PortRelay-build" -Recurse -Force
     Compress-Archive -Path "$corresponding\*" -DestinationPath "$packages\portrelay-$version-windows-backend-source.zip" -Force
     Get-ChildItem $packages -File | Where-Object { $_.Name -like "portrelay-$version-windows-*" -and $_.Extension -ne '.sha256' } | ForEach-Object {

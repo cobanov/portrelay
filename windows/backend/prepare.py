@@ -53,9 +53,16 @@ text = text[:start] + '''        if (!System.Security.Principal.WindowsIdentity.
 path.write_text(text, encoding="utf-8")
 replace("CommandHandlersServer.cs", ".UseWindowsService()", '.UseWindowsService(options => options.ServiceName = "PortRelayHelper")')
 replace("CommandHandlersServer.cs", "_ = services.AddHostedService<Server>();", "_ = services.AddHostedService<Server>();\n                _ = services.AddHostedService<PortRelayService>();")
-replace("Usbipd.csproj", "<PublishAot>true</PublishAot>", "<PublishAot>false</PublishAot>\n    <PublishTrimmed>false</PublishTrimmed>\n    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>")
+replace("Usbipd.csproj", "<PublishAot>true</PublishAot>", "<PublishAot>false</PublishAot>\n    <PublishTrimmed>false</PublishTrimmed>\n    <IsTrimmable>false</IsTrimmable>\n    <IsAotCompatible>false</IsAotCompatible>\n    <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>")
 for source in pathlib.Path(__file__).parent.glob("PortRelay*.cs"):
     shutil.copy2(source, root / "Usbipd" / source.name)
 path = root / "Usbipd" / "NativeMethods.txt"
 with path.open("a", encoding="utf-8") as stream:
     stream.write("\nDEVPKEY_Device_LastArrivalDate\nDEVPKEY_Device_Class\nDEVPKEY_Device_Service\n")
+
+shutil.copy2(pathlib.Path(__file__).parent / "packages.lock.json", root / "Usbipd" / "packages.lock.json")
+import json
+path = root / "global.json"
+config = json.loads(path.read_text())
+config["sdk"] = {"version": "9.0.317", "allowPrerelease": False, "rollForward": "disable"}
+path.write_text(json.dumps(config, indent=2) + "\n")

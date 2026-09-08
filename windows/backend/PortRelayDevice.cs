@@ -15,10 +15,6 @@ sealed partial class WindowsDevice
     public string PortRelayArrival => TryGetProperty(Node, PInvoke.DEVPKEY_Device_LastArrivalDate, out var value, out _) ? Convert.ToHexString(value) : "";
 }
 
-sealed record PortRelayDevice(string Id, string Generation, string Name, string Vendor, string Product,
-    string Kind, uint Speed, uint Devid, string? Blocked);
-sealed record PortRelayEntry(PortRelayDevice Device, string InstanceId);
-
 static class PortRelayInventory
 {
     static readonly string Epoch = Guid.NewGuid().ToString();
