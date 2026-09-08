@@ -47,9 +47,9 @@ if(Test-Path $registry) {
     }
     # Keep progress markers until every removal succeeds, so a retry after a
     # reboot does not attempt to uninstall an already removed driver package.
+    $monitor=Get-Service VBoxUSBMon -ErrorAction SilentlyContinue
+    if($monitor -and $monitor.Status -ne 'Stopped'){Stop-Service VBoxUSBMon}
     if(-not $config.PSObject.Properties['ExportDriverRemoved'] -or $config.ExportDriverRemoved -ne 1) {
-        $monitor=Get-Service VBoxUSBMon -ErrorAction SilentlyContinue
-        if($monitor -and $monitor.Status -ne 'Stopped'){Stop-Service VBoxUSBMon}
         & $backend installer uninstall_driver
         if($LASTEXITCODE -ne 0){throw 'Windows could not remove the USB export driver. Restart and retry.'}
         New-ItemProperty -Path $registry -Name ExportDriverRemoved -Value 1 -PropertyType DWord -Force | Out-Null
