@@ -1,0 +1,44 @@
+name: Check one-command installers
+on:
+  push:
+    branches: [main]
+    paths: ['web/install.*', 'tests/bootstrap-*', '.github/workflows/bootstrap.yml']
+  pull_request:
+    paths: ['web/install.*', 'tests/bootstrap-*', '.github/workflows/bootstrap.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ubuntu:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install published package through the piped bootstrap
+        run: |
+          set -o pipefail
+          cat web/install.sh | sh
+          dpkg-query -W -f='${Status}\n' portrelay | grep -Fx 'install ok installed'
+          test -x /usr/lib/portrelay/portrelay
+          sh web/install.sh
+          sudo apt-get remove -y portrelay
+      - name: Verify a corrupt download is never installed
+        run: |
+          python3 tests/bootstrap-linux.py
+  debian:
+    runs-on: ubuntu-24.04
+    container: debian:13
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: apt-get update && apt-get install -y curl ca-certificates python3
+      - run: sh web/install.sh --download-only
+      - run: python3 tests/bootstrap-linux.py
+  windows:
+    runs-on: windows-2025
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Exercise bootstrap on a fresh runner with Windows PowerShell 5.1
+        shell: powershell
+        run: ./tests/bootstrap-windows.ps1

@@ -4,7 +4,8 @@ Production: **[portrelay.cobanov.dev](https://portrelay.cobanov.dev)**, hosted o
 Cloudflare Pages. The website offers Windows 11 x64, Ubuntu, and Debian downloads
 for **v0.1.0-alpha.3**, checksums, and platform-specific setup guides. Windows is
 the initial download selection; macOS shows development progress without a
-download. The hero links directly to installation and the validation record.
+download. The hero links directly to installation and the validation record. Windows and
+Linux also show a copyable one-command installer and a link to its source.
 The Windows panel identifies the known controller-removal limitation. Interactive
 device examples remain a simulated concept, separate from the installed app.
 
@@ -38,9 +39,13 @@ requires actual hardware evidence, separately from this visual demonstration.
 
 The page remains readable without JavaScript, with demo controls disabled. It
 includes keyboard focus restoration, status announcements, responsive layouts,
-and reduced-motion handling. Browser visual and interaction QA has not been
-performed in this task; syntax, formatting, build, assets, and deployed HTTP
-responses are checked separately.
+and reduced-motion handling. On 2026-09-09, browser screenshots exposed and
+corrected mismatched demo-card tops, inconsistent download-card gutters, a
+concatenated mobile heading, and wrapping device actions. Responsive checks cover
+320, 390, 680, 681, 768, 1024, and 1440 CSS pixels. Printer/Bluetooth concepts,
+local sharing, OS selection, and the copy button are exercised separately from
+syntax/build and installer checks. These are website tests, not native app
+or physical-device acceptance.
 
 ## Build and deployment
 

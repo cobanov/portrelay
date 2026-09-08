@@ -75,8 +75,8 @@ const localDevices = [
 const platforms = {
   linux: {
     stage: "ALPHA.3 · EXPERIMENTAL",
-    title: "Ubuntu or Debian. Your choice.",
-    description: "Share USB with Windows or Linux. Packages prepare USB support; physical devices still need testing.",
+    title: "Ubuntu or Debian. One command.",
+    description: "Ubuntu 24.04 or Debian 13. The command picks the right package for you.",
   },
   windows: {
     stage: "ALPHA.3 · EXPERIMENTAL",
@@ -293,10 +293,35 @@ for (const button of document.querySelectorAll("[data-os]")) {
     byId("linux-downloads").hidden = button.dataset.os !== "linux";
     byId("windows-downloads").hidden = button.dataset.os !== "windows";
     byId("windows-limit").hidden = button.dataset.os !== "windows";
+    const linux = button.dataset.os === "linux";
+    byId("command-install").hidden = button.dataset.os === "macos";
+    byId("command-label").textContent = linux ? "Or paste in Terminal" : "Or paste in PowerShell";
+    byId("install-command").textContent = linux
+      ? "curl -fsSL https://portrelay.cobanov.dev/install.sh | sh"
+      : "irm https://portrelay.cobanov.dev/install.ps1 | iex";
+    byId("installer-source").href = linux ? "/install.sh" : "/install.ps1";
+    byId("copy-command").textContent = "Copy command";
     byId("installation-guide").firstChild.textContent = button.dataset.os === "macos" ? "Follow macOS progress " : button.dataset.os === "windows" ? "Windows setup guide " : "Linux setup guide ";
     byId("installation-guide").href = `https://github.com/cobanov/portrelay/blob/main/docs/${button.dataset.os === "macos" ? "roadmap.md" : button.dataset.os + "-alpha.md"}`;
   });
 }
+
+const copyCommand = byId("copy-command");
+copyCommand.disabled = false;
+copyCommand.addEventListener("click", async () => {
+  const command = byId("install-command").textContent;
+  try {
+    await navigator.clipboard.writeText(command);
+    // Do not show success for a different platform selected while permission was pending.
+    if (byId("install-command").textContent === command) {
+      copyCommand.textContent = "Copied!";
+      byId("demo-announcement").textContent = "Installation command copied.";
+    }
+  } catch {
+    copyCommand.textContent = "Select and copy the command above";
+    byId("demo-announcement").textContent = "Clipboard unavailable. Select and copy the command above.";
+  }
+});
 
 function renderFlow(device) {
   const local = view === "local";

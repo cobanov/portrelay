@@ -4,6 +4,32 @@ The Linux alpha shares USB devices between two Linux computers. Start with a
 test device: physical USB and Bluetooth compatibility is still unvalidated.
 The current packages are for Intel/AMD 64-bit Linux with systemd.
 
+## One-command install
+
+On **Ubuntu 24.04 or Debian 13, Intel/AMD 64-bit**, paste this in Terminal:
+
+```sh
+curl -fsSL https://portrelay.cobanov.dev/install.sh | sh
+```
+
+The script selects your distribution, verifies the alpha.3 package against a
+pinned SHA-256, and uses `apt-get` to install it and its dependencies. Enter your
+administrator password if asked. Then open **PortRelay** from your applications
+and follow steps 2 and 3 below. It does not enable USB or share devices for you.
+Unsupported distributions and architectures stop before downloading a package.
+
+[Read the script](../web/install.sh). To inspect it before running:
+
+```sh
+curl -fsSL https://portrelay.cobanov.dev/install.sh -o install-portrelay.sh
+less install-portrelay.sh
+sh install-portrelay.sh
+```
+
+Re-running installs the same pinned release; this is not an automatic update
+service. `sh install-portrelay.sh --download-only` checks the package without
+installing and removes the temporary download afterward.
+
 ## Three steps on each computer
 
 1. **Install the package.** Download for

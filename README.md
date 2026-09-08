@@ -26,6 +26,26 @@ and a small local control window. No account or subscription is required.
 3. Choose **Share device** on one computer and **Connect** on the other.
    **Disconnect** returns the device to its owner.
 
+Prefer a terminal? Install the same alpha package with one command:
+
+**Ubuntu 24.04 / Debian 13 (Intel/AMD 64-bit):**
+
+```sh
+curl -fsSL https://portrelay.cobanov.dev/install.sh | sh
+```
+
+**Windows 11 (Intel/AMD 64-bit), in PowerShell:**
+
+```powershell
+irm https://portrelay.cobanov.dev/install.ps1 | iex
+```
+
+The scripts verify the pinned release SHA-256 before installing. Linux selects
+its distribution package and installs dependencies; Windows opens the existing
+installer with the normal administrator prompt. Then open PortRelay to enable
+USB and pair computers. [Read the Linux script](web/install.sh) or
+[Windows script](web/install.ps1). These install alpha.3, without adding auto-updates.
+
 The package installs dependencies, adds the app shortcut, and keeps the agent
 running after you close its window. An administrator prompt enables USB support;
 you do not need to configure helper services manually. Follow the

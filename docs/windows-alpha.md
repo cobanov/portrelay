@@ -5,6 +5,24 @@ and Windows Server are not validated by this package. The other computer can
 run the Windows alpha or the [Linux alpha](linux-alpha.md); see the exact tested
 directions in [validation](validation.md).
 
+## One-command install
+
+Open **PowerShell** as your normal Windows user and paste:
+
+```powershell
+irm https://portrelay.cobanov.dev/install.ps1 | iex
+```
+
+This downloads the alpha.3 installer, verifies its pinned SHA-256, and opens the
+same installation wizard as the download button. Approve the normal Windows
+administrator prompt and finish the wizard. Then open **PortRelay** and follow
+steps 2 and 3 below. The script does not enable USB or share devices for you.
+
+[Read the script](../web/install.ps1). Windows security settings and execution
+policy stay unchanged; if your organization blocks downloaded scripts, use the
+`.exe` download instead. Temporary downloads are removed on completion or error.
+Re-running opens the same pinned installer; this does not add automatic updates.
+
 ## Install and connect
 
 1. Download the Windows `.exe` installer from the

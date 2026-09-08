@@ -13,6 +13,8 @@ const types = {
   ".css": "text/css; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
   ".svg": "image/svg+xml",
+  ".sh": "text/plain; charset=utf-8",
+  ".ps1": "text/plain; charset=utf-8",
 };
 const server = createServer(async (req, res) => {
   try {

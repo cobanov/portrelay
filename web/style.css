@@ -320,13 +320,15 @@ h1 > span {
 .relay-layout {
   display: grid;
   grid-template-columns: minmax(0, 0.76fr) minmax(90px, 0.32fr) minmax(0, 1.6fr);
-  align-items: center;
+  align-items: stretch;
   padding: 20px 36px 30px;
   gap: 0;
   min-width: 0;
 }
 .source-column,
 .destination-column {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
 }
 .endpoint-label {
@@ -343,6 +345,9 @@ h1 > span {
   font-weight: 600;
 }
 .source-card {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
   border: 1px solid #e1e8f3;
   border-radius: 16px;
   background: white;
@@ -407,6 +412,8 @@ h1 > span {
   min-height: 42px;
 }
 .source-state {
+  align-self: center;
+  margin-bottom: 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -433,7 +440,7 @@ h1 > span {
   gap: 7px;
   font-size: 12px;
   color: #526984;
-  margin-top: 27px;
+  margin-top: auto;
 }
 .source-plug .icon {
   width: 15px;
@@ -738,7 +745,8 @@ h1 > span {
   border-top: 1px solid #edf1f7;
 }
 .device-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 11px;
   align-items: center;
   min-height: 72px;
@@ -962,10 +970,9 @@ h1 > span {
 }
 .get-app {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
-  gap: 100px;
-  max-width: 930px;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  align-items: start;
+  gap: 64px;
   padding-block: 80px 70px;
 }
 .small-label {
@@ -1001,6 +1008,8 @@ h1 > span {
   height: 16px;
 }
 .platform-panel {
+  --panel-gutter: 24px;
+  min-width: 0;
   border: 1px solid #e5ebf5;
   background: #fff;
   border-radius: 12px;
@@ -1038,8 +1047,7 @@ h1 > span {
   color: var(--accent);
 }
 .platform-content {
-  padding: 20px 24px;
-  min-height: 145px;
+  padding: 24px var(--panel-gutter) 20px;
 }
 .platform-stage {
   font-size: 12px;
@@ -1058,14 +1066,13 @@ h1 > span {
   line-height: 1.6;
   color: #526984;
   margin-top: 8px;
-  min-height: 45px;
 }
 .roadmap-link {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 24px;
+  padding: 14px var(--panel-gutter);
   background: #fafcff;
   border-top: 1px solid #edf1f7;
   font-size: 13px;
@@ -1116,6 +1123,89 @@ h1 > span {
 .footer-dot {
   color: #526984;
 }
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 14px 24px;
+  margin-top: 22px;
+  font-size: 14px;
+}
+.download-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 var(--panel-gutter) 20px;
+}
+.download-buttons[hidden],
+.command-install[hidden] {
+  display: none;
+}
+.download-buttons .button {
+  font-size: 14px;
+  padding: 12px 16px;
+}
+.download-note {
+  flex-basis: 100%;
+  color: #526984;
+  font-size: 13px;
+}
+.command-install {
+  margin: 0 var(--panel-gutter) 20px;
+  min-width: 0;
+}
+.command-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #526984;
+}
+.command-heading a {
+  color: var(--accent);
+}
+.command-box {
+  border: 1px solid #dce5f2;
+  border-radius: 8px;
+  background: #f6f8fc;
+  overflow: hidden;
+}
+.command-box code {
+  display: block;
+  padding: 14px;
+  font: 13px/1.7 ui-monospace, SFMono-Regular, Consolas, monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+.copy-command {
+  width: 100%;
+  min-height: 38px;
+  border-top: 1px solid #dce5f2;
+  background: #fff;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 500;
+}
+.copy-command:hover {
+  background: #eff4ff;
+}
+.platform-warning {
+  margin: 0 var(--panel-gutter) 20px;
+  color: #526984;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.platform-warning a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 @media (min-width: 1400px) {
   .hero {
     padding-top: 42px;
@@ -1129,9 +1219,6 @@ h1 > span {
   }
   .source-card {
     padding-top: 24px;
-  }
-  .source-plug {
-    margin-top: 30px;
   }
 }
 @media (max-width: 1080px) {
@@ -1308,20 +1395,22 @@ h1 > span {
     font-size: 12px;
   }
   .get-app {
-    gap: 48px;
-    max-width: 740px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+    max-width: 560px;
     padding-block: 64px;
   }
   .release-intro h2 {
     font-size: 29px;
   }
-  .platform-content {
-    padding-inline: 20px;
+  .release-intro {
+    text-align: center;
   }
   .footer > p {
     display: none;
   }
   .endpoint-label {
+    min-height: 2.8em;
     font-size: 12px;
   }
   .app-heading {
@@ -1593,9 +1682,7 @@ h1 > span {
     width: 30px;
     height: 32px;
   }
-  .device-details {
-    min-width: 100px;
-  }
+
   .device-details h3 {
     font-size: 14px;
   }
@@ -1667,9 +1754,7 @@ h1 > span {
     line-height: 1.2;
     margin-top: 10px;
   }
-  .release-intro h2 br {
-    display: none;
-  }
+
   .release-intro > p {
     font-size: 16px;
     margin-top: 12px;
@@ -1678,13 +1763,11 @@ h1 > span {
     font-size: 14px;
     margin-top: 12px;
   }
-  .platform-content {
-    min-height: 130px;
-    padding: 18px 22px;
+  .platform-panel {
+    --panel-gutter: 20px;
   }
   .platform-content p {
     font-size: 14px;
-    min-height: 42px;
   }
   .platform-content h3 {
     font-size: 18px;
@@ -1749,12 +1832,3 @@ h1 > span {
     justify-content: flex-start;
   }
 }
-
-.download-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 24px 12px; }
-.download-buttons[hidden] { display: none; }
-.download-buttons .button { font-size: 13px; padding: 12px 16px; }
-.download-note { flex-basis: 100%; color: var(--muted, #64748b); font-size: 14px; padding-top: 2px; }
-
-.hero-actions { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 14px 24px; margin-top: 22px; font-size: 14px; }
-.platform-warning { margin: 0 24px 18px; color: #526984; font-size: 14px; line-height: 1.6; }
-.platform-warning a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
