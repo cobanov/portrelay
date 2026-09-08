@@ -216,7 +216,7 @@ sealed class PortRelayService : BackgroundService
                 if (File.Exists(path)) throw new IOException("Virtual connection needs recovery");
                 recovery = new("import", device.Id, null, localPort);
                 Save(path, recovery);
-                attaching = Command(client, ["--tcp-port", localPort.ToString(), "attach", "--remote", "127.0.0.1", "--busid", device.Id, "--terse", "--once"], token);
+                attaching = Command(client, ["--tcp-port", localPort.ToString(), "attach", "--remote", "127.0.0.1", "--bus-id", device.Id, "--terse", "--once"], token);
                 TcpClient? kernel = null;
                 while (kernel is null)
                 {

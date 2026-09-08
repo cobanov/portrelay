@@ -6,6 +6,9 @@ $target = Join-Path $repo 'target\windows-package'
 $stage = Join-Path $target 'app'
 $source = Join-Path $target 'usbipd-win'
 $packages = Join-Path $repo 'target\packages'
+# This directory contains generated staging files and a disposable upstream
+# checkout. Recreate it so local rebuilds cannot silently package stale patches.
+if (Test-Path $target) { Remove-Item $target -Recurse -Force }
 New-Item -ItemType Directory -Force $stage,$packages | Out-Null
 if (-not (Test-Path $source)) {
     git clone --branch v5.3.0 --single-branch https://github.com/dorssel/usbipd-win $source

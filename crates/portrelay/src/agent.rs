@@ -504,11 +504,20 @@ impl Agent {
                         let _ = send.finish();
                         let _ = tokio::time::timeout(Duration::from_secs(2), conn.closed()).await;
                     }
-                    conn.close(0u32.into(), b"device session ended");
+                    let mut error = result.err().and_then(|e| {
+                        if ready {
+                            session_error(e)
+                        } else {
+                            Some(e.to_string())
+                        }
+                    });
+                    conn.close(
+                        if error.is_some() { 1u32 } else { 0u32 }.into(),
+                        b"device session ended",
+                    );
                     if let Some(s) = self.inner.lock().await.sessions.get_mut(&session) {
                         s.info.state = "restoring".into();
                     }
-                    let mut error = result.err().map(|e| e.to_string());
                     #[cfg(any(unix, windows))]
                     if ready
                         && let Err(e) = backend::open(
@@ -741,9 +750,10 @@ impl Agent {
                 let agent=self.clone();let task_session=session.clone();
                 tokio::spawn(async move {
                     let result=tokio::select!{_=cancel.cancelled()=>Ok(()),_=agent.cancel.cancelled()=>Ok(()),r=bridge(&mut ipc,&mut recv,&mut send)=>r};
-                    drop(ipc);conn.close(0u32.into(),b"device session ended");
+                    drop(ipc);
+                    let mut error=result.err().and_then(session_error);
+                    conn.close(if error.is_some(){1u32}else{0u32}.into(),b"device session ended");
                     if let Some(s)=agent.inner.lock().await.sessions.get_mut(&task_session){s.info.state="detaching".into();}
-                    let mut error=result.err().map(|e|e.to_string());
                     if let Some(port)=local.port
                         && let Err(e)=backend::open(&agent.helper,&backend::HelperRequest::WaitImport{port}).await {error=Some(format!("Device detachment: {e}"));}
                     agent.finish(&task_session,error).await;
@@ -768,6 +778,22 @@ impl Agent {
         }
     }
 }
+fn session_error(error: anyhow::Error) -> Option<String> {
+    // QUIC surfaces an intentional peer disconnect as an I/O "connection lost"
+    // error. Preserve real network/helper failures, but recognize our explicit
+    // successful device-session close, including through io::Error wrappers.
+    let normal = error.chain().any(|cause| matches!(
+        cause.downcast_ref::<iroh::endpoint::ConnectionError>(),
+        Some(iroh::endpoint::ConnectionError::ApplicationClosed(close))
+            if close.error_code == 0u32.into() && close.reason.as_ref() == b"device session ended"
+    ));
+    if normal {
+        None
+    } else {
+        Some(error.to_string())
+    }
+}
+
 async fn bridge<S: AsyncRead + AsyncWrite + Unpin, R: AsyncRead + Unpin, W: AsyncWrite + Unpin>(
     socket: &mut S,
     recv: &mut R,
@@ -782,6 +808,31 @@ async fn bridge<S: AsyncRead + AsyncWrite + Unpin, R: AsyncRead + Unpin, W: Asyn
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn intentional_peer_close_is_distinct_from_transport_and_helper_failure() {
+        use iroh::endpoint::{ApplicationClose, ConnectionError, ReadError};
+        for (code, reason, normal) in [
+            (0u32, "device session ended", true),
+            (1, "device session ended", false),
+            (0, "request complete", false),
+        ] {
+            let transport =
+                ReadError::ConnectionLost(ConnectionError::ApplicationClosed(ApplicationClose {
+                    error_code: code.into(),
+                    reason: reason.as_bytes().to_vec().into(),
+                }));
+            let io: std::io::Error = transport.into();
+            assert_eq!(session_error(io.into()).is_none(), normal);
+        }
+        let timeout: std::io::Error = ReadError::ConnectionLost(ConnectionError::TimedOut).into();
+        assert!(session_error(timeout.into()).is_some());
+        assert!(
+            session_error(
+                std::io::Error::new(std::io::ErrorKind::BrokenPipe, "helper stopped").into()
+            )
+            .is_some()
+        );
+    }
     async fn make(dir: &std::path::Path, name: &str) -> Arc<Agent> {
         let path = storage::state_dir(Some(dir.into())).unwrap();
         Agent::start(
@@ -1144,6 +1195,24 @@ mod tests {
         .unwrap();
         import_task.await.unwrap();
         export_task.await.unwrap();
+        assert!(
+            owner
+                .inner
+                .lock()
+                .await
+                .history
+                .iter()
+                .all(|s| s.error.is_none())
+        );
+        assert!(
+            client
+                .inner
+                .lock()
+                .await
+                .history
+                .iter()
+                .all(|s| s.error.is_none())
+        );
         client.shutdown().await;
         owner.shutdown().await;
     }

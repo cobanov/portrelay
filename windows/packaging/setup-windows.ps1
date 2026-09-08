@@ -79,13 +79,22 @@ try {
         & $backend installer install_monitor
         if ($LASTEXITCODE -ne 0) { throw 'Windows could not install the USB monitor driver.' }
     }
+    Start-Service VBoxUSBMon
     $service = Get-Service PortRelayHelper -ErrorAction SilentlyContinue
-    if ($service) { Restart-Service PortRelayHelper }
+    if ($service) {
+        & "$env:SystemRoot\System32\sc.exe" config PortRelayHelper depend= VBoxUSBMon | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw 'Windows could not configure the USB monitor dependency.' }
+        Restart-Service PortRelayHelper
+    }
     else {
-        New-Service -Name PortRelayHelper -DisplayName 'PortRelay USB service' -BinaryPathName ('"' + $backend + '" server') -StartupType Automatic | Out-Null
+        New-Service -Name PortRelayHelper -DisplayName 'PortRelay USB service' -BinaryPathName ('"' + $backend + '" server') -StartupType Automatic -DependsOn VBoxUSBMon | Out-Null
         & "$env:SystemRoot\System32\sc.exe" failure PortRelayHelper reset= 86400 actions= restart/3000/restart/10000/restart/30000 | Out-Null
         Start-Service PortRelayHelper
     }
+    # Give the configured account only the queries needed to authenticate the
+    # pipe server. Default service ACLs may exclude non-interactive user tokens.
+    & "$env:SystemRoot\System32\sc.exe" sdset PortRelayHelper "D:P(A;;GA;;;SY)(A;;GA;;;BA)(A;;CCLC;;;$OwnerSid)" | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw 'Windows could not grant the app permission to verify its USB service.' }
     if (-not (Get-NetFirewallRule -Name 'PortRelay.Encrypted' -ErrorAction SilentlyContinue)) {
         New-NetFirewallRule -Name 'PortRelay.Encrypted' -DisplayName 'PortRelay encrypted device connections' -Direction Inbound -Action Allow -Protocol UDP -Program (Join-Path $install 'portrelay.exe') -Profile Any | Out-Null
     } else { Set-NetFirewallRule -Name 'PortRelay.Encrypted' -Profile Any | Out-Null }
