@@ -115,7 +115,9 @@ Wrangler. See [website notes](docs/website.md).
 
 ## License
 
-PortRelay's original work is [MIT licensed](LICENSE). Upstream components retain
-their own licenses. Packages include `Cargo.lock`, a CycloneDX SBOM, and `THIRD_PARTY_NOTICES.txt`.
+PortRelay's Rust agent, local UI, and website are [MIT licensed](LICENSE). Its
+separate Windows device service is GPL-3.0-only and ships with corresponding
+source. Upstream components retain their own licenses. Packages include
+`Cargo.lock`, a CycloneDX SBOM, and `THIRD_PARTY_NOTICES.txt`.
 Distribution USB/IP tools and kernel drivers retain their own licenses; the
 Debian/Ubuntu setup installs them through the distribution package manager.

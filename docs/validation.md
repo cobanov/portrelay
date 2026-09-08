@@ -117,6 +117,40 @@ failure mode remain open acceptance gates.
 
 ## Installation evidence
 
+### Windows (alpha.3)
+
+The generated Inno Setup `.exe` installed on the disposable Windows 11 VM,
+without Rust, .NET SDK, WSL, or separately downloaded product drivers. The
+packaged Start-menu shortcut was present and the desktop agent ran in the
+standard user's interactive login session.
+
+- The real `setup_usb` API action opened Windows' native UAC credential window.
+  Cancelling left USB disabled with a retryable error; retrying and approving
+  installed the signed drivers and a healthy LocalSystem helper for the original
+  standard user's SID, not the administrator who entered the password.
+- Secure Boot and TPM remained enabled. No raw TCP 3240 listener was present.
+- The packaged installation then passed a 65,536-byte transfer, one additional
+  connection cycle, and revocation in each Windows/Linux direction.
+- A normal guest reboot after those transfers restored the desktop agent and
+  helper automatically, with the same computer identity and no active sessions.
+  Replacing the installed package with the final CI installer completed
+  successfully and restarted the helper while retaining the user configuration.
+  That update requested a Windows restart for in-use files. The final package's
+  uninstaller subsequently completed with exit code 0 and removed the app,
+  configured services, driver client, firewall rule, and loaded owner's startup
+  entry. This successful clean-state removal does not close the earlier PnP stall.
+- A firewall prompt on first launch was found and corrected by preparing only
+  the encrypted UDP rule during elevated package installation, before launching
+  the agent. The USB setup still uses the normal administrator consent window.
+
+The package was installed silently for reproducibility; graphical installer
+button clicks and browser controls have not been exercised. Native UAC was
+observed and operated on the actual Windows secure desktop. This is not a
+non-technical-user usability result. The controller-removal stall described
+above remains an unresolved reliability limitation.
+
+### Debian and Ubuntu (alpha.2)
+
 Alpha.2 provides separate Debian and Ubuntu `.deb` packages. The binary is built
 in Rust 1.97's Debian Bookworm image (glibc 2.36 baseline). Fresh disposable VMs
 have no Rust or JavaScript toolchain:

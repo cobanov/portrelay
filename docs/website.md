@@ -28,7 +28,7 @@ below the example. No installer or support claim is fabricated.
 All state stays in browser memory and resets on reload. No device APIs, local
 agents, pairing secrets, or real network sessions are used. Busy devices remain
 unavailable, local sharing can be toggled, and the example local keyboard stays
-protected. Linux is a developer alpha; Windows and macOS USB backends remain pending.
+protected. Windows and Linux have developer alpha downloads; macOS USB remains pending.
 
 The Bluetooth example lends a whole adapter; it does not imply general
 virtualization of individual Bluetooth peripherals. Device compatibility still
