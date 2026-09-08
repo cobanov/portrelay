@@ -21,7 +21,8 @@ reported by Plug and Play; Linux uses the physical USB port tree. Root controlle
 are not shareable hubs.
 
 The source checks disk/network usage again immediately before export. An unknown
-usage state blocks handoff. Composite devices carry **all** applicable warnings.
+usage state blocks handoff. Windows may need another inventory refresh while its
+disk/network providers start; the device stays blocked until usage is verified. Composite devices carry **all** applicable warnings.
 Imported devices cannot be re-exported. A disk whose Windows driver cannot take
 it offline remains blocked; this includes some removable flash drives.
 

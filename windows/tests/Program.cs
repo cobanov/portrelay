@@ -52,7 +52,18 @@ Console.WriteLine("Disk and network usage guards: passed");
 
 if (OperatingSystem.IsWindows())
 {
-    var usage = await PortRelaySafety.Read(token);
+    PortRelayUsage[] usage = [];
+    // A cold Windows CIM provider may exceed the bounded first query. The app
+    // keeps sharing blocked and retries at the next inventory refresh. Exercise
+    // that path too; never accept a nonempty but incorrect provider result.
+    for (var attempt = 0; attempt < 3; attempt++)
+    {
+        usage = await PortRelaySafety.Read(token);
+        if (usage.Length != 0) break;
+        Check(PortRelaySafety.Blocked(true, true, ["unknown"], usage) is not null, "Unavailable providers must keep handoff blocked");
+        Console.WriteLine($"Windows providers are not ready (attempt {attempt + 1}); handoff remains blocked.");
+        if (attempt < 2) await Task.Delay(1000, token);
+    }
     Check(usage.Any(u => u.Kind == "storage" && !u.Safe), "Live Windows provider must detect an online disk");
     Check(usage.Any(u => u.Kind == "network" && !u.Safe), "Live Windows provider must detect an active network adapter");
     Console.WriteLine("Read-only Windows disk/network provider query: passed");

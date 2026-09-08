@@ -39,7 +39,16 @@ jobs:
             target/packages/*.deb
             target/packages/*.sha256
           retention-days: 30
+  windows-backend-check:
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.317
+      - run: dotnet run --project windows/tests/PortRelay.WireTests.csproj
   windows-package:
+    needs: windows-backend-check
     runs-on: windows-2025
     env:
       CARGO_TARGET_DIR: target/rust-windows
@@ -69,7 +78,6 @@ jobs:
           name: portrelay-windows-test-build
           path: target/windows-package/app/
           retention-days: 7
-      - run: dotnet run --project windows/tests/PortRelay.WireTests.csproj
       - uses: actions/upload-artifact@v4
         with:
           name: portrelay-windows-x64-alpha
