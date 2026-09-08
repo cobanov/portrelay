@@ -271,6 +271,9 @@ pub async fn setup_elevated(owner: &str) -> Result<()> {
     Ok(())
 }
 pub async fn request_setup() -> Result<()> {
+    tokio::task::spawn_blocking(setup_permission).await?
+}
+fn setup_permission() -> Result<()> {
     use windows_sys::Win32::{
         Foundation::WAIT_TIMEOUT,
         System::Threading::{GetExitCodeProcess, WaitForSingleObject},
@@ -293,9 +296,7 @@ pub async fn request_setup() -> Result<()> {
     if process.0.is_null() {
         bail!("Windows did not return the setup process");
     }
-    while unsafe { WaitForSingleObject(process.0, 0) } == WAIT_TIMEOUT {
-        tokio::time::sleep(Duration::from_millis(250)).await;
-    }
+    while unsafe { WaitForSingleObject(process.0, 1000) } == WAIT_TIMEOUT {}
     let mut code = 1;
     if unsafe { GetExitCodeProcess(process.0, &mut code) } == 0 || code != 0 {
         bail!(
