@@ -10,6 +10,11 @@ if($service) {
     if($actual -ne ('"'+(Join-Path $install 'device-service\usbipd.exe')+'" server')){throw 'USB service configuration has changed. Restore it before updating PortRelay.'}
 }
 if($Action -eq 'Start') {
+    # The installer is already elevated. Prepare only the encrypted UDP rule
+    # before the first desktop launch, avoiding a second firewall prompt.
+    if(-not (Get-NetFirewallRule -Name 'PortRelay.Encrypted' -ErrorAction SilentlyContinue)) {
+        New-NetFirewallRule -Name 'PortRelay.Encrypted' -DisplayName 'PortRelay encrypted device connections' -Direction Inbound -Action Allow -Protocol UDP -Program (Join-Path $install 'portrelay.exe') -Profile Any | Out-Null
+    }
     if($service){Start-Service PortRelayHelper}
     exit 0
 }
