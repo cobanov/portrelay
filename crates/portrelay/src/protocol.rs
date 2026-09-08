@@ -18,6 +18,11 @@ pub struct Device {
     pub speed: u32,
     pub devid: u32,
     pub blocked: Option<String>,
+    /// Every applicable handoff warning, including composite interfaces.
+    #[serde(default)]
+    pub risks: Vec<String>,
+    #[serde(default)]
+    pub parent_hub: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

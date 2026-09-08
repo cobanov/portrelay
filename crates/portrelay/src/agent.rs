@@ -31,6 +31,7 @@ pub struct SessionInfo {
     pub direction: String,
     pub state: String,
     pub error: Option<String>,
+    pub metadata: Option<Device>,
 }
 struct Session {
     info: SessionInfo,
@@ -63,6 +64,7 @@ pub struct Agent {
 #[serde(tag = "op", rename_all = "snake_case")]
 pub enum Action {
     SetupUsb,
+    BluetoothSettings,
     Rename {
         name: String,
     },
@@ -81,6 +83,8 @@ pub enum Action {
         peer: String,
         #[serde(default)]
         acknowledge_bluetooth: bool,
+        #[serde(default)]
+        acknowledge_risks: Vec<String>,
     },
     Unshare {
         device: String,
@@ -316,10 +320,17 @@ impl Agent {
                 self.persist(&inner)?;
                 Ok(serde_json::json!({"message":"Trust revoked; active sessions are closing"}))
             }
+            Action::BluetoothSettings => {
+                crate::settings::open_bluetooth()?;
+                Ok(
+                    serde_json::json!({"message":"Bluetooth settings opened. Select the borrowed adapter and pair a nearby device."}),
+                )
+            }
             Action::Share {
                 device,
                 peer,
                 acknowledge_bluetooth,
+                acknowledge_risks,
             } => {
                 if !backend::available(&self.helper) {
                     bail!("Enable USB support before sharing");
@@ -332,10 +343,12 @@ impl Agent {
                 if let Some(reason) = &d.blocked {
                     bail!("{reason}");
                 }
-                if d.kind == "bluetooth" && !acknowledge_bluetooth {
-                    bail!(
-                        "Use a dedicated Bluetooth adapter. Sharing takes the whole adapter away from this computer; confirm this explicitly."
-                    );
+                for risk in &d.risks {
+                    if !acknowledge_risks.contains(risk)
+                        && !(risk == "bluetooth" && acknowledge_bluetooth)
+                    {
+                        bail!("Confirm the {risk} handoff warning before sharing this device");
+                    }
                 }
                 let mut inner = self.inner.lock().await;
                 if !inner.config.peers.get(&peer).is_some_and(|p| p.approved) {
@@ -486,6 +499,7 @@ impl Agent {
                             let (mut ipc,reply)=backend::open(&self.helper,&backend::HelperRequest::Export{device:device.clone(),generation:generation.clone()}).await?;
                             if cancel.is_cancelled() {bail!("Permission was revoked");}
                             let device=reply.device.context("Helper did not return device metadata")?;
+                            if let Some(s)=self.inner.lock().await.sessions.get_mut(&session){s.exported_device=Some(device.clone());s.info.metadata=Some(device.clone());}
                             write_frame(&mut send,&Reply::Ready{device}).await?;
                             ready=true;
                             self.mark_connected(&session).await;
@@ -691,6 +705,7 @@ impl Agent {
                     direction: direction.into(),
                     state: "connecting".into(),
                     error: None,
+                    metadata: None,
                 },
                 cancel: cancel.clone(),
                 exported_device: None,
@@ -744,7 +759,8 @@ impl Agent {
             let metadata=match reply {Reply::Ready{device}=>device,Reply::Error{message}=>bail!("{message}"),_=>bail!("Unexpected device response")};
             #[cfg(any(unix, windows))] {
                 if cancel.is_cancelled(){bail!("Connection cancelled");}
-                let(mut ipc,local)=backend::open(&self.helper,&backend::HelperRequest::Import{device:metadata}).await?;
+                let(mut ipc,local)=backend::open(&self.helper,&backend::HelperRequest::Import{device:metadata.clone()}).await?;
+                if let Some(s)=self.inner.lock().await.sessions.get_mut(&session){s.info.metadata=Some(metadata);}
                 if cancel.is_cancelled(){bail!("Connection cancelled");}
                 self.mark_connected(&session).await;
                 let agent=self.clone();let task_session=session.clone();
@@ -1089,6 +1105,8 @@ mod tests {
             speed: 3,
             devid: 65537,
             blocked: None,
+            risks: vec![],
+            parent_hub: None,
         };
         let export_task = tokio::spawn(async move {
             let (mut s, _) = export.accept().await.unwrap();

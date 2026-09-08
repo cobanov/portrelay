@@ -7,5 +7,6 @@
   <ItemGroup>
     <Compile Include="../backend/PortRelayWire.cs" Link="PortRelayWire.cs" />
     <Compile Include="../backend/PortRelayModel.cs" Link="PortRelayModel.cs" />
+    <Compile Include="../backend/PortRelaySafety.cs" Link="PortRelaySafety.cs" />
   </ItemGroup>
 </Project>

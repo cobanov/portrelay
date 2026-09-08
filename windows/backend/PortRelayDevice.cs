@@ -44,9 +44,23 @@ static class PortRelayInventory
         }
         catch (OperationCanceledException) { /* Unverified restoration requires a new grant. */ }
     }
+    static IEnumerable<WindowsDevice> Descendants(WindowsDevice root)
+    {
+        var pending = new Queue<WindowsDevice>(); pending.Enqueue(root);
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        while (pending.Count != 0)
+        {
+            var node = pending.Dequeue();
+            if (!seen.Add(node.InstanceId)) continue;
+            if (seen.Count > 256) throw new InvalidDataException("Device tree is too large");
+            yield return node;
+            foreach (var child in node.Children) pending.Enqueue(child);
+        }
+    }
     public static async Task<List<PortRelayEntry>> Read(CancellationToken token)
     {
         var result = new List<PortRelayEntry>();
+        PortRelayUsage[]? usage = null;
         foreach (var usb in UsbDevice.GetAll().Where(d => d.BusId.HasValue && !d.BusId.Value.IsIncompatibleHub).Take(128))
         {
             token.ThrowIfCancellationRequested();
@@ -55,7 +69,7 @@ static class PortRelayInventory
                 if (!WindowsDevice.TryCreate(usb.InstanceId, out var windows)) continue;
                 var descriptor = await ExportedDevice.GetExportedDevice(usb, token);
                 var classes = descriptor.Interfaces.Select(i => i.Item1).Append(descriptor.DeviceClass).ToArray();
-                var nodes = windows.Children.Prepend(windows).ToList();
+                var nodes = Descendants(windows).ToList();
                 var imported = false;
                 var parent = windows;
                 for (var depth = 0; depth < 32; depth++)
@@ -65,16 +79,24 @@ static class PortRelayInventory
                     if (!WindowsDevice.TryCreate(parent.PortRelayParent, out parent)) break;
                 }
                 var network = nodes.Any(n => n.PortRelayClass.Equals("Net", StringComparison.OrdinalIgnoreCase));
-                var storage = nodes.Any(n => new[] { "DiskDrive", "Volume", "SCSIAdapter", "WPD" }.Contains(n.PortRelayClass, StringComparer.OrdinalIgnoreCase));
-                var input = nodes.Any(n => new[] { "HIDClass", "Keyboard", "Mouse" }.Contains(n.PortRelayClass, StringComparer.OrdinalIgnoreCase));
-                var bluetooth = classes.Contains((byte)0xe0) || nodes.Any(n => n.PortRelayClass.Equals("Bluetooth", StringComparison.OrdinalIgnoreCase));
+                var storage = classes.Contains((byte)8) || nodes.Any(n => new[] { "DiskDrive", "Volume", "SCSIAdapter" }.Contains(n.PortRelayClass, StringComparer.OrdinalIgnoreCase));
+                var input = classes.Contains((byte)3) || nodes.Any(n => new[] { "HIDClass", "Keyboard", "Mouse" }.Contains(n.PortRelayClass, StringComparer.OrdinalIgnoreCase));
+                var bluetooth = descriptor.Interfaces.Any(i => i.Item1 == 0xe0 && i.Item2 == 1 && i.Item3 == 1)
+                    || nodes.Any(n => n.PortRelayClass.Equals("Bluetooth", StringComparison.OrdinalIgnoreCase));
+                var hub = classes.Contains((byte)9);
+                if ((storage || network) && usage is null) usage = await PortRelaySafety.Read(token);
+                var usageBlock = PortRelaySafety.Blocked(storage, network, nodes.Select(n => n.InstanceId), usage ?? []);
+                if (nodes.Any(n => (n.PortRelayClass.Equals("DiskDrive", StringComparison.OrdinalIgnoreCase)
+                    || n.PortRelayClass.Equals("Net", StringComparison.OrdinalIgnoreCase))
+                    && !(usage ?? []).Any(u => u.Id.Equals(n.InstanceId, StringComparison.OrdinalIgnoreCase))))
+                    usageBlock = "Some device functions could not be checked; wait for Windows to finish detecting this device";
+                var risks = new[] { (storage, "storage"), (input, "input"), (network, "network"), (bluetooth, "bluetooth") }
+                    .Where(r => r.Item1).Select(r => r.Item2).ToArray();
                 var blocked = imported ? "Imported devices cannot be shared again"
-                    : classes.Contains((byte)9) ? "USB hubs stay on this computer"
-                    : classes.Contains((byte)3) || input ? "Input devices stay on this computer in this alpha"
-                    : classes.Contains((byte)8) || storage ? "Storage sharing is disabled until recovery is validated"
-                    : network ? "Network adapters stay on this computer"
+                    : hub ? "Select the devices connected to this hub"
+                    : usageBlock is not null ? usageBlock
                     : descriptor.Interfaces.Count == 0 && descriptor.DeviceClass == 0 ? "Device interfaces could not be verified"
-                    : !classes.Any(c => new byte[] { 2, 7, 10, 0xe0, 0xff }.Contains(c)) ? "This device class is not enabled in this alpha"
+                    : !classes.Any(c => new byte[] { 2, 3, 7, 8, 10, 0xe0, 0xff }.Contains(c)) ? "This device class is not enabled in this alpha"
                     : usb.Guid.HasValue || usb.IsForced || usb.IPAddress is not null ? "Device is already managed by a USB service"
                     : windows.PortRelayArrival.Length == 0 ? "Device arrival identity could not be verified"
                     : null;
@@ -89,8 +111,8 @@ static class PortRelayInventory
                 descriptor.Serialize(identity, true);
                 var fingerprint = Convert.ToHexStringLower(SHA256.HashData(identity.ToArray()));
                 result.Add(new(new(usb.BusId!.Value.ToString(), permissionGeneration, usb.Description[..Math.Min(usb.Description.Length, 120)],
-                    descriptor.VendorId.ToString("x4"), descriptor.ProductId.ToString("x4"), bluetooth ? "bluetooth" : "usb",
-                    (uint)descriptor.Speed, ((uint)usb.BusId.Value.Bus << 16) | usb.BusId.Value.Port, blocked), usb.InstanceId, windows.PortRelayUnique, fingerprint, generation));
+                    descriptor.VendorId.ToString("x4"), descriptor.ProductId.ToString("x4"), hub ? "hub" : bluetooth ? "bluetooth" : storage ? "storage" : input ? "input" : network ? "network" : "usb",
+                    (uint)descriptor.Speed, ((uint)usb.BusId.Value.Bus << 16) | usb.BusId.Value.Port, blocked, risks, windows.PortRelayParent.Contains("ROOT_HUB", StringComparison.OrdinalIgnoreCase) ? null : windows.PortRelayParent), usb.InstanceId, windows.PortRelayUnique, fingerprint, generation));
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {

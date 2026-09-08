@@ -42,3 +42,10 @@ using (var frames = new MemoryStream())
     Check(json.RootElement.GetProperty("port").GetUInt32() == 5, "Port JSON compatibility");
 }
 Console.WriteLine("Windows USB/IP wire conformance, invalid metadata, truncated frames, and agent JSON: passed");
+
+Check(PortRelaySafety.Blocked(true, false, ["USBSTOR\\DISK"], []) is not null, "Unknown disk usage must fail closed");
+Check(PortRelaySafety.Blocked(true, false, ["USBSTOR\\DISK"], [new("usbstor\\disk", "storage", true)]) is null, "Offline disk should be eligible");
+Check(PortRelaySafety.Blocked(true, false, ["a", "b"], [new("a", "storage", true), new("b", "storage", false)]) is not null, "Every LUN must be offline");
+Check(PortRelaySafety.Blocked(false, true, ["adapter"], [new("adapter", "network", false)]) is not null, "Active network adapter must stay local");
+Check(PortRelaySafety.Blocked(true, true, ["disk", "net"], [new("disk", "storage", true), new("net", "network", true)]) is null, "Composite idle interfaces should be eligible");
+Console.WriteLine("Disk and network usage guards: passed");

@@ -5,3 +5,5 @@ body{font-size:16px}h1{font-size:32px;letter-spacing:-1px}h2{font-size:19px}.hea
 .name-setup{background:white;border:1px solid #dce3ed;border-radius:12px;padding:18px 22px}.name-setup input{font:inherit;padding:9px 12px;border:1px solid #ccd5e4;border-radius:8px;width:300px;max-width:100%}.name-setup label{font-size:14px;margin:0 0 8px}
 
 [hidden] { display: none !important; }
+
+.hub-group{border:1px solid var(--line,#deded8);border-radius:14px;overflow:hidden;margin:12px 0}.hub-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px;background:var(--surface,#f6f7f4)}.hub-heading h3,.hub-heading p{margin:0}.hub-heading p{margin-top:5px}.hub-heading button{flex-shrink:0}.hub-group .device-row{border-radius:0}.bluetooth-guide{padding:18px;margin:0 0 16px;border:1px solid var(--line,#deded8);border-radius:12px}.bluetooth-guide h3{margin-top:0}.bluetooth-guide p{max-width:65ch}@media(max-width:600px){.hub-heading{align-items:flex-start;flex-direction:column}.hub-heading button{width:100%}}

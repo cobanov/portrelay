@@ -289,7 +289,7 @@ pub async fn devices(path: &Path) -> Result<Vec<Device>> {
     let mut stream = pipe(path).await?;
     write_frame(&mut stream, &HelperRequest::Inventory).await?;
     let reply: Inventory =
-        tokio::time::timeout(Duration::from_secs(5), read_frame(&mut stream)).await??;
+        tokio::time::timeout(Duration::from_secs(15), read_frame(&mut stream)).await??;
     if let Some(error) = reply.error {
         bail!("{error}");
     }
@@ -411,6 +411,14 @@ pub async fn start_desktop() -> Result<()> {
         .stdin(std::process::Stdio::null())
         .stdout(log.try_clone()?)
         .stderr(log)
+        .spawn()?;
+    Ok(())
+}
+
+/// The URI is fixed; no remote-provided command is accepted.
+pub fn open_bluetooth_settings() -> Result<()> {
+    std::process::Command::new(system_program("explorer.exe")?)
+        .arg("ms-settings:bluetooth")
         .spawn()?;
     Ok(())
 }
