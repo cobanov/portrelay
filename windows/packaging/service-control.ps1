@@ -57,7 +57,16 @@ if(Test-Path $registry) {
     if($ownsClient -and (Test-Path $client)) {
         $uninstaller=Join-Path $env:ProgramFiles 'USBip\unins000.exe'
         if(-not (Test-Path $uninstaller)){throw 'The USB client uninstaller is missing. Reinstall PortRelay USB support and retry.'}
-        $p=Start-Process $uninstaller -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART' -Wait -PassThru
+        if(Get-CimInstance Win32_Process -Filter "Name='unins000.exe'" | Where-Object {$_.ExecutablePath -eq $uninstaller}) {
+            throw 'Windows is still removing the USB controller. Restart Windows before retrying uninstall.'
+        }
+        $p=Start-Process $uninstaller -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART' -PassThru
+        if(-not $p.WaitForExit(120000)) {
+            # Do not terminate an in-progress kernel PnP operation or discard
+            # ownership markers. A restart can finish it before the next retry.
+            throw 'Windows has not released the USB controller. Restart Windows, then retry uninstalling PortRelay.'
+        }
+        $p.Refresh()
         if($p.ExitCode -notin @(0,3010)){throw 'The USB client could not be removed. Restart and retry.'}
     }
     if($service){& "$env:SystemRoot\System32\sc.exe" delete PortRelayHelper | Out-Null;if($LASTEXITCODE -ne 0){throw 'Could not remove the USB service.'}}

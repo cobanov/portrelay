@@ -61,6 +61,11 @@ The original signed usbip-win2 0.9.8.0 and Oracle 7.2.2 drivers loaded normally.
 - Both directions passed five additional connect/disconnect cycles and active
   owner revocation. Unapproved peers, devices without a grant, and concurrent
   second claims were rejected. Normal closure left no new session errors.
+- Both directions also passed the same 65,536-byte transfer, two additional
+  connection cycles, and revocation through an external iroh relay with direct
+  IP transports disabled on every agent. The endpoints shared an upstream
+  network; this does not establish connectivity across independent NATs or
+  production relay availability.
 - Every completed test checked empty agent sessions, removal of the imported
   serial port, and healthy helpers. Privileged recovery journals and the original
   Windows device driver were also checked after the dedicated recovery tests.
@@ -70,6 +75,9 @@ The original signed usbip-win2 0.9.8.0 and Oracle 7.2.2 drivers loaded normally.
 - Killing the Windows helper during an active export exercised Windows service
   restart, original driver restoration, journal reconciliation, and a subsequent
   successful new connection and disconnect.
+- Killing the Windows importing agent during an active relayed connection
+  removed the COM port, returned the Debian gadget, and cleared both helpers'
+  recovery journals without stopping the Windows helper.
 - A different local account could not open the control pipe. The standard owner
   could use the app but could not open the native USBip controller directly.
   The service verified the live controller DACL and the accepted kernel TCP
