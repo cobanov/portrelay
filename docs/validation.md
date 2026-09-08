@@ -288,10 +288,19 @@ used the production USB/IP backend; no raw USB/IP network listener was started.
 
 These are **virtual devices with real drivers**, not physical compatibility or
 Windows class-handoff evidence. The new Windows policy and USB/IP code build and
-pass conformance tests. Bluetooth handoff now includes acknowledgement and a
+pass conformance tests. A read-only query on the Windows CI runner also verified
+that the real Windows disk/network providers identify online disks and active
+adapters as unsafe. This does not replace Windows USB class-handoff tests.
+Bluetooth handoff now includes acknowledgement and a
 receiving-OS pairing guide/settings launcher, but no physical adapter or paired
 peripheral was available for this acceptance run. Hub grouping is an application
 permission flow; it does not claim to transport hub hardware.
+
+The real application HTML/JavaScript also passed a DOM-based fixture check for
+hub grouping, denied/accepted consent, skipping blocked children, reporting a
+partial group failure, Bluetooth guidance/settings action, and connected-device
+status. This is not visual inspection: the Mac was locked during this run, so
+the changed application screen has not received a new screenshot review.
 
 Reproduce with `tests/device-class-gadget.py` and `tests/device-class-smoke.py
 --help`. The scripts require explicitly disposable VMs and never choose an
