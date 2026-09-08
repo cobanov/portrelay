@@ -54,7 +54,8 @@ Cloudflare Pages configuration is in `wrangler.json`:
 - DNS: proxied CNAME to `portrelay.pages.dev`
 
 After building and committing, run `npm run deploy`. The command uses pinned
-Wrangler 4.105.0 and existing `CLOUDFLARE_API_TOKEN` / account credentials.
+Wrangler 4.105.0 and existing `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID`
+environment credentials. Pages configuration does not accept `account_id`.
 Never write token values into the repository. Future source changes require a
 new deploy; this is a direct-upload Pages project, not a Git-integrated build.
 
