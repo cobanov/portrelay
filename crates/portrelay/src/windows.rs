@@ -417,8 +417,16 @@ pub async fn start_desktop() -> Result<()> {
 
 /// The URI is fixed; no remote-provided command is accepted.
 pub fn open_bluetooth_settings() -> Result<()> {
-    std::process::Command::new(system_program("explorer.exe")?)
-        .arg("ms-settings:bluetooth")
-        .spawn()?;
+    use windows_sys::Win32::UI::Shell::{SHELLEXECUTEINFOW, ShellExecuteExW};
+    let operation = wide("open");
+    let uri = wide("ms-settings:bluetooth");
+    let mut info: SHELLEXECUTEINFOW = unsafe { std::mem::zeroed() };
+    info.cbSize = std::mem::size_of::<SHELLEXECUTEINFOW>() as u32;
+    info.lpVerb = operation.as_ptr();
+    info.lpFile = uri.as_ptr();
+    info.nShow = 1;
+    if unsafe { ShellExecuteExW(&mut info) } == 0 {
+        bail!("Open Bluetooth & devices in Windows Settings to pair your peripheral");
+    }
     Ok(())
 }

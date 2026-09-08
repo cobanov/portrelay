@@ -299,7 +299,7 @@ mod tests {
     fn composite_input_network_checks_admin_state() {
         let dir = tempfile::tempdir().unwrap();
         let p = device(dir.path(), "1-1", "03");
-        let interface = p.join("1-1:1.0");
+        let interface = p.join("interface0");
         fs::create_dir_all(interface.join("net/usb0")).unwrap();
         fs::write(interface.join("bInterfaceClass"), "02").unwrap();
         fs::write(interface.join("net/usb0/flags"), "0x1003").unwrap();

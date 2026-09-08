@@ -343,6 +343,14 @@ impl Agent {
                 if let Some(reason) = &d.blocked {
                     bail!("{reason}");
                 }
+                if d.kind == "bluetooth"
+                    && !acknowledge_bluetooth
+                    && !acknowledge_risks.iter().any(|r| r == "bluetooth")
+                {
+                    bail!(
+                        "Confirm the Bluetooth adapter handoff warning before sharing this device"
+                    );
+                }
                 for risk in &d.risks {
                     if !acknowledge_risks.contains(risk)
                         && !(risk == "bluetooth" && acknowledge_bluetooth)
