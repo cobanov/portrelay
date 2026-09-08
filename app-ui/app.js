@@ -5,6 +5,7 @@ if (location.hash) {
   history.replaceState(null, "", "/");
 }
 let state, selectedPeer = "", view = "local", busy = false;
+let refreshRevision = 0, backgroundRefreshing = false;
 let renameOpen = false, pairingOpen = false, pairingDismissed = false, currentInvitation = "", invitationExpiry = 0;
 const deviceNames = new Map();
 const labels = { connecting: "Connecting…", connected: "Connected", restoring: "Returning to its owner…", detaching: "Disconnecting…" };
@@ -49,6 +50,7 @@ function button(label, task, id, secondary = false) {
 async function run(task, control) {
   if (busy) return;
   busy = true;
+  refreshRevision += 1;
   if (control) { control.disabled = true; control.setAttribute("aria-busy", "true"); }
   try { await task(); await refresh(); }
   catch (error) { tell(error.message, true); }
@@ -72,6 +74,8 @@ function setPairMode(create) {
 function renderSetup() {
   const approved = Object.values(state.peers).some((p) => p.approved);
   $("name-setup").hidden = approved && !renameOpen;
+  document.querySelector(".computers").hidden = !Object.keys(state.peers).length;
+  document.querySelector(".devices").hidden = !approved;
   const step = !state.helper_ready ? 0 : !approved ? 1 : 2;
   ["step-usb", "step-pair", "step-device"].forEach((id, index) => {
     $(id).classList.toggle("done", index < step);
@@ -96,13 +100,16 @@ function renderSetup() {
 function renderPeers() {
   const entries = Object.entries(state.peers);
   if (!entries.some(([id, p]) => id === selectedPeer && p.approved)) selectedPeer = entries.find(([, p]) => p.approved)?.[0] || "";
-  const container = $("peers"); container.replaceChildren();
+  const container = $("peers");
+  const openDetails = new Set([...container.querySelectorAll("details[open]")].map((d) => d.id));
+  container.replaceChildren();
   for (const [id, peer] of entries) {
     const card = node("div", undefined, `peer-card${id === selectedPeer ? " selected" : ""}`);
     card.append(node("h3", peer.name), node("p", peer.approved ? "Added computer" : "Wants to connect to you", "muted"));
     if (!peer.approved) card.append(button("Approve computer", () => action({ op: "approve", peer: id }), `approve-${id}`));
     else card.append(button(id === selectedPeer ? "Selected" : "Select computer", async () => { selectedPeer = id; }, `select-${id}`, true));
-    const details = node("details"); details.append(node("summary", "Manage computer"), node("p", id, "fingerprint"));
+    const details = node("details"); details.id = `manage-${id}`; details.open = openDetails.has(details.id);
+    details.append(node("summary", "Manage computer"), node("p", id, "fingerprint"));
     details.append(button("Remove computer", async () => {
       if (confirm(`Remove ${peer.name} and close its device connections?`)) await action({ op: "revoke", peer: id });
     }, `remove-${id}`, true));
@@ -144,7 +151,7 @@ function deviceRow(device, protectedDevice = false) {
   }
   return row;
 }
-async function renderDevices() {
+async function renderDevices(revision) {
   const container = $("device-list");
   $("protected-devices").hidden = true;
   $("device-instruction").textContent = view === "local"
@@ -155,10 +162,12 @@ async function renderDevices() {
     if (!selectedPeer) { empty(container, "No computer selected."); return; }
     try { devices = (await request("/api/action", { op: "remote", peer: selectedPeer })).devices; }
     catch (error) {
+      if (revision !== refreshRevision) return;
       empty(container, "Could not load shared devices. Open PortRelay on the other computer and approve this computer there.");
       const details = node("details"); details.append(node("summary", "Connection details"), node("p", error.message)); container.append(details); return;
     }
   }
+  if (revision !== refreshRevision) return;
   container.replaceChildren();
   for (const device of devices.filter((d) => !d.blocked)) container.append(deviceRow(device));
   if (!devices.some((d) => !d.blocked)) empty(container, view === "local" ? "No shareable device found. Connect a test USB device to this computer." : "No devices shared yet. On the other computer, choose Share from here and select a device.");
@@ -187,16 +196,21 @@ function renderSessions() {
   }
 }
 async function refresh() {
+  const revision = ++refreshRevision;
   const focused = document.activeElement?.id;
-  state = await request("/api/state");
+  const nextState = await request("/api/state");
+  if (revision !== refreshRevision) return;
+  state = nextState;
   $("computer-name").textContent = state.name;
   $("network").textContent = state.network.includes("Relay only") ? "Internet relay · encrypted" : state.network.includes("relay") ? "Direct or internet relay · encrypted" : "Local network · encrypted";
   $("version").textContent = `PortRelay ${state.version}`;
   if (document.activeElement !== $("name-input") && !$("name-input").dataset.edited) $("name-input").value = state.name;
   $("identity").textContent = `Computer identity: ${state.id}`;
   $("helper-details").textContent = state.helper_ready ? "USB service ready." : state.helper_error || "USB service not ready.";
-  renderSetup(); renderPeers(); await renderDevices(); renderSessions();
-  if (focused) $(focused)?.focus({ preventScroll: true });
+  renderSetup(); renderPeers(); await renderDevices(revision);
+  if (revision !== refreshRevision) return;
+  renderSessions();
+  if (focused && (!document.activeElement?.id || document.activeElement.id === focused)) $(focused)?.focus({ preventScroll: true });
 }
 async function invitation() {
   if (!currentInvitation || Date.now() >= invitationExpiry * 1000) {
@@ -241,4 +255,8 @@ $("save-name").onclick = () => run(async () => {
 $("refresh").onclick = () => run(async () => {}, $("refresh"));
 for (const next of ["local", "remote"]) $(next + "-tab").onclick = () => run(async () => setView(next));
 refresh().then(() => tell("Choose a device when both computers are ready.")).catch((error) => tell(error.message, true));
-setInterval(() => { if (!busy && document.visibilityState === "visible") run(async () => {}); }, 3000);
+setInterval(() => {
+  if (busy || backgroundRefreshing || document.visibilityState !== "visible") return;
+  backgroundRefreshing = true;
+  refresh().catch((error) => { if (!busy) tell(error.message, true); }).finally(() => { backgroundRefreshing = false; });
+}, 3000);
