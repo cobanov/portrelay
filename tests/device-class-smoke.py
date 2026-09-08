@@ -32,8 +32,8 @@ for p in Path('/sys/class/block').iterdir():
  path=p.resolve()
  if 'vhci_hcd' in str(path):continue
  if any((q/'serial').exists() and (q/'serial').read_text().strip()=='PORTRELAY-CLASS-TEST-ONLY' for q in path.parents):found.append('/dev/'+p.name)
-assert len(found)==1,found
-print(json.dumps(found[0]))
+assert len(found)<=1,found
+print(json.dumps(found[0] if found else None))
 '''
 STORAGE = r'''
 import pathlib,subprocess,json,sys,hashlib
@@ -71,11 +71,11 @@ def main():
     for kind,product in [('storage','0105'),('input','0106'),('network','0107')]:
         fixture(a,kind)
         try:
-            device=s.wait_for(lambda:next((d for d in s.api(a)['devices'] if d['vendor']=='1d6b' and d['product']==product),None))
+            device=s.wait_for(lambda:next((d for d in s.api(a)['devices'] if d['vendor']=='1d6b' and d['product']==product and kind in d['risks']),None))
             share={'op':'share','device':device['id'],'peer':client['id'],'acknowledge_risks':device['risks']}
             assert kind in device['risks'],device
             if kind=='storage':
-                disk=s.remote(a,SOURCE_BLOCK,sudo=True)
+                disk=s.wait_for(lambda:s.remote(a,SOURCE_BLOCK,sudo=True))
                 s.remote(a,"import subprocess,pathlib,json,sys;pathlib.Path('/mnt/portrelay-qa').mkdir(exist_ok=True);subprocess.run(['mount',json.load(sys.stdin),'/mnt/portrelay-qa'],check=True);print('true')",disk,sudo=True)
                 reject(lambda:s.api(a,share),'Unmount')
                 s.remote(a,"import subprocess;subprocess.run(['umount','/mnt/portrelay-qa'],check=True);print('true')",sudo=True)
@@ -91,7 +91,7 @@ def main():
                 reject(lambda:s.api(b,{'op':'connect','peer':owner['id'],'device':device['id'],'generation':device['generation']}),'Unmount')
                 s.remote(a,"import subprocess;subprocess.run(['umount','/mnt/portrelay-qa'],check=True);print('true')",sudo=True)
             connection=s.api(b,{'op':'connect','peer':owner['id'],'device':device['id'],'generation':device['generation']})
-            incoming=s.wait_for(lambda:s.remote(b,FIND,kind))
+            incoming=s.wait_for(lambda:(names if len(names := s.remote(b,FIND,kind)) >= (2 if kind=='input' else 1) else None))
             result={}
             if kind=='storage': result=s.remote(b,STORAGE,{'device':'/dev/'+incoming[0],'write':True},sudo=True)
             elif kind=='network':

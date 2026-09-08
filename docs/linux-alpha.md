@@ -12,7 +12,7 @@ On **Ubuntu 24.04 or Debian 13, Intel/AMD 64-bit**, paste this in Terminal:
 curl -fsSL https://portrelay.cobanov.dev/install.sh | sh
 ```
 
-The script selects your distribution, verifies the alpha.3 package against a
+The script selects your distribution, verifies the alpha.4 package against a
 pinned SHA-256, and uses `apt-get` to install it and its dependencies. Enter your
 administrator password if asked. Then open **PortRelay** from your applications
 and follow steps 2 and 3 below. It does not enable USB or share devices for you.
@@ -33,8 +33,8 @@ installing and removes the temporary download afterward.
 ## Three steps on each computer
 
 1. **Install the package.** Download for
-   [Ubuntu](https://github.com/cobanov/portrelay/releases/download/v0.1.0-alpha.3/portrelay-0.1.0-alpha.3-ubuntu-amd64.deb) or
-   [Debian](https://github.com/cobanov/portrelay/releases/download/v0.1.0-alpha.3/portrelay-0.1.0-alpha.3-debian-amd64.deb).
+   [Ubuntu](https://github.com/cobanov/portrelay/releases/download/v0.1.0-alpha.4/portrelay-0.1.0-alpha.4-ubuntu-amd64.deb) or
+   [Debian](https://github.com/cobanov/portrelay/releases/download/v0.1.0-alpha.4/portrelay-0.1.0-alpha.4-debian-amd64.deb).
    Open the file with your system's software installer and choose **Install**.
 2. **Open PortRelay.** Find it in your applications. Give this computer a name,
    then choose **Enable USB sharing** and approve the system password prompt.
@@ -53,7 +53,7 @@ One local user owns USB setup. The app opens in your browser and runs a backgrou
 service at login. Closing the window keeps connections running. Its local window
 shows actual device state; the public website is a separate concept demo.
 
-[Release notes & checksums](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.3)
+[Release notes & checksums](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.4)
 · [Tested capabilities and limitations](validation.md)
 
 <details>
@@ -62,9 +62,9 @@ shows actual device state; the public website is a separate concept demo.
 In the download folder, run the matching command:
 
 ```sh
-sudo apt install ./portrelay-0.1.0-alpha.3-ubuntu-amd64.deb
+sudo apt install ./portrelay-0.1.0-alpha.4-ubuntu-amd64.deb
 # Or, on Debian:
-sudo apt install ./portrelay-0.1.0-alpha.3-debian-amd64.deb
+sudo apt install ./portrelay-0.1.0-alpha.4-debian-amd64.deb
 ```
 
 Use `apt install`, which resolves dependencies, rather than `dpkg -i` alone.
@@ -95,9 +95,12 @@ Only one computer can use it at a time. **Stop sharing** or removing a computer
 ends its active loans. Unplugging or replacing a device invalidates its old
 permission; share it again.
 
-Input devices, storage, hubs, imported devices, and detected network adapters
-are kept on their original computer in this alpha. Begin with a disposable USB
-serial fixture. Printers and other physical devices require their own tests.
+Alpha.4 adds input devices, unmounted disks, and disabled USB network adapters
+with explicit handoff warnings. Hub groups let you share their connected devices;
+the hub itself stays local. Imported devices cannot be re-exported. Storage,
+keyboard/mouse and Ethernet passed virtual kernel tests on Debian → Ubuntu.
+Physical devices still require their own tests. See [device handoff](device-sharing.md)
+for preparation, safe disk return, and the Bluetooth pairing steps.
 
 Bluetooth uses a **whole dedicated USB adapter**. Its radio stays beside the
 original computer; existing local Bluetooth connections may stop. The app asks

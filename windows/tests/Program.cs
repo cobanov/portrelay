@@ -49,3 +49,11 @@ Check(PortRelaySafety.Blocked(true, false, ["a", "b"], [new("a", "storage", true
 Check(PortRelaySafety.Blocked(false, true, ["adapter"], [new("adapter", "network", false)]) is not null, "Active network adapter must stay local");
 Check(PortRelaySafety.Blocked(true, true, ["disk", "net"], [new("disk", "storage", true), new("net", "network", true)]) is null, "Composite idle interfaces should be eligible");
 Console.WriteLine("Disk and network usage guards: passed");
+
+if (OperatingSystem.IsWindows())
+{
+    var usage = await PortRelaySafety.Read(token);
+    Check(usage.Any(u => u.Kind == "storage" && !u.Safe), "Live Windows provider must detect an online disk");
+    Check(usage.Any(u => u.Kind == "network" && !u.Safe), "Live Windows provider must detect an active network adapter");
+    Console.WriteLine("Read-only Windows disk/network provider query: passed");
+}

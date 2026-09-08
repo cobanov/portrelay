@@ -131,3 +131,15 @@ only after their own latency and recovery tests.
 Each claimed platform/device pair also needs hotplug, abrupt peer termination,
 network loss, suspend/resume, permission denial, owner reclaim, and clean
 uninstall results. Publish the failures and exclusions alongside successes.
+
+## Alpha.4 device handoff
+
+- [x] Replace blanket input/storage/network blocks with explicit handoff consent
+  and disk/network usage gates checked again by the helper.
+- [x] Exercise native Linux mass-storage read/write/return, HID keyboard/mouse,
+  and CDC Ethernet using isolated virtual fixtures.
+- [x] Group a hub's currently connected devices without granting future hotplugs.
+- [x] Guide whole-adapter Bluetooth handoff and open receiving-system settings.
+- [ ] Validate physical USB Bluetooth pairing and peripheral use.
+- [ ] Validate the new classes on native Windows, including recovery.
+- [ ] Resolve the recorded upstream Windows controller-removal stall.

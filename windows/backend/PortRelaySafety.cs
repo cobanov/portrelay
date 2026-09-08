@@ -40,7 +40,8 @@ static class PortRelaySafety
             await process.WaitForExitAsync(timeout.Token);
             await stderr;
             if (process.ExitCode != 0) return [];
-            return JsonSerializer.Deserialize<PortRelayUsage[]>(await stdout) ?? [];
+            return (JsonSerializer.Deserialize<PortRelayUsage[]>(await stdout) ?? [])
+                .Where(u => !string.IsNullOrWhiteSpace(u.Id)).ToArray();
         }
         catch (Exception ex) when (ex is not OperationCanceledException || !token.IsCancellationRequested) { return []; }
         finally { try { if (!process.HasExited) process.Kill(true); } catch (InvalidOperationException) { } }

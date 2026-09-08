@@ -5,7 +5,7 @@
 Open-source USB sharing between Windows and Linux computers, with an encrypted connection
 and a small local control window. No account or subscription is required.
 
-> **v0.1.0-alpha.3: Windows + Linux.** Native USB serial traffic has passed
+> **v0.1.0-alpha.4: Windows + Linux.** Native USB serial traffic has passed
 > Windows-to-Linux and Linux-to-Windows tests using isolated virtual devices.
 > Windows 11 x64 uses signed upstream drivers with Secure Boot enabled.
 > Physical USB and Bluetooth compatibility still need testing. macOS USB
@@ -14,7 +14,7 @@ and a small local control window. No account or subscription is required.
 > test computer and read the [Windows limitations](docs/windows-alpha.md).
 
 **[Website](https://portrelay.cobanov.dev)** ·
-**[Download the alpha](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.3)** ·
+**[Download the alpha](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.4)** ·
 **[Windows setup](docs/windows-alpha.md)** · **[Linux setup](docs/linux-alpha.md)**
 
 ## Install on both computers
@@ -44,7 +44,7 @@ The scripts verify the pinned release SHA-256 before installing. Linux selects
 its distribution package and installs dependencies; Windows opens the existing
 installer with the normal administrator prompt. Then open PortRelay to enable
 USB and pair computers. [Read the Linux script](web/install.sh) or
-[Windows script](web/install.ps1). These install alpha.3, without adding auto-updates.
+[Windows script](web/install.ps1). These install alpha.4, without adding auto-updates.
 
 The package installs dependencies, adds the app shortcut, and keeps the agent
 running after you close its window. An administrator prompt enables USB support;
@@ -74,14 +74,22 @@ the original driver. The application never starts a raw USB/IP network server.
 
 A dedicated **USB Bluetooth adapter** can use the same whole-device path. Its
 radio stays near the original computer; the receiving OS would own the adapter.
-The UI requires acknowledgement before sharing it. This path has not yet passed
+The UI requires acknowledgement before sharing it and opens the receiving OS's
+Bluetooth settings after connection. This path has not yet passed
 physical Bluetooth pairing or peripheral tests. Individual BLE services,
 Bluetooth audio/profile forwarding, and arbitrary built-in controller migration
 are not implemented.
 
-Storage, input devices, hubs, imported devices, and detected network adapters
-are blocked in this alpha. Printers, cameras, and other physical devices also
-need their own validation. The website's printer, Bluetooth, and drive examples
+Alpha.4 enables keyboards/mice, unmounted Linux disks, offline Windows disks,
+and disabled USB network adapters with explicit handoff warnings. Hub groups
+share the currently connected devices; the hub itself stays local. Source usage
+is checked again before export. Imported devices cannot be re-exported.
+
+Linux kernel tests passed disk write/readback, keyboard/mouse events and USB
+Ethernet traffic. These used virtual USB fixtures, not physical devices. Windows
+has the same conditional policy, but these new classes still need native Windows
+handoff tests. See [device sharing and Bluetooth setup](docs/device-sharing.md).
+Printers, cameras, and other physical devices also need their own validation. The website's printer, Bluetooth, and drive examples
 remain explicitly simulated product concepts.
 
 ## Build the application

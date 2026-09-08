@@ -1,6 +1,6 @@
 # Alpha validation record
 
-Dates: 2026-09-08 and 2026-09-09. Current version: `0.1.0-alpha.3`.
+Dates: 2026-09-08 and 2026-09-09. Current version: `0.1.0-alpha.4`.
 
 The kernel device tests below were recorded for alpha.1. Alpha.2 changes the
 installer and onboarding; the device transport/helper backend is unchanged.
@@ -260,14 +260,55 @@ has been removed from the application and test scripts. Subsequent kernel work
 used a disposable Debian VM and the production `usbip-host` path. This incident
 is an unresolved limitation, not a successful reliability result.
 
+## Device class acceptance (alpha.4, 2026-09-09)
+
+Two disposable x86_64 VMs, with ordinary non-root agents and separate root helpers:
+Debian 13 / `6.12.107+deb13-amd64` exported configfs `dummy_hcd` fixtures to Ubuntu
+24.04 / `6.8.0-124-generic`. QUIC used an explicit source-VM UDP forward. The test
+used the production USB/IP backend; no raw USB/IP network listener was started.
+
+- **Storage:** a virtual mass-storage disk (`1d6b:0105`) accepted 262,144 bytes
+  through the receiver's normal mounted ext4 filesystem. After sync, unmount,
+  disconnect and source-driver restoration, mounting the returned disk on the
+  owner produced identical bytes. SHA-256:
+  `2312394bd99545d9de131c24efb781e765ac1aec243f2ed9347597a793a415e9`.
+- A mounted source disk was rejected when granting access. Mounting it **after**
+  a grant also caused a new connection to be rejected by the privileged helper.
+- **Keyboard/mouse:** a composite HID fixture (`1d6b:0106`) delivered native
+  `EV_KEY KEY_A` press and release plus `EV_REL REL_X=5` through the receiver's
+  normal input event devices.
+- **Network:** a virtual CDC Ethernet adapter (`1d6b:0107`) carried three ICMP
+  exchanges between its receiving-host interface and its gadget interface,
+  with all three replies received. An administratively up source adapter was
+  rejected; disabling it made the device eligible.
+- Every risk-bearing fixture was rejected without its handoff acknowledgement.
+  Every completed loan removed the receiving device, cleared both privileged
+  recovery journals, and left both helpers healthy. The storage result also
+  verified source-device restoration by actually reading its returned data.
+
+These are **virtual devices with real drivers**, not physical compatibility or
+Windows class-handoff evidence. The new Windows policy and USB/IP code build and
+pass conformance tests. Bluetooth handoff now includes acknowledgement and a
+receiving-OS pairing guide/settings launcher, but no physical adapter or paired
+peripheral was available for this acceptance run. Hub grouping is an application
+permission flow; it does not claim to transport hub hardware.
+
+Reproduce with `tests/device-class-gadget.py` and `tests/device-class-smoke.py
+--help`. The scripts require explicitly disposable VMs and never choose an
+existing physical disk, input device, or network adapter. Ubuntu's tested source
+kernel did not contain `dummy_hcd`; fixture generation used Debian's standard
+kernel. This is a fixture requirement, not a restriction on physical USB export.
+
 ## Still unvalidated or unavailable
 
 - Physical USB serial, printers, dedicated Bluetooth adapters, and peripheral
   pairing. No physical-device support matrix is claimed.
 - Bluetooth peripheral use, BLE profile forwarding, audio, gamepads, and built-in
   controller migration. Whole USB-adapter sharing code is not Bluetooth proof.
-- Storage/input/hub/network sharing: blocked in the alpha. Audio/video-only
-  classes are not enabled; other physical device classes are also unvalidated.
+- Physical storage/input/network hardware and these new classes on Windows.
+  Alpha.4 permits conditional handoff and has Linux virtual-fixture results below.
+  Hub groups share child devices; hub hardware is never exported. Audio/video-only
+  classes remain disabled.
 - Windows-to-Windows, macOS export/import, and packaged ARM64 builds.
 - Physical hotplug, host suspend/resume, sustained workloads, packet-loss tests,
   power loss, and additional kernel recovery behavior.

@@ -411,7 +411,7 @@ for (const button of document.querySelectorAll("[data-example]")) {
       button.dataset.example === "bluetooth"
         ? "Connect the adapter. Its Bluetooth range stays at Studio PC."
         : button.dataset.example === "drive"
-          ? "A future concept: storage devices are blocked in the current alpha."
+          ? "Disk sharing needs an unmounted or offline disk. This is a simulated example."
           : "Click Connect to bring the printer over here.",
     );
   });

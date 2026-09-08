@@ -13,7 +13,7 @@ Open **PowerShell** as your normal Windows user and paste:
 irm https://portrelay.cobanov.dev/install.ps1 | iex
 ```
 
-This downloads the alpha.3 installer, verifies its pinned SHA-256, and opens the
+This downloads the alpha.4 installer, verifies its pinned SHA-256, and opens the
 same installation wizard as the download button. Approve the normal Windows
 administrator prompt and finish the wizard. Then open **PortRelay** and follow
 steps 2 and 3 below. The script does not enable USB or share devices for you.
@@ -56,9 +56,13 @@ Removing a computer or stopping sharing also ends its active connections.
 
 USB serial traffic has been exercised with virtual kernel/device fixtures.
 This is an experimental alpha, with physical USB and Bluetooth compatibility
-still pending. Storage, input devices, hubs, network adapters, and already
-imported devices are protected from sharing. Printers and other physical device
-classes need their own compatibility results.
+still pending. Alpha.4 permits input devices with consent, disks verified offline
+and non-system by Windows, and network adapters verified administratively down.
+Some removable flash drives cannot be taken offline and remain blocked. Unknown
+usage states and imported devices stay blocked. Hub groups share their current
+children, not hub hardware. These newly enabled classes still require actual
+Windows handoff validation; their Linux fixture results are not Windows evidence.
+See [device handoff and Bluetooth pairing](device-sharing.md).
 
 A dedicated USB Bluetooth adapter uses the whole USB-device path. Its radio
 stays beside its original computer. Individual Bluetooth peripherals, BLE
