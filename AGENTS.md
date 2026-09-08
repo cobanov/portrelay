@@ -24,5 +24,11 @@
   dependency-free unless a new capability actually requires a runtime package.
 - Keep example devices and sessions explicitly labeled as a preview. Do not add
   pretend download links or install commands for an unreleased desktop app.
-- The existing Sites project is recorded in .openai/hosting.json. Reuse it and
-  never create a replacement merely to publish an update.
+- Production is Cloudflare Pages, project portrelay, at portrelay.cobanov.dev.
+  Build with npm run build, then publish the clean committed dist/ with npm run
+  deploy. Use existing Cloudflare credentials; never commit their values.
+- The old private Sites preview remains recorded in .openai/hosting.json for
+  history. Do not publish there instead of the user-requested Pages production.
+- The product website has its own light visual identity. The user explicitly
+  waived the personal site design system. Keep copy short and use the
+  interactive printer, Bluetooth-adapter, and USB-drive examples to explain it.

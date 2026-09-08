@@ -21,9 +21,9 @@ for (const [, target] of html.matchAll(/(?:href|src)="([^"]+)"/g)) {
   }
 }
 const config = JSON.parse(
-  await readFile(path.join(root, ".openai/hosting.json"), "utf8"),
+  await readFile(path.join(root, "wrangler.json"), "utf8"),
 );
-if (config.static?.directory !== "dist")
+if (config.pages_build_output_dir !== "dist")
   throw new Error("Unexpected deployment directory");
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });

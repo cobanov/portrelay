@@ -17,6 +17,8 @@ published installers, tested device pairs, or scheduled release dates yet.
       local sharing, occupied devices, and paired-computer selection.
 - [x] Explain Linux, Windows, and macOS development status without fake installers.
 - [x] Add a portable static build and Sites configuration for an owner-only preview.
+- [x] Redesign around visual printer, Bluetooth-adapter, and USB-drive examples.
+- [x] Configure public Cloudflare Pages hosting at portrelay.cobanov.dev.
 
 This does not close the native desktop, device-sharing, or installer milestones.
 

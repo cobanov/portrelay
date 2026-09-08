@@ -6,10 +6,10 @@ const peers = {
     network: "Local network",
     devices: [
       {
-        id: "studio-serial",
-        name: "USB Serial Adapter",
+        id: "studio-printer",
+        name: "Desk printer",
         type: "USB",
-        icon: "usb",
+        icon: "printer",
         connected: false,
       },
       {
@@ -33,10 +33,10 @@ const peers = {
     network: "Internet · Relay",
     devices: [
       {
-        id: "home-serial",
-        name: "USB Serial Adapter",
+        id: "home-drive",
+        name: "USB drive",
         type: "USB",
-        icon: "usb",
+        icon: "drive",
         connected: false,
       },
       {
@@ -74,24 +74,27 @@ const localDevices = [
 ];
 const platforms = {
   linux: {
-    stage: "FIRST PLATFORM PLANNED",
-    title: "Linux goes first.",
-    description:
-      "We’re starting with USB sharing between Linux computers, then testing dedicated Bluetooth adapters.",
+    stage: "FIRST IN LINE",
+    title: "Starting with Linux.",
+    description: "USB sharing first. Dedicated Bluetooth adapters next.",
   },
   windows: {
-    stage: "NEXT PLATFORM PLANNED",
-    title: "Windows is next.",
-    description:
-      "USB sharing on Windows is planned after Linux. Both sending and receiving devices need their own driver and compatibility checks.",
+    stage: "PLANNED NEXT",
+    title: "Windows follows.",
+    description: "Sending and receiving devices, after the Linux foundation.",
   },
   macos: {
     stage: "UNDER INVESTIGATION",
-    title: "macOS needs a closer look.",
-    description:
-      "USB support depends on Apple’s device permissions. There is no confirmed macOS USB release yet. Individual BLE support is a separate future goal.",
+    title: "Exploring macOS.",
+    description: "USB support depends on Apple’s device permissions.",
   },
 };
+const examples = {
+  printer: { peer: "studio", device: "studio-printer" },
+  bluetooth: { peer: "studio", device: "studio-bluetooth" },
+  drive: { peer: "home", device: "home-drive" },
+};
+let selectedDeviceId = "studio-printer";
 
 let view = "remote";
 let activePeer = "studio";
@@ -129,6 +132,8 @@ function renderDevices() {
   const local = view === "local";
   const peer = peers[activePeer];
   const devices = local ? localDevices : peer.devices;
+  if (!devices.some((device) => device.id === selectedDeviceId))
+    selectedDeviceId = devices[0].id;
   byId("app-breadcrumb").textContent = local
     ? "This computer /"
     : "Other computers /";
@@ -146,7 +151,10 @@ function renderDevices() {
   list.replaceChildren();
   for (const device of devices) {
     const active = local ? device.shared : device.connected;
-    const row = element("div", `device-row${active ? " connected" : ""}`);
+    const row = element(
+      "div",
+      `device-row${active ? " connected" : ""}${device.id === selectedDeviceId ? " highlighted" : ""}`,
+    );
     const deviceIcon = element("span", "device-icon");
     deviceIcon.append(icon(device.icon));
     const details = element("div", "device-details");
@@ -154,18 +162,18 @@ function renderDevices() {
     let status;
     if (local) {
       status = device.protected
-        ? "Kept on this computer"
+        ? "Protected device"
         : device.shared
-          ? "Shared in preview"
-          : "Private to this computer";
+          ? "Shared in demo"
+          : "Private";
     } else {
       status = device.busy
         ? `Used by ${device.busy}`
         : device.connected
-          ? "Connected in preview"
+          ? "Connected"
           : device.type === "BT"
-            ? "Share the whole adapter"
-            : "Available to connect";
+            ? "Whole adapter"
+            : "Available";
     }
     const caption = element("p");
     caption.append(
@@ -207,6 +215,7 @@ function renderDevices() {
     .flatMap((item) => item.devices)
     .filter((device) => device.connected).length;
   byId("session-status").textContent = `${connected} connected`;
+  renderFlow(devices.find((device) => device.id === selectedDeviceId));
   if (focusedId) byId(focusedId)?.focus({ preventScroll: true });
 }
 
@@ -217,13 +226,14 @@ byId("device-list").addEventListener("click", (event) => {
   const devices = local ? localDevices : peers[activePeer].devices;
   const device = devices.find((item) => item.id === button.dataset.device);
   if (!device || device.busy || device.protected) return;
+  selectedDeviceId = device.id;
   if (local) {
     device.shared = !device.shared;
     renderDevices();
     updateHint(
       device.shared
-        ? `${device.name} is shared with paired computers in this preview.${device.type === "BT" ? " This shares the whole adapter." : ""}`
-        : `${device.name} is private again in this preview.`,
+        ? `${device.name} is shared in this demo.${device.type === "BT" ? " The whole adapter is shared." : ""}`
+        : `${device.name} is private again in this demo.`,
     );
   } else {
     device.connected = !device.connected;
@@ -231,9 +241,9 @@ byId("device-list").addEventListener("click", (event) => {
     updateHint(
       device.connected
         ? device.type === "BT"
-          ? "The whole Bluetooth adapter is assigned to Work laptop in this preview. Nearby devices would pair on Work laptop."
-          : `${device.name} is connected in this preview. No physical device is accessed.`
-        : `${device.name} is available on ${peers[activePeer].name} again in this preview.`,
+          ? `Adapter connected in demo. Pair devices near ${peers[activePeer].name} from Work laptop.`
+          : `${device.name} connected in this demo.${device.icon === "printer" ? " Ready to print." : device.icon === "drive" ? " Ready to browse." : ""}`
+        : `${device.name} returned to ${peers[activePeer].name} in this demo.`,
     );
   }
 });
@@ -246,8 +256,8 @@ for (const button of document.querySelectorAll("[data-view]")) {
     renderDevices();
     updateHint(
       view === "local"
-        ? "Your devices stay private until you choose to share them. Try a Share button."
-        : "Choose a device to try the connection flow.",
+        ? "Private until you choose to share. Try a Share button."
+        : "Choose a device and click Connect.",
     );
   });
 }
@@ -261,8 +271,8 @@ for (const button of document.querySelectorAll("[data-peer]")) {
     renderDevices();
     updateHint(
       activePeer === "home"
-        ? "An example internet connection using a relay. The devices and connection are simulated."
-        : "Choose a device to try the connection flow.",
+        ? "An example connection across the internet."
+        : "Choose a device and click Connect.",
     );
   });
 }
@@ -283,4 +293,97 @@ for (const button of document.querySelectorAll("[data-os]")) {
   });
 }
 
+function renderFlow(device) {
+  const local = view === "local";
+  const active = local ? device.shared : device.connected;
+  byId("relay-stage").dataset.connected = String(Boolean(active));
+  byId("source-label").replaceChildren(
+    document.createTextNode("PLUGGED IN "),
+    element("strong", "", local ? "ON THIS COMPUTER" : "OVER THERE"),
+  );
+  byId("destination-label").replaceChildren(
+    document.createTextNode(local ? "CHOOSE WHAT " : "READY TO USE "),
+    element("strong", "", local ? "OTHERS CAN USE" : "RIGHT HERE"),
+  );
+  byId("source-computer").textContent = local
+    ? "Work laptop"
+    : peers[activePeer].name;
+  byId("source-name").textContent = device.name;
+  byId("source-icon").replaceChildren(icon(device.icon));
+  const descriptions = {
+    printer: "One printer. Wherever you work.",
+    bluetooth: "One adapter. Another computer.",
+    drive: "Your files, on the computer you need.",
+  };
+  byId("source-detail").textContent =
+    descriptions[device.icon] || "Your device, between your computers.";
+  byId("source-state").replaceChildren(
+    element("span", "status-dot"),
+    document.createTextNode(
+      local
+        ? active
+          ? "Shared in demo"
+          : "Private"
+        : active
+          ? "Connected in demo"
+          : "Available",
+    ),
+  );
+  byId("source-transport").textContent =
+    device.type === "BT" ? "USB Bluetooth adapter" : "USB connection";
+  byId("route-mode").textContent = local
+    ? "PAIRED"
+    : activePeer === "home"
+      ? "INTERNET"
+      : "LAN";
+  byId("route-caption").textContent = active
+    ? local
+      ? "Share enabled"
+      : "Connected"
+    : local
+      ? "Private"
+      : "Click Connect";
+  const lead =
+    device.icon === "printer"
+      ? "Your desk printer."
+      : device.icon === "bluetooth"
+        ? "One whole Bluetooth adapter."
+        : device.icon === "drive"
+          ? "Your USB drive."
+          : "Your device.";
+  const tail = local
+    ? " Share it with a paired computer."
+    : device.icon === "bluetooth"
+      ? " Pair devices near the adapter, remotely."
+      : " Your laptop, anywhere.";
+  byId("example-caption").replaceChildren(
+    element("strong", "", lead),
+    document.createTextNode(tail),
+  );
+  for (const button of document.querySelectorAll("[data-example]")) {
+    const selected =
+      !local && examples[button.dataset.example].device === device.id;
+    button.classList.toggle("selected", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  }
+}
+
+for (const button of document.querySelectorAll("[data-example]")) {
+  button.disabled = false;
+  button.addEventListener("click", () => {
+    if (!Object.hasOwn(examples, button.dataset.example)) return;
+    const example = examples[button.dataset.example];
+    view = "remote";
+    activePeer = example.peer;
+    selectedDeviceId = example.device;
+    renderDevices();
+    updateHint(
+      button.dataset.example === "bluetooth"
+        ? "Connect the adapter. Its Bluetooth range stays at Studio PC."
+        : button.dataset.example === "drive"
+          ? "Try connecting a USB drive across the internet."
+          : "Click Connect to bring the printer over here.",
+    );
+  });
+}
 renderDevices();
