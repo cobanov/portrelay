@@ -302,6 +302,14 @@ partial group failure, Bluetooth guidance/settings action, and connected-device
 status. This is not visual inspection: the Mac was locked during this run, so
 the changed application screen has not received a new screenshot review.
 
+The alpha.4 Linux release archives reuse the CI-built executable from successful
+run `34287270065` (`b728e6e`). Packaging was rerun with `377b639` after finding
+hardcoded alpha.3 package labels; packaging now derives the version from Cargo and
+rejects a binary-version mismatch. The exact resulting Debian/Ubuntu packages
+installed in both disposable VMs, reported `0.1.0~alpha.4`, and activated healthy
+helpers through the packaged setup command. This did not exercise a GUI permission
+prompt. Windows assets and corresponding source are from the same successful CI.
+
 Reproduce with `tests/device-class-gadget.py` and `tests/device-class-smoke.py
 --help`. The scripts require explicitly disposable VMs and never choose an
 existing physical disk, input device, or network adapter. Ubuntu's tested source

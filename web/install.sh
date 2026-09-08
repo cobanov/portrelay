@@ -33,11 +33,11 @@ main() {
     case "${ID:-}:${VERSION_ID:-}" in
         ubuntu:24.04)
             distro=ubuntu
-            checksum=fc45cec92f3341fa78be16df0403cbae19c6c306d45048d66b67210cbd243e19
+            checksum=24aaad100688797dca8061b9bca6d6e2eee0406f6d7bec983260e52fab17d58a
             ;;
         debian:13)
             distro=debian
-            checksum=555b6d2667304b3420fce534a057c2e1067027f0592a7f3e1dae32b0ebafe6b6
+            checksum=8952546b26d77e4f9fe6b5cd4d240f1017e72422b8821b34a5cf90d85ba902cb
             ;;
         *) echo 'This alpha supports Ubuntu 24.04 and Debian 13 only.' >&2; return 1 ;;
     esac
@@ -49,7 +49,7 @@ main() {
         fi
     fi
 
-    version=0.1.0-alpha.3
+    version=0.1.0-alpha.4
     package=portrelay-$version-$distro-amd64.deb
     # Pin the package hash with its version. A replaced release asset fails closed.
     temp_dir=$(mktemp -d /tmp/portrelay.XXXXXXXXXX)
