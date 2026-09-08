@@ -26,9 +26,13 @@ use windows_sys::Win32::{
     },
     System::{
         Pipes::GetNamedPipeServerProcessId,
-        Threading::{
-            GetCurrentProcess, OpenProcess, OpenProcessToken, PROCESS_QUERY_LIMITED_INFORMATION,
+        Services::{
+            CloseServiceHandle, OpenSCManagerW, OpenServiceW, QUERY_SERVICE_CONFIGW,
+            QueryServiceConfigW, QueryServiceStatusEx, SC_HANDLE, SC_MANAGER_CONNECT,
+            SC_STATUS_PROCESS_INFO, SERVICE_QUERY_CONFIG, SERVICE_QUERY_STATUS, SERVICE_RUNNING,
+            SERVICE_STATUS_PROCESS, SERVICE_WIN32_OWN_PROCESS,
         },
+        Threading::{GetCurrentProcess, OpenProcessToken},
     },
 };
 
@@ -39,6 +43,69 @@ impl Drop for Handle {
             CloseHandle(self.0);
         }
     }
+}
+struct ServiceHandle(SC_HANDLE);
+impl Drop for ServiceHandle {
+    fn drop(&mut self) {
+        unsafe {
+            CloseServiceHandle(self.0);
+        }
+    }
+}
+
+// Normal users cannot open a LocalSystem process token. Ask the Service Control
+// Manager instead, and bind its authenticated service identity to this pipe's
+// actual server PID. Merely trusting the pipe name or executable path is unsafe.
+fn verify_service(pid: u32) -> Result<()> {
+    unsafe {
+        let manager = ServiceHandle(OpenSCManagerW(ptr::null(), ptr::null(), SC_MANAGER_CONNECT));
+        if manager.0.is_null() {
+            bail!("Cannot contact the Windows service manager");
+        }
+        let service = ServiceHandle(OpenServiceW(
+            manager.0,
+            wide("PortRelayHelper").as_ptr(),
+            SERVICE_QUERY_STATUS | SERVICE_QUERY_CONFIG,
+        ));
+        if service.0.is_null() {
+            bail!("The PortRelay USB service is not installed");
+        }
+        let mut status: SERVICE_STATUS_PROCESS = std::mem::zeroed();
+        let mut size = 0;
+        if QueryServiceStatusEx(
+            service.0,
+            SC_STATUS_PROCESS_INFO,
+            (&mut status as *mut SERVICE_STATUS_PROCESS).cast(),
+            std::mem::size_of_val(&status) as u32,
+            &mut size,
+        ) == 0
+            || status.dwProcessId != pid
+            || pid == 0
+            || status.dwCurrentState != SERVICE_RUNNING
+            || status.dwServiceType != SERVICE_WIN32_OWN_PROCESS
+        {
+            bail!("The USB pipe does not belong to the running PortRelay service");
+        }
+        QueryServiceConfigW(service.0, ptr::null_mut(), 0, &mut size);
+        if size == 0 || size > 65536 {
+            bail!("Invalid USB service configuration");
+        }
+        let mut buffer = vec![0usize; (size as usize).div_ceil(std::mem::size_of::<usize>())];
+        if QueryServiceConfigW(service.0, buffer.as_mut_ptr().cast(), size, &mut size) == 0 {
+            bail!("Cannot read the USB service configuration");
+        }
+        let config = &*buffer.as_ptr().cast::<QUERY_SERVICE_CONFIGW>();
+        let expected = wide("LocalSystem");
+        if config.lpServiceStartName.is_null()
+            || !expected
+                .iter()
+                .enumerate()
+                .all(|(i, c)| *config.lpServiceStartName.add(i) == *c)
+        {
+            bail!("The USB service must belong to Windows LocalSystem");
+        }
+    }
+    Ok(())
 }
 fn wide(value: impl AsRef<std::ffi::OsStr>) -> Vec<u16> {
     use std::os::windows::ffi::OsStrExt;
@@ -197,10 +264,7 @@ async fn pipe(path: &Path) -> Result<NamedPipeClient> {
         if GetNamedPipeServerProcessId(stream.as_raw_handle(), &mut pid) == 0 {
             bail!("Cannot verify the Windows USB service");
         }
-        let process = Handle(OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, 0, pid));
-        if process.0.is_null() || process_sid(process.0)? != "S-1-5-18" {
-            bail!("The USB service must belong to Windows LocalSystem");
-        }
+        verify_service(pid)?;
     }
     Ok(stream)
 }
