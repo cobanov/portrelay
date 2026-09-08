@@ -1,0 +1,18 @@
+#!/bin/sh
+set -eu
+if [ "$1" = configure ] && [ -d /run/systemd/system ]; then
+    systemctl daemon-reload
+    if [ -f /etc/portrelay/owner.conf ]; then systemctl enable --now portrelay-helper.service; fi
+    if [ -f /var/lib/portrelay/restart-users ]; then
+        while IFS= read -r uid; do
+            case "$uid" in ''|*[!0-9]*) continue;; esac
+            runtime=/run/user/$uid
+            [ -S "$runtime/bus" ] || continue
+            account=$(getent passwd "$uid" | cut -d: -f1)
+            [ -n "$account" ] || continue
+            runuser -u "$account" -- env XDG_RUNTIME_DIR="$runtime" DBUS_SESSION_BUS_ADDRESS="unix:path=$runtime/bus" systemctl --user daemon-reload
+            runuser -u "$account" -- env XDG_RUNTIME_DIR="$runtime" DBUS_SESSION_BUS_ADDRESS="unix:path=$runtime/bus" systemctl --user start portrelay.service
+        done < /var/lib/portrelay/restart-users
+        rm /var/lib/portrelay/restart-users
+    fi
+fi

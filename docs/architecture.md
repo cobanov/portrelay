@@ -53,7 +53,8 @@ flowchart LR
   calling local user through OS IPC permissions and peer credentials. Accept
   typed operations and validated device identifiers, never shell fragments.
 - **Backends:** Linux USB/IP first; Windows usbipd-win export and usbip-win2
-  import next. Probe installed versions and actual capabilities at runtime.
+  import next. Limited macOS export is a separate candidate; macOS import has
+  an entitlement gate. Probe installed versions and actual capabilities at runtime.
 - **Transport:** iroh for authenticated QUIC, direct routes, and relay fallback.
   Use a versioned control protocol and one reliable ordered stream per device
   session. Device data is not a lossy datagram protocol.
@@ -135,23 +136,22 @@ once; applications may need to reconnect or retry their own operation.
 
 ## Platform plan
 
-This table preserves the original platform plan. Current implementation and test
-status are in [the validation record](validation.md); it supersedes this table.
+The product scope is Linux, Windows, and macOS. Current acceptance evidence is
+in [the validation record](validation.md); upstream capability is not PortRelay
+interoperability evidence.
 
 | Capability | Linux | Windows | macOS |
 | --- | --- | --- | --- |
-| Desktop and headless agent | First target | Planned | Planned |
-| USB export | Kernel USB/IP first | usbipd-win candidate | Feasibility gate |
-| Native USB import | Kernel virtual controller first | usbip-win2 candidate | Restricted entitlement gate |
-| Dedicated USB Bluetooth adapter loan | Validate after USB | Validate after USB | Depends on corresponding USB role |
-| Individual BLE GATT service bridge | Later milestone | Later milestone | Later milestone |
-| Arbitrary built-in Bluetooth / Classic profiles | Research | Research | Research |
+| Control agent | Implemented | Planned | Builds; no packaged app yet |
+| USB export | Kernel USB/IP implemented | usbipd-win candidate | Limited userspace export candidate |
+| Native USB import | Kernel virtual controller implemented | usbip-win2 candidate | Restricted entitlement gate |
+| Dedicated USB Bluetooth adapter loan | Physical validation pending | Validate after USB | Depends on corresponding USB role |
+| Individual BLE GATT bridge | Later milestone | Later milestone | Later milestone |
 
-Linux-to-Linux comes first because both USB roles already have upstream kernel
-backends. Windows-to-Linux, Linux-to-Windows, and Windows-to-Windows each require
-their own acceptance results. macOS UI availability cannot compensate for a
-missing backend. Never require disabling SIP, Secure Boot, or signature checks
-in the normal installer.
+Linux-to-Linux comes first. Each additional operating-system direction needs
+its own acceptance results. Mac-to-Linux export and Linux-to-Mac import are
+separate deliverables. A working control interface cannot replace a device
+backend. Never require disabling SIP, Secure Boot, or system signature checks.
 
 ## Installation and operations
 

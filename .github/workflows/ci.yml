@@ -27,10 +27,13 @@ jobs:
       - uses: actions/checkout@v4
       - run: cargo build --locked --release
       - run: ./packaging/package-linux.sh target/release/portrelay x86_64
+      - run: ./packaging/package-deb.sh target/release/portrelay debian
+      - run: ./packaging/package-deb.sh target/release/portrelay ubuntu
       - uses: actions/upload-artifact@v4
         with:
           name: portrelay-linux-x86_64-alpha
           path: |
             target/packages/*.tar.gz
+            target/packages/*.deb
             target/packages/*.sha256
           retention-days: 30

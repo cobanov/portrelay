@@ -12,16 +12,22 @@ and a small local control window. No account or subscription is required.
 > not implemented. Read the [validation record](docs/validation.md).
 
 **[Website](https://portrelay.cobanov.dev)** ·
-**[Download Linux alpha](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.1)** ·
+**[Download Linux alpha](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.2)** ·
 **[Installation guide](docs/linux-alpha.md)**
 
 ## Try it on two Linux computers
 
-1. Install the distribution's USB/IP tools, then the PortRelay alpha package.
-2. Open **PortRelay** from the applications menu. Exchange an invitation and
-   approve the other computer.
-3. Choose **Share** beside a local device. On the other computer, select it and
-   choose **Connect**. **Disconnect** returns it to its owner.
+1. Download the **Ubuntu** or **Debian** package on each computer and open it
+   with the system's software installer.
+2. Open **PortRelay** from your applications. Choose **Enable USB sharing**,
+   then add your other computer with an invitation and approve it.
+3. Choose **Share device** on one computer and **Connect** on the other.
+   **Disconnect** returns the device to its owner.
+
+The package installs dependencies, adds the app shortcut, and keeps the agent
+running after you close its window. A system password prompt enables USB support;
+you do not need to configure helper services manually. See the
+[short setup guide](docs/linux-alpha.md) for downloads and system requirements.
 
 The local interface shows actual devices, paired computers, permissions,
 connections, and recovery errors. Each device is private until explicitly
@@ -104,4 +110,5 @@ Wrangler. See [website notes](docs/website.md).
 
 PortRelay's original work is [MIT licensed](LICENSE). Upstream components retain
 their own licenses. Packages include `Cargo.lock`, a CycloneDX SBOM, and `THIRD_PARTY_NOTICES.txt`.
-Distribution USB/IP tools and kernel drivers are installed separately.
+Distribution USB/IP tools and kernel drivers retain their own licenses; the
+Debian/Ubuntu setup installs them through the distribution package manager.

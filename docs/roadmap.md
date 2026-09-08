@@ -1,5 +1,7 @@
 # Roadmap
 
+The product scope is Linux, Windows, and macOS.
+
 The Linux developer alpha implements the first encrypted USB path. See
 [validation](validation.md) for kernel-fixture evidence and remaining limits.
 Physical USB/Bluetooth compatibility and the complete non-technical setup gate
@@ -54,7 +56,10 @@ concurrent claims are rejected; disconnect and owner recovery are verified.
       device connection, busy state, and owner reclaim flows.
 - [x] Add permission, unplugged, missing-driver, blocked-network, and restore
       failure messages with actionable recovery.
-- [x] Provide a Linux binary installer with helper and agent services.
+- [x] Provide Debian/Ubuntu packages, automatic dependency setup, an app-menu
+      launcher, and a guided first-run sharing flow.
+- [x] Add computer naming and invitation copy/file import without exposing
+      advanced connection details in the main flow.
 - [ ] Validate installation and menu launch on a fresh graphical Linux desktop.
 - [ ] Observe a non-technical user complete first sharing without CLI commands.
 
@@ -90,7 +95,7 @@ successful storage or serial test.
 - [ ] Package, upgrade, and uninstall on clean Windows systems without enabling
       test-signing or disabling Secure Boot.
 
-## 5. Individual Bluetooth devices and macOS
+## 5. macOS and individual Bluetooth devices
 
 These are separate deliverables; neither is implied by a cross-platform UI.
 
@@ -101,8 +106,10 @@ These are separate deliverables; neither is implied by a cross-platform UI.
 - [ ] Decide which explicit profile adapters can provide useful integration
       with existing applications without claiming universal virtualization.
 - [ ] Evaluate Bumble/HCI for Linux and controller test infrastructure.
-- [ ] Resolve macOS USB export and import permissions separately and prove both
-      paths with SIP enabled before offering them.
+- [ ] Prove limited macOS export with claimable serial adapters and development
+      boards using usbipd-mac, with SIP enabled.
+- [ ] Resolve the separate macOS import entitlement gate before promising remote
+      USB attachment on a Mac. No release date is committed for this role.
 - [ ] Validate macOS BLE permissions, packaging, signing, and notarization.
 
 ## Release evidence

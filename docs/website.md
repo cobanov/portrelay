@@ -1,8 +1,9 @@
 # Product website
 
 Production: **[portrelay.cobanov.dev](https://portrelay.cobanov.dev)**, hosted on
-Cloudflare Pages. The website links to the experimental Linux installer and
-validation record. Its interactive device examples remain a simulated concept,
+Cloudflare Pages. The website offers separate Ubuntu and Debian package downloads, release
+checksums, and the short setup guide. Windows and macOS remain visible planned
+platforms, without inactive download buttons or fabricated installers. Its interactive device examples remain a simulated concept,
 separate from the real installed application.
 
 ## Design

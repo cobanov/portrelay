@@ -1,0 +1,6 @@
+#!/bin/sh
+set -eu
+if [ -e /usr/local/lib/portrelay/portrelay ]; then
+    echo 'A manual PortRelay installation exists. Disconnect its devices and run its uninstall-linux.sh before installing this package. Pairing data will be preserved.' >&2
+    exit 1
+fi

@@ -1749,3 +1749,8 @@ h1 > span {
     justify-content: flex-start;
   }
 }
+
+.download-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0 12px; }
+.download-buttons[hidden] { display: none; }
+.download-buttons .button { font-size: 13px; padding: 12px 16px; }
+.download-note { flex-basis: 100%; color: var(--muted, #64748b); font-size: 11px; padding-top: 2px; }

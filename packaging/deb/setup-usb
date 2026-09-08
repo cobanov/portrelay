@@ -1,0 +1,50 @@
+#!/bin/sh
+# Invoked through pkexec. The invoking UID comes from polkit, never from UI input.
+set -eu
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+[ "$(id -u)" -eq 0 ] || { echo 'System permission is required.' >&2; exit 1; }
+setup_uid=${PKEXEC_UID:-}
+case "$setup_uid" in ''|*[!0-9]*) echo 'Open PortRelay as your desktop user and choose Enable USB sharing.' >&2; exit 1;; esac
+[ "$setup_uid" -ne 0 ] || { echo 'USB sharing must belong to a regular user.' >&2; exit 1; }
+getent passwd "$setup_uid" >/dev/null || { echo 'The desktop user no longer exists.' >&2; exit 1; }
+install -d -m 755 /etc/portrelay
+install -d -m 700 /var/lib/portrelay
+exec 9>/var/lib/portrelay/setup.lock
+flock -n 9 || { echo 'USB setup is already running.' >&2; exit 1; }
+if [ -f /etc/portrelay/owner.conf ] && ! grep -qx "PORTRELAY_UID=$setup_uid" /etc/portrelay/owner.conf; then
+    echo 'Another local user has configured PortRelay. Ask that user to remove their setup first.' >&2; exit 1
+fi
+. /etc/os-release
+case "$ID" in
+    debian) usbip_program=/usr/sbin/usbip ;;
+    ubuntu) usbip_program=/usr/bin/usbip ;;
+    *) echo 'This installer supports Ubuntu and Debian.' >&2; exit 1 ;;
+esac
+log=/var/lib/portrelay/setup.log
+umask 077
+: > "$log"
+if [ "$ID" = ubuntu ]; then
+    set --
+    if ! "$usbip_program" version >/dev/null 2>&1; then set -- "$@" "linux-tools-$(uname -r)"; fi
+    if ! modinfo usbip-host >/dev/null 2>&1 || ! modinfo vhci-hcd >/dev/null 2>&1; then set -- "$@" "linux-modules-extra-$(uname -r)"; fi
+    if [ "$#" -gt 0 ]; then
+        if ! DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=30 update >>"$log" 2>&1 || ! DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=30 install --no-install-recommends -y "$@" >>"$log" 2>&1; then
+            echo 'USB support could not be downloaded. Install system updates, restart this computer, then try again. Details: /var/lib/portrelay/setup.log' >&2; exit 1
+        fi
+    fi
+fi
+"$usbip_program" version >>"$log" 2>&1 || { echo 'USB tools are unavailable for this kernel. Install system updates and restart, then retry.' >&2; exit 1; }
+modinfo usbip-host >>"$log" 2>&1 && modinfo vhci-hcd >>"$log" 2>&1 || { echo 'This kernel does not include USB sharing support. Use the standard distribution kernel.' >&2; exit 1; }
+printf 'PORTRELAY_UID=%s\n' "$setup_uid" > /etc/portrelay/owner.conf.new
+chmod 600 /etc/portrelay/owner.conf.new
+mv /etc/portrelay/owner.conf.new /etc/portrelay/owner.conf
+systemctl daemon-reload
+systemctl enable --now portrelay-helper.service >>"$log" 2>&1
+attempts=0
+until runuser -u "$(getent passwd "$setup_uid" | cut -d: -f1)" -- /usr/lib/portrelay/portrelay check >/dev/null 2>&1; do
+    attempts=$((attempts + 1))
+    [ "$attempts" -lt 20 ] || { echo 'USB support is installed but not ready. Restart PortRelay, then retry setup.' >&2; exit 1; }
+    sleep 1
+done
+echo 'USB sharing is ready.'

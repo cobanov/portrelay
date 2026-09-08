@@ -1,121 +1,164 @@
-# Linux developer alpha
+# Set up PortRelay
 
-PortRelay now contains a real Rust application, a local browser control window,
-and a separate Linux USB/IP helper. This is an experimental developer alpha.
-It is not a claim of general USB or Bluetooth device compatibility.
+The Linux alpha shares USB devices between two Linux computers. Start with a
+test device: physical USB and Bluetooth compatibility is still unvalidated.
+The current packages are for Intel/AMD 64-bit Linux with systemd.
 
-## Install on both computers
+## Three steps on each computer
 
-The downloadable package targets x86_64 Linux (glibc 2.36 or newer), with systemd
-and the distribution's USB/IP tools and kernel modules. ARM64 is buildable in
-principle but has no validated package yet.
-Ubuntu needs `linux-tools-common` and the tools matching the running kernel;
-Debian provides the `usbip` package. `usbip-host` and `vhci-hcd` must be available.
-A desktop browser and `xdg-utils` open the control window.
+1. **Install the package.** Download for
+   [Ubuntu](https://github.com/cobanov/portrelay/releases/download/v0.1.0-alpha.2/portrelay-0.1.0-alpha.2-ubuntu-amd64.deb) or
+   [Debian](https://github.com/cobanov/portrelay/releases/download/v0.1.0-alpha.2/portrelay-0.1.0-alpha.2-debian-amd64.deb).
+   Open the file with your system's software installer and choose **Install**.
+2. **Open PortRelay.** Find it in your applications. Give this computer a name,
+   then choose **Enable USB sharing** and approve the system password prompt.
+   PortRelay prepares USB support for you. Ubuntu may download matching kernel
+   tools, so keep the computer online during this step.
+3. **Add your other computer.** Choose **Create & copy invitation** on one,
+   then **I have an invitation** on the other. Paste it and choose **Add computer**.
+   Approve the request on the first computer. You can also save and open an
+   invitation file. Invitations are private, single-use, and expire in ten minutes.
 
-Download the tarball and checksum from the
-[alpha release](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.1).
-On each computer, open a terminal in the download folder:
+Then select the other computer and choose **Share device** beside a local USB
+device. On the receiving computer, open **Use a remote device** and choose
+**Connect**. **Disconnect** returns the device to its owner.
+
+One local user owns USB setup. The app opens in your browser and runs a background
+service at login. Closing the window keeps connections running. Its local window
+shows actual device state; the public website is a separate concept demo.
+
+[Release notes & checksums](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.2)
+· [Tested capabilities and limitations](validation.md)
+
+<details>
+<summary>If your system does not open the package</summary>
+
+In the download folder, run the matching command:
 
 ```sh
-sha256sum -c portrelay-0.1.0-alpha.1-linux-x86_64.tar.gz.sha256
-tar -xzf portrelay-0.1.0-alpha.1-linux-x86_64.tar.gz
-cd portrelay-0.1.0-alpha.1-linux-x86_64
-sudo ./install-linux.sh "$USER"
-portrelay
+sudo apt install ./portrelay-0.1.0-alpha.2-ubuntu-amd64.deb
+# Or, on Debian:
+sudo apt install ./portrelay-0.1.0-alpha.2-debian-amd64.deb
 ```
 
-The checksum detects download corruption; it is not a publisher signature.
+Use `apt install`, which resolves dependencies, rather than `dpkg -i` alone.
+A desktop browser and the desktop's normal polkit permission agent are needed
+for the graphical flow. Installation and authorization are tested headlessly on
+Debian 13 and Ubuntu 24.04; graphical menu launch and password-dialog rendering
+still need desktop observation. The binary baseline is glibc 2.36. Other distro
+releases, ARM64 packages, signing, and automatic updates remain unvalidated.
+Checksums detect corruption; they are not publisher signatures.
 
-Build from the repository with Rust 1.97.0:
+</details>
 
-```sh
-cargo build --locked --release
-sudo ./packaging/install-linux.sh "$USER" target/release/portrelay
-portrelay
-```
+<details>
+<summary>Upgrading from the earlier tarball installer</summary>
 
-The installer starts an unprivileged application service for the selected user
-and a root helper. It adds an applications-menu shortcut. One local user is
-supported per installation. The control page binds only to `127.0.0.1`, uses a
-random access token, and contains live device state. It is separate from the
-simulated public website.
+Disconnect active devices. In the old extracted package, run
+`sudo ./uninstall-linux.sh`, then install the new `.deb`. The old uninstaller
+preserves your computer identity and pairings. The new package refuses to
+install over the old `/usr/local` services to avoid running two agents.
+Subsequent `.deb` upgrades stop and restart active services automatically.
 
-The CI `portrelay-linux-x86_64-alpha` artifact contains a Linux tarball, its
-SHA-256 checksum, and install/uninstall scripts. These are developer artifacts,
-not a signed stable release. They expire after 30 days; use the release assets
-for the published alpha. Extract the tarball, verify its checksum, and run
-`sudo ./install-linux.sh "$USER"` from the extracted directory.
+</details>
 
-## Share one device
+## What can be shared
 
-1. On the device-owning computer, choose **Pair a computer**. Send its invitation
-   privately to the other computer and paste it there. Approve the pending
-   computer on the owner. Compare the displayed endpoint identities if needed.
-2. Select that paired computer, then choose **Share** beside the USB device.
-   Sharing is a per-device, per-computer permission. The original computer keeps
-   the device until the remote computer connects.
-3. On the receiving computer, choose **Other computer**, then **Connect**.
-   Its operating system attaches the virtual USB device. Normal applications
-   can use it if their driver supports that particular device and network path.
-
-Use **Disconnect** to end a loan. **Stop sharing** also closes active loans.
-Removing a computer revokes its grants and closes its active sessions.
-Unplugging/replacing a device invalidates its old permission; share it again.
+Each device is private until you share it with a specific approved computer.
+Only one computer can use it at a time. **Stop sharing** or removing a computer
+ends its active loans. Unplugging or replacing a device invalidates its old
+permission; share it again.
 
 Input devices, storage, hubs, imported devices, and detected network adapters
-are deliberately unavailable in this alpha. Start with a disposable USB serial
-fixture. Printers and dedicated USB Bluetooth adapters need their own physical
-compatibility results before they should be relied on.
+are kept on their original computer in this alpha. Begin with a disposable USB
+serial fixture. Printers and other physical devices require their own tests.
 
-For Bluetooth, the whole USB adapter is lent to one computer. Its radio remains
-near the owner. Existing local Bluetooth connections may stop. The UI requires
-an explicit acknowledgement before granting adapter access. Individual BLE
-services, built-in controller migration, and universal audio/gamepad support
-are not implemented.
+Bluetooth uses a **whole dedicated USB adapter**. Its radio stays beside the
+original computer; existing local Bluetooth connections may stop. The app asks
+for acknowledgement before sharing it. Physical Bluetooth pairing, individual
+BLE services, built-in controller migration, audio, and gamepad compatibility
+have not been validated or implemented as separate profiles.
 
 ## Networks
 
-The default agent listens for authenticated QUIC on UDP 24816. It uses no public
-relay or address-publishing service. Allow that UDP port between the intended
-computers if a firewall blocks it. Raw USB/IP port 3240 is never opened by
-PortRelay. A valid invitation and owner approval are still required on a LAN.
+On the same LAN, no public service or account is needed. PortRelay uses encrypted
+UDP 24816; a restrictive firewall may need to allow this between your computers.
+Raw USB/IP port 3240 is never opened. Pairing and approval are always required.
+There is no automatic discovery or address refresh yet.
 
-On different networks, configure an iroh-compatible relay that you operate or
-are authorized to use:
+Internet operation currently needs an iroh-compatible relay that you operate or
+are authorized to use. It is not an automatic, hosted internet service yet.
+Device content stays encrypted through the relay. The forced-relay path has
+passed a kernel serial-fixture test; independent NAT behavior remains untested.
 
-```sh
-portrelay run --relay https://your-relay.example
+<details>
+<summary>Configure an internet relay</summary>
+
+With no active device connections, use `systemctl --user edit portrelay`:
+
+```ini
+[Service]
+ExecStart=
+ExecStart=/usr/lib/portrelay/portrelay run --no-open --relay https://your-relay.example
 ```
 
-The same pairing and device permissions apply. `--relay-only` disables direct
-IP transports and forces the configured relay, useful for diagnosing networks
-that block UDP. Public upstream relays are for development/testing; PortRelay
-does not provide a production relay or promise free hosted bandwidth. The
-relay sees routing metadata but carries an end-to-end encrypted device stream.
+Run `systemctl --user restart portrelay`. Add `--relay-only` to force the relay
+and disable direct IP routes. A fresh invitation may be needed after an address
+change. For a manual build, use `portrelay run --relay https://your-relay.example`.
+Do not start a second agent with the same data directory. Upstream development
+relays are not a promised production service or free bandwidth allocation.
 
-Stop the installed `portrelay-agent` service before running a custom command
-with the same data directory. For a persistent custom relay, configure a systemd
-service override for `ExecStart`, then restart the agent when no devices are in
-use. Address changes may require a fresh invitation in this alpha; automatic
-LAN discovery and address refresh are not implemented yet.
+</details>
 
-## Troubleshooting and removal
+<details>
+<summary>Headless setup and building from source</summary>
 
-- `portrelay status` reports devices, peers, helper health, and active sessions.
-- `portrelay check` exits successfully only when both agent and helper are ready.
+After installing the `.deb`, run as your normal user:
+
+```sh
+portrelay desktop --no-open
+pkexec /usr/lib/portrelay/setup-usb
+portrelay check
+```
+
+`pkexec` can use a terminal authentication agent in this manual flow. To keep
+this user's service alive without a login, an administrator can explicitly enable
+systemd lingering for that user. The desktop installer does not enable lingering.
+
+For source development, use Rust 1.97.0:
+
+```sh
+cargo build --locked --release
+cargo test --locked --workspace
+```
+
+The manual tarball and `packaging/install-linux.sh` remain available for developer
+use and require preinstalled distribution USB/IP tools. They use the legacy
+`portrelay-agent` system service; `.deb` installs use the `portrelay` user service.
+Use one installation method. macOS builds the control agent but has no USB backend.
+
+</details>
+
+<details>
+<summary>Diagnostics and uninstalling</summary>
+
+- **Settings & status** shows capabilities and connection details.
+- `portrelay status` reports devices, peers, setup, helper health, and sessions.
+- `portrelay check` succeeds only when the agent and USB helper are ready.
 - `portrelay open` reopens the authenticated local window.
-- `journalctl -u portrelay-helper` reports device restoration errors.
-- A helper recovery error disables further attachments and appears in the UI.
-  Restart `portrelay-helper` to retry recovery, then inspect the actual device.
-- Closing a browser tab leaves the agent and its device sessions running.
-  Disconnect in the app before shutting it down or upgrading.
-- USB connection state means the transport and virtual controller are attached;
-  application-level readiness still depends on OS enumeration and device drivers.
-- Stop active sharing and the agent service before reinstalling/upgrading.
-- `sudo ./packaging/uninstall-linux.sh` removes the services and binary after
-  successful device cleanup. It preserves the user's identity and pairing data.
+- `journalctl --user -u portrelay` shows application logs.
+- `sudo journalctl -u portrelay-helper` shows helper and recovery errors.
+- Ubuntu dependency-download details are in `/var/lib/portrelay/setup.log` (root only).
+- A recovery error disables further attachment. Restart `portrelay-helper` to
+  retry recovery, then inspect the device. Do not delete recovery journals.
+- Transport attachment does not prove application readiness; the receiving OS
+  still needs an appropriate driver.
+- Disconnect devices, then remove PortRelay with the system software manager or
+  `sudo apt remove portrelay`. User identity and pairings are preserved.
+  `sudo apt purge portrelay` also clears the system's owner configuration.
 
-No SIP, Secure Boot, or signature enforcement changes are required. macOS can
-build the control application but cannot attach/export USB with this backend.
-Windows device integration is not implemented.
+No SIP or signature-enforcement changes are required. Windows integration
+remains planned. macOS device integration
+is a separate future stage, with export and import evaluated independently.
+
+</details>

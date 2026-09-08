@@ -2,7 +2,8 @@
 
 Reviewed: 2026-09-08. This is a review of primary project documentation, not a
 hardware benchmark or a completed interoperability test. Upstream support claims
-below are attributed to those projects. PortRelay has no implementation yet.
+below are attributed to those projects. The current product scope is Linux, Windows, and
+macOS. PortRelay implementation evidence is recorded in [validation](validation.md).
 
 ## Existing solutions
 
@@ -13,7 +14,7 @@ below are attributed to those projects. PortRelay has no implementation yet.
 | [usbip-win2](https://github.com/vadimgrn/usbip-win2) | Native Windows USB/IP client using a virtual USB driver; upstream advertises signed drivers. | Preferred Windows importer candidate. Verify the actual installer signature, architecture, driver lifecycle, and loopback bridge before integration. An upstream release is not PortRelay validation. |
 | [usbip-win](https://github.com/cezanne/usbip-win) | Windows export and import implementations. | Useful historical reference; compare device behavior before selecting it over the separate exporter/importer above. |
 | [usbip-macos](https://github.com/carlossless/usbip-macos) | Experimental macOS USB/IP client. | Feasibility reference. Its README requires a restricted USB host-controller entitlement or a development environment with SIP disabled. The latter is unsuitable for the product. No reusable license was returned by GitHub's license endpoint in this review; do not copy its code without resolving that. |
-| [usbipd-mac](https://github.com/beriberikix/usbipd-mac) | Proposed macOS USB/IP server and system extension. | Track separately from macOS import. Its README currently says Apple approval is still required and the project will not work until approved. Installation documentation is not proof that the backend is usable. |
+| [usbipd-mac](https://github.com/beriberikix/usbipd-mac) | macOS export of interfaces macOS allows a userspace process to claim. | Current upstream reports limited serial/debug-probe/vendor-interface export without special entitlements. macOS-owned HID, storage, audio and camera interfaces still face DriverKit restrictions. Candidate for limited Mac-to-Linux sharing, not yet integrated or tested in PortRelay. |
 | [usbredir / SPICE](https://www.spice-space.org/api/spice-gtk/SpiceUsbredirChannel.html) | USB redirection into virtual machines. | Useful if VM support is added. It does not by itself provide a desktop OS virtual USB controller on every target platform. |
 | [usbip-gui](https://github.com/K-Francis-H/usbip-gui) | A Linux graphical wrapper around USB/IP. | Useful UX reference. Its documented Linux-only scope does not cover the intended cross-platform product. |
 | [VirtualHere](https://www.virtualhere.com/) and its [client](https://www.virtualhere.com/usb_client_software) | Commercial USB sharing with device discovery and a simple connect interaction. | Product experience reference, not a runtime dependency. No proprietary binary will be required by PortRelay. |
@@ -75,6 +76,7 @@ into the repository. This is a candidate inventory, not a distribution audit:
   Prefer distribution packages and a process boundary.
 - usbipd-win: [GPL-3.0-only](https://github.com/dorssel/usbipd-win).
 - usbip-win2: [BSD-2-Clause](https://github.com/vadimgrn/usbip-win2/blob/master/LICENSE.txt).
+- usbipd-mac: [MIT](https://github.com/beriberikix/usbipd-mac/blob/main/LICENSE).
 - Bumble: [Apache-2.0](https://github.com/google/bumble/blob/main/LICENSE).
 - btleplug: [BSD-3-Clause with additional inherited notices](https://github.com/deviceplug/btleplug/blob/master/LICENSE.md).
 - iroh: [MIT or Apache-2.0](https://github.com/n0-computer/iroh#license).

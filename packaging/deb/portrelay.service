@@ -1,0 +1,10 @@
+[Unit]
+Description=PortRelay device sharing
+After=network.target
+[Service]
+ExecStart=/usr/lib/portrelay/portrelay run --no-open
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=30
+[Install]
+WantedBy=default.target

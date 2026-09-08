@@ -57,10 +57,15 @@ pub struct Agent {
     dir: PathBuf,
     inner: Mutex<Inner>,
     limits: Arc<Semaphore>,
+    setup: crate::setup::Setup,
 }
 #[derive(Deserialize)]
 #[serde(tag = "op", rename_all = "snake_case")]
 pub enum Action {
+    SetupUsb,
+    Rename {
+        name: String,
+    },
     Invite,
     Pair {
         invitation: String,
@@ -150,6 +155,7 @@ impl Agent {
                 history: VecDeque::new(),
             }),
             limits: Arc::new(Semaphore::new(32)),
+            setup: crate::setup::Setup::default(),
         });
         let a = agent.clone();
         tokio::spawn(async move {
@@ -180,11 +186,30 @@ impl Agent {
     }
     pub async fn snapshot(&self) -> serde_json::Value {
         let health = backend::health(&self.helper).await;
+        let setup = self.setup.snapshot().await;
         let inner = self.inner.lock().await;
-        serde_json::json!({"version":env!("CARGO_PKG_VERSION"),"id":self.endpoint.id().to_string(),"name":inner.config.name,"network":self.network_mode,"address":self.address(),"platform":std::env::consts::OS,"helper_ready":health.is_ok(),"helper_error":health.err().map(|e|e.to_string()),"devices":Self::devices(&inner),"peers":inner.config.peers,"grants":inner.config.grants,"sessions":inner.sessions.values().map(|s|s.info.clone()).collect::<Vec<_>>(),"history":inner.history})
+        serde_json::json!({"version":env!("CARGO_PKG_VERSION"),"id":self.endpoint.id().to_string(),"name":inner.config.name,"network":self.network_mode,"address":self.address(),"platform":std::env::consts::OS,"setup_available":crate::setup::Setup::available(),"setup":setup,"helper_ready":health.is_ok(),"helper_error":health.err().map(|e|e.to_string()),"devices":Self::devices(&inner),"peers":inner.config.peers,"grants":inner.config.grants,"sessions":inner.sessions.values().map(|s|s.info.clone()).collect::<Vec<_>>(),"history":inner.history})
     }
     pub async fn action(self: &Arc<Self>, action: Action) -> Result<serde_json::Value> {
         match action {
+            Action::SetupUsb => {
+                self.setup.start().await?;
+                Ok(
+                    serde_json::json!({"message":"Approve the system permission window to enable USB sharing."}),
+                )
+            }
+            Action::Rename { name } => {
+                let name = name.trim();
+                if name.is_empty() || name.len() > 80 {
+                    bail!("Choose a shorter computer name.");
+                }
+                let mut inner = self.inner.lock().await;
+                inner.config.name = name.to_owned();
+                self.persist(&inner)?;
+                Ok(
+                    serde_json::json!({"message":"Computer name saved. New invitations will use this name."}),
+                )
+            }
             Action::Invite => {
                 if self.address().addrs.is_empty() {
                     bail!(
@@ -762,6 +787,37 @@ mod tests {
             .await
             .unwrap();
         ticket
+    }
+    #[tokio::test]
+    async fn computer_name_survives_restart_and_invalid_names_preserve_it() {
+        let directory = tempfile::tempdir().unwrap();
+        let agent = make(directory.path(), "Initial name").await;
+        agent
+            .action(Action::Rename {
+                name: "  Studio PC  ".into(),
+            })
+            .await
+            .unwrap();
+        for name in ["   ".to_string(), "x".repeat(81)] {
+            assert!(agent.action(Action::Rename { name }).await.is_err());
+        }
+        let identity = agent.endpoint.id();
+        assert_eq!(agent.snapshot().await["name"], "Studio PC");
+        agent.shutdown().await;
+        drop(agent);
+        let restarted = Agent::start(
+            directory.path().into(),
+            None,
+            directory.path().join("helper.sock"),
+            "127.0.0.1:0".into(),
+            None,
+            false,
+        )
+        .await
+        .unwrap();
+        assert_eq!(restarted.snapshot().await["name"], "Studio PC");
+        assert_eq!(restarted.endpoint.id(), identity);
+        restarted.shutdown().await;
     }
     #[tokio::test]
     async fn real_quic_pairing_requires_approval_and_single_use_invites() {

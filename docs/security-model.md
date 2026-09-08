@@ -41,6 +41,21 @@ This describes the developer alpha, not an independent security audit.
   fonts, analytics, or device browser APIs. The public marketing website remains
   a separate simulation and does not connect to this local API.
 
+## Package setup authorization
+
+The Debian/Ubuntu package ships a fixed root-owned setup script and a polkit
+policy scoped to that exact executable. The local authenticated API may request
+setup, but an OS administrator must authenticate for every attempt. The target
+owner UID comes from `PKEXEC_UID`, not from the API. Setup accepts no shell or
+package-name input, validates its distro and kernel, installs distribution USB
+support if needed, and enables the fixed helper unit. It never shares a device.
+Only one local USB owner is accepted; a second UID cannot silently replace it.
+
+The user service allows `pkexec` privilege transitions so it can request this
+separate OS authorization. It is not a root service. The device helper retains
+`NoNewPrivileges`, private runtime storage, UID-authenticated IPC, and its systemd
+filesystem/network restrictions. No password enters the browser or agent API.
+
 ## Remaining limits
 
 A trusted USB device can attack an operating-system driver. Network encryption

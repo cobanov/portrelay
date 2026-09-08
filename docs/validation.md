@@ -1,6 +1,9 @@
 # Alpha validation record
 
-Date: 2026-09-08. Version: `0.1.0-alpha.1`.
+Date: 2026-09-08. Current version: `0.1.0-alpha.2`.
+
+The kernel device tests below were recorded for alpha.1. Alpha.2 changes the
+installer and onboarding; the device transport/helper backend is unchanged.
 
 ## What works in the recorded setup
 
@@ -39,23 +42,51 @@ independent NATs, geographic latency, or production relay availability.
 
 ## Installation evidence
 
-The binary was built for x86_64 Linux in the Rust 1.97 Debian Bookworm image
-(glibc 2.36 baseline). The binary package was installed on a fresh Debian 13
-cloud VM without Rust or a JavaScript toolchain. Agent/helper systemd services
-started successfully, including after a guest reboot. The local agent reported
-real helper health; a different unprivileged user was denied access to its Unix
-socket. Uninstall removed the services and executable while preserving identity
-and pairing files. The final installer also waits for API and helper readiness.
-The package includes a checksum, license notices, Cargo lockfile, and CycloneDX
-SBOM. This headless test does not validate a graphical applications-menu launch.
+Alpha.2 provides separate Debian and Ubuntu `.deb` packages. The binary is built
+in Rust 1.97's Debian Bookworm image (glibc 2.36 baseline). Fresh disposable VMs
+have no Rust or JavaScript toolchain:
+
+- Debian 13.6, kernel `6.12.107+deb13-amd64`, distribution `usbip`.
+- Ubuntu 24.04.4, kernel `6.8.0-138-generic`. Setup installed the missing matching
+  `linux-tools` and `linux-modules-extra` packages automatically.
+- `apt install` resolved package dependencies. `portrelay desktop --no-open`
+  enabled the user service and reached the authenticated API.
+- The actual `setup_usb` API action invoked the packaged `pkexec` policy.
+  A terminal polkit authentication agent registered for the running application
+  exercised administrator-password approval and cancellation. Cancellation left
+  USB disabled; retry with authentication started a healthy helper on both VMs.
+  No permissive polkit test rule or password-handling API was used.
+- The root setup script rejected a different local owner UID; helper socket
+  access from that other user was denied. No raw TCP 3240 listener was present.
+- Package replacement stopped/restarted the configured services. Guest reboot
+  followed by login restored agent/helper readiness. Computer name and identity
+  survived. The user service starts at login; lingering is not enabled by default.
+- Removing and purging the package stopped services and removed the executable
+  and system owner configuration, while retaining user identity/pairing files.
+  No device recovery journals remained in these installation-only fixtures.
+
+`tests/installer-smoke.py` reproduces API setup approval/cancellation on a fresh
+installed package using a password-enabled administrator test account. It requires
+`--confirm-disposable`, `--password-file`, and the `pexpect` test dependency. Never
+run it on a production workstation. No passwords are printed or sent to PortRelay.
+
+These are **headless** installation and authorization tests. Applications-menu
+clicks, graphical password-dialog rendering, invitation clipboard/file controls,
+and non-technical user usability have not been observed. The `.desktop` launcher
+and guided UI are implemented, but that complete graphical acceptance gate stays
+open. The older manual tarball installer also passed Debian installation,
+reboot, helper-isolation and uninstall checks in alpha.1.
+
+Packages include checksums, license notices, `Cargo.lock`, and a CycloneDX SBOM.
+They are unsigned experimental packages, not a signed stable release.
 
 ## Automated checks
 
-Linux has 11 Rust tests covering protocol size/path validation, invitation
+Linux has 12 Rust tests covering protocol size/path validation, invitation
 expiry and single use, real QUIC pairing and approval, authorization and exclusive
 leases, local API authentication/origins, private TCP socket construction,
 virtual controller status parsing, encrypted streams, cancellation, and backend
-failure propagation. Seven portable tests also pass on macOS. Linux-only tests
+failure propagation, and computer-name persistence across restarts. Eight portable tests also pass on macOS. Linux-only tests
 are explicitly gated; a macOS test pass does not imply a USB backend exists.
 
 Formatting, Clippy with warnings denied, local UI JavaScript syntax, website
@@ -102,7 +133,8 @@ is an unresolved limitation, not a successful reliability result.
 - Physical hotplug, host suspend/resume, sustained workloads, packet-loss tests,
   power loss, and additional kernel recovery behavior.
 - Automatic discovery/reconnect/address updates, a hosted production relay,
-  signed installers, auto-updates, and a zero-terminal installation experience.
+  signed installers, auto-updates, and a fully observed zero-terminal installation
+  experience. Debian/Ubuntu packages now automate dependencies and USB setup.
 
 ## Reproduce safely
 

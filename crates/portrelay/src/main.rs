@@ -41,6 +41,11 @@ enum Commands {
     },
     /// Open the running application's control window.
     Open,
+    /// Open the installed desktop application and keep its agent running at login.
+    Desktop {
+        #[arg(long)]
+        no_open: bool,
+    },
     /// Show live device, peer, and connection state.
     Status,
     /// Exit successfully only when the agent and USB helper are ready.
@@ -100,6 +105,11 @@ async fn main() -> Result<()> {
     });
     if let Commands::Helper { uid, runtime_dir } = &command {
         return backend::serve(*uid, runtime_dir).await;
+    }
+    if matches!(command, Commands::Desktop { .. }) && cli.data_dir.is_some() {
+        bail!(
+            "The desktop launcher uses the default data directory. Use portrelay run for a custom directory."
+        );
     }
     let dir = storage::state_dir(cli.data_dir)?;
     match command {
@@ -167,6 +177,34 @@ async fn main() -> Result<()> {
             fs::remove_file(dir.join("api.json"))?;
         }
         Commands::Open => open_ui(&dir)?,
+        Commands::Desktop { no_open } => {
+            portrelay::setup::start_desktop_service().await?;
+            let client = reqwest::Client::builder()
+                .no_proxy()
+                .timeout(std::time::Duration::from_secs(2))
+                .build()?;
+            let mut ready = false;
+            for _ in 0..50 {
+                if let Ok(access) = access(&dir)
+                    && let Ok(response) = client
+                        .get(format!("http://127.0.0.1:{}/api/state", access.port))
+                        .bearer_auth(access.token)
+                        .send()
+                        .await
+                    && response.status().is_success()
+                {
+                    ready = true;
+                    break;
+                }
+                tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+            }
+            if !ready {
+                bail!("PortRelay is still starting. Open it again in a moment.");
+            }
+            if !no_open {
+                open_ui(&dir)?;
+            }
+        }
         other => {
             let checking = matches!(&other, Commands::Check);
             let access = access(&dir)?;

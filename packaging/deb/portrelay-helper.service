@@ -1,0 +1,23 @@
+[Unit]
+Description=PortRelay restricted USB helper
+After=systemd-udevd.service
+ConditionPathExists=/etc/portrelay/owner.conf
+[Service]
+EnvironmentFile=/etc/portrelay/owner.conf
+ExecStart=/usr/lib/portrelay/portrelay helper --uid ${PORTRELAY_UID}
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=30
+RuntimeDirectory=portrelay
+RuntimeDirectoryMode=0711
+RuntimeDirectoryPreserve=yes
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/sys/bus /sys/devices /run/portrelay
+RestrictAddressFamilies=AF_UNIX AF_INET AF_NETLINK
+IPAddressDeny=any
+IPAddressAllow=localhost
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,27 @@
+#!/bin/sh
+set -eu
+case "$1" in remove|upgrade|deconfigure)
+    if [ -d /run/systemd/system ]; then
+        # Stop each active packaged user service before replacing/removing its binary.
+        for runtime in /run/user/[0-9]*; do
+            [ -S "$runtime/bus" ] || continue
+            uid=${runtime##*/}
+            account=$(getent passwd "$uid" | cut -d: -f1)
+            [ -n "$account" ] || continue
+            if [ "$1" = upgrade ] && runuser -u "$account" -- env XDG_RUNTIME_DIR="$runtime" DBUS_SESSION_BUS_ADDRESS="unix:path=$runtime/bus" systemctl --user is-active --quiet portrelay.service; then
+                install -d -m700 /var/lib/portrelay
+                printf '%s\n' "$uid" >> /var/lib/portrelay/restart-users
+            fi
+            if [ "$1" = remove ]; then
+                runuser -u "$account" -- env XDG_RUNTIME_DIR="$runtime" DBUS_SESSION_BUS_ADDRESS="unix:path=$runtime/bus" systemctl --user disable --now portrelay.service
+            else
+                runuser -u "$account" -- env XDG_RUNTIME_DIR="$runtime" DBUS_SESSION_BUS_ADDRESS="unix:path=$runtime/bus" systemctl --user stop portrelay.service
+            fi
+        done
+        if [ "$1" = remove ]; then systemctl disable --now portrelay-helper.service; else systemctl stop portrelay-helper.service; fi
+    fi
+    for record in /run/portrelay/*.json; do
+        [ ! -e "$record" ] || { echo 'A USB device still needs recovery. Restart the PortRelay helper and resolve it before removing or upgrading.' >&2; exit 1; }
+    done
+    ;;
+esac

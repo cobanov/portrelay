@@ -23,3 +23,17 @@ fallback testing. No shared production relay is deployed by this change.
 
 This implementation does not make Windows/macOS virtual USB drivers available,
 provide individual BLE profile proxies, or replace physical compatibility tests.
+
+## Alpha.2 installation refinement
+
+Debian/Ubuntu packages use a normal user systemd service, an applications-menu
+launcher, and a guided setup screen. A fixed polkit action prepares the USB
+helper after administrator authentication. The system password never enters
+the local web interface. Ubuntu kernel tools are installed for the running
+kernel when missing; Debian uses its distribution USB/IP package.
+
+Computer naming, invitation clipboard/file exchange, per-computer device
+selection, and a compact status view are part of the first-run UI. Advanced
+identities and errors remain accessible under details. This improves onboarding
+without claiming automatic LAN discovery, a hosted relay, or cross-platform
+USB backends. Linux, Windows, and macOS all remain product targets.

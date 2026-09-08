@@ -75,8 +75,8 @@ const localDevices = [
 const platforms = {
   linux: {
     stage: "DEVELOPER ALPHA",
-    title: "Linux can connect.",
-    description: "Kernel USB transfer and recovery tested. Physical devices and Bluetooth still need validation.",
+    title: "Start with Linux.",
+    description: "Ubuntu and Debian packages prepare USB support for you. Physical device compatibility is still being tested.",
   },
   windows: {
     stage: "PLANNED NEXT",
@@ -86,7 +86,7 @@ const platforms = {
   macos: {
     stage: "UNDER INVESTIGATION",
     title: "Exploring macOS.",
-    description: "The control agent builds. USB export and attachment are not implemented.",
+    description: "Sharing select devices from a Mac comes first. Using remote USB on a Mac has a separate Apple permission gate. Neither is available yet.",
   },
 };
 const examples = {
@@ -290,6 +290,7 @@ for (const button of document.querySelectorAll("[data-os]")) {
     byId("platform-stage").textContent = platform.stage;
     byId("platform-title").textContent = platform.title;
     byId("platform-description").textContent = platform.description;
+    byId("linux-downloads").hidden = button.dataset.os !== "linux";
   });
 }
 
