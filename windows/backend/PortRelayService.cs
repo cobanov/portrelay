@@ -55,6 +55,8 @@ sealed class PortRelayService : BackgroundService
         }
         File.Move(temp, path, true);
     }
+    static Match? FindPort(string ports, string url) => Regex.Matches(ports, @"(?ms)^Port\s+(\d+):.*?(?=^Port\s+\d+:|\z)")
+        .Cast<Match>().FirstOrDefault(m => m.Value.Split('\n').Any(line => line.Trim().Equals("-> " + url, StringComparison.Ordinal)));
     async Task Clean(PortRelayRecovery record, string path)
     {
         using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
@@ -82,12 +84,19 @@ sealed class PortRelayService : BackgroundService
         for (var attempt = 0; attempt < 30; attempt++)
         {
             var ports = await Command(client, ["port"], timeout.Token);
-            var found = Regex.Matches(ports, @"(?ms)^Port\s+(\d+):.*?(?=^Port\s+\d+:|\z)")
-                .Cast<Match>().FirstOrDefault(m => m.Value.Split('\n').Any(line => line.Trim().Equals("-> " + url, StringComparison.Ordinal)));
+            var found = FindPort(ports, url);
             if (found is null) { File.Delete(path); return; }
             var port = uint.Parse(found.Groups[1].Value);
             if (record.UsbPort.HasValue && record.UsbPort.Value != port) throw new IOException("Virtual port ownership changed; recovery requires attention");
-            _ = await Command(client, ["detach", "--port", port.ToString()], timeout.Token);
+            try { _ = await Command(client, ["detach", "--port", port.ToString()], timeout.Token); }
+            catch (IOException)
+            {
+                // EOF may remove the native attachment between the query and
+                // detach. Accept the race only after verifying our URL is gone.
+                var remaining = await Command(client, ["port"], timeout.Token);
+                if (FindPort(remaining, url) is null) { File.Delete(path); return; }
+                throw;
+            }
             await Task.Delay(100, timeout.Token);
         }
         throw new IOException("Windows has not detached the imported USB device");

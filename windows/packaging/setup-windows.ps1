@@ -60,9 +60,11 @@ try {
     $hash = (Get-FileHash -LiteralPath $clientInstaller -Algorithm SHA256).Hash
     if ($hash -ne '81F426741F7EE2ED991FEBE24A22DACA8400B6AE2F171054E3FB404897E15D39') { throw 'The USB driver download failed integrity verification. Reinstall PortRelay.' }
     if (-not (Test-Path $client)) {
+        # Record ownership before launch so a partially completed driver install
+        # can be retried and removed by this same PortRelay installation.
+        New-ItemProperty -Path $registry -Name InstalledClient -Value 1 -PropertyType DWord -Force | Out-Null
         $process = Start-Process -FilePath $clientInstaller -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /COMPONENTS=main,client' -Wait -PassThru
         if ($process.ExitCode -notin @(0, 3010)) { throw "The signed USB driver installer failed ($($process.ExitCode)). Restart Windows and retry." }
-        New-ItemProperty -Path $registry -Name InstalledClient -Value 1 -PropertyType DWord -Force | Out-Null
     } elseif ((Get-Item $client).VersionInfo.FileVersion -notlike '0.9.8.0*') {
         throw 'A different USBip client version is installed. Update it to the signed 0.9.8.0 release before continuing.'
     }

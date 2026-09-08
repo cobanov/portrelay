@@ -35,7 +35,7 @@ class Machine:
         return result.stdout.strip()
 
     def ps(self, code):
-        encoded = base64.b64encode(("$ErrorActionPreference='Stop';" + code).encode("utf-16le")).decode()
+        encoded = base64.b64encode(("$ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue';" + code + ";exit 0").encode("utf-16le")).decode()
         return self.run("powershell -NoProfile -NonInteractive -EncodedCommand " + encoded)
 
     def api(self, action=None):
@@ -44,7 +44,7 @@ class Machine:
 
     def tty(self):
         if self.windows:
-            return self.ps("$p=Get-CimInstance Win32_SerialPort | Where-Object {$_.PNPDeviceID -like '*VID_1D6B&PID_0104*'}; if($p){$p.DeviceID}")
+            return self.ps("$ports=[IO.Ports.SerialPort]::GetPortNames(); Get-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Enum\\USB\\VID_1D6B&PID_0104*\\*\\Device Parameters' -Name PortName -ErrorAction SilentlyContinue | Where-Object {$_.PortName -in $ports} | Select-Object -ExpandProperty PortName")
         code = linux.FIND_TTY.replace("ttyACM*", "ttyUSB*").replace("'1d6b'", "'0403'").replace("'0104'", "'6001'")
         paths = json.loads(self.run("python3 -c " + shlex.quote(code)))
         return paths[0] if paths else None
@@ -113,9 +113,9 @@ def exercise(owner, client, address, fixture, cycles):
     assert client.api({"op": "remote", "peer": owner_id})["devices"] == []
     owner.api({"op": "share", "peer": client_id, "device": device["id"]})
     connection = connect(owner, client, device)
-    port = linux.wait_for(client.tty, 40)
     echo = None
     try:
+        port = linux.wait_for(client.tty, 40)
         require_failure(lambda: connect(owner, client, device), "A second session could claim the same device")
         if not owner.windows:
             echo = subprocess.Popen([*owner.ssh, "sudo -n python3 -c " + shlex.quote(linux.ECHO)], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
