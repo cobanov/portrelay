@@ -29,34 +29,32 @@ try {
 } finally { $env:PROCESSOR_ARCHITEW6432 = $savedArchitecture }
 
 # Corrupt downloads must be rejected before any process is launched and cleaned up.
-$script:corruptPath = $null
+$bootstrapTestState = @{ CorruptPath = $null; LaunchCount = 0; LastInstaller = $null }
 function Invoke-WebRequest {
     param($Uri, $OutFile, $TimeoutSec, [switch]$UseBasicParsing)
-    $script:corruptPath = $OutFile
+    $bootstrapTestState.CorruptPath = $OutFile
     Set-Content -LiteralPath $OutFile -Value 'corrupt package'
 }
 Assert-Fails { & $bootstrap } 'checksum mismatch'
-if (Test-Path (Split-Path $script:corruptPath)) { throw 'Failed download was not cleaned up.' }
+if (Test-Path (Split-Path $bootstrapTestState.CorruptPath)) { throw 'Failed download was not cleaned up.' }
 Remove-Item Function:\Invoke-WebRequest
 
 # Exercise the actual published package, checksum, install, update and cleanup.
 # Add silent flags only in this test, without changing the public wizard flow.
-$script:launchCount = 0
-$script:lastInstaller = $null
 function Start-Process {
     param($FilePath, $ArgumentList, [switch]$Wait, [switch]$PassThru)
-    $script:launchCount++
-    $script:lastInstaller = $FilePath
+    $bootstrapTestState.LaunchCount++
+    $bootstrapTestState.LastInstaller = $FilePath
     Microsoft.PowerShell.Management\Start-Process -FilePath $FilePath -ArgumentList ($ArgumentList + @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/SP-')) -Wait -PassThru
 }
 try {
     & $bootstrap
     if (-not (Test-Path (Join-Path $app 'portrelay-desktop.exe'))) { throw 'Desktop launcher was not installed.' }
-    if (Test-Path (Split-Path $script:lastInstaller)) { throw 'Installer download was not cleaned up.' }
+    if (Test-Path (Split-Path $bootstrapTestState.LastInstaller)) { throw 'Installer download was not cleaned up.' }
     # The public one-liner evaluates the downloaded text, not a saved script file.
     Get-Content -LiteralPath $bootstrap -Raw | Invoke-Expression
-    if ($script:launchCount -ne 2) { throw 'Install/update did not invoke the installer twice.' }
-    if (Test-Path (Split-Path $script:lastInstaller)) { throw 'Update download was not cleaned up.' }
+    if ($bootstrapTestState.LaunchCount -ne 2) { throw 'Install/update did not invoke the installer twice.' }
+    if (Test-Path (Split-Path $bootstrapTestState.LastInstaller)) { throw 'Update download was not cleaned up.' }
 } finally {
     Remove-Item Function:\Start-Process
     $uninstaller = Join-Path $app 'unins000.exe'
