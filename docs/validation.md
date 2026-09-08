@@ -1,6 +1,6 @@
 # Alpha validation record
 
-Date: 2026-09-08. Current version: `0.1.0-alpha.3`.
+Dates: 2026-09-08 and 2026-09-09. Current version: `0.1.0-alpha.3`.
 
 The kernel device tests below were recorded for alpha.1. Alpha.2 changes the
 installer and onboarding; the device transport/helper backend is unchanged.
@@ -105,6 +105,15 @@ Issues found and corrected during these tests:
 - Windows re-enumerates a returned device. For a system-wide unique identity
   with unchanged USB/IP descriptors, only that managed return retains its grant;
   a later arrival or helper restart invalidates it. Other devices require re-sharing.
+
+An unresolved issue appeared after the repeated imports and importing-agent
+crash test: upstream `devnode.exe` stalled in `DiUninstallDevice` for the dedicated
+USBip controller. Guest shutdown also stalled; a reset of that disposable guest
+followed by retry completed removal. The uninstaller now bounds that wait and
+preserves ownership/progress for a retry. This is **not a fix for the kernel/PnP
+stall**, and the successful transfer/port-removal checks do not establish complete
+driver resource reclamation. Windows reliability and clean removal after every
+failure mode remain open acceptance gates.
 
 ## Installation evidence
 

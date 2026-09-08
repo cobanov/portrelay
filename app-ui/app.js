@@ -94,6 +94,7 @@ function renderSetup() {
   $("setup-title").textContent = supported ? "Enable USB sharing" : "USB support is coming to macOS";
   $("setup-description").textContent = !supported
     ? "Sharing or connecting USB devices currently needs Linux or Windows. macOS device support is still in development."
+    : state.setup?.running && state.platform === "windows" ? "Approve the Windows permission prompt. If it is hidden, select the flashing shield in the taskbar."
     : state.setup_available ? "Allow PortRelay to prepare USB support. Your system may ask for administrator permission."
     : state.platform === "windows" ? "Install the Windows app to prepare USB support from this window."
     : "Install the Ubuntu or Debian package to complete setup from this window. Manual installations can use the setup guide.";

@@ -24,6 +24,12 @@ The first USB setup may ask for a restart. Secure Boot and driver-signature
 enforcement remain enabled. PortRelay's alpha installer itself is unsigned;
 its checksums are on the release page.
 
+**Known alpha limitation:** after repeated imports and a forced app shutdown,
+the upstream virtual USB controller stalled during uninstall and Windows shutdown
+in a test VM. Resetting that guest and retrying completed removal. PortRelay now
+bounds the uninstall wait and retains removal progress, but the underlying driver
+stall is unresolved. Start on disposable test computers.
+
 ## Devices and networks
 
 The app shows real local and shared devices. A device stays private until its
