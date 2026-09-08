@@ -8,6 +8,12 @@ $registry = 'HKLM:\SOFTWARE\PortRelay'
 $usbRegistry = 'HKLM:\SOFTWARE\usbipd-win'
 $mutex = New-Object Threading.Mutex($false, 'Global\PortRelay.Setup.v1')
 if (-not $mutex.WaitOne(0)) { throw 'USB setup is already running.' }
+function Assert-ProtectedPath([string]$Path) {
+    if (-not (Test-Path -LiteralPath $Path)) { return }
+    if ((Get-Item -LiteralPath $Path -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'The USB service data must not contain links.' }
+    $owner=(Get-Acl -LiteralPath $Path).GetOwner([Security.Principal.SecurityIdentifier]).Value
+    if ($owner -notin @('S-1-5-18','S-1-5-32-544')) { throw 'The USB service data must belong to Windows administrators. Remove the conflicting PortRelay data directory and retry.' }
+}
 try {
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
     if (-not (New-Object Security.Principal.WindowsPrincipal($identity)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { throw 'Windows administrator permission is required.' }
@@ -27,15 +33,24 @@ try {
         throw 'An existing USBip installation is present. PortRelay needs its own USB controller. Uninstall USBip first if you want PortRelay to manage it.'
     }
     # Keep service configuration, logs, and recovery journals administrator-only.
-    if ((Test-Path $root) -and ((Get-Item $root).Attributes -band [IO.FileAttributes]::ReparsePoint)) { throw 'The service data directory must not be a link.' }
+    Assert-ProtectedPath $root
     $null = New-Item -ItemType Directory -Force $root
     $acl = New-Object Security.AccessControl.DirectorySecurity
     $acl.SetAccessRuleProtection($true, $false)
+    $acl.SetOwner((New-Object Security.Principal.SecurityIdentifier('S-1-5-32-544')))
     foreach ($account in @('S-1-5-18', 'S-1-5-32-544')) {
         $rule = New-Object Security.AccessControl.FileSystemAccessRule((New-Object Security.Principal.SecurityIdentifier($account)), 'FullControl', 'ContainerInherit,ObjectInherit', 'None', 'Allow')
         $acl.AddAccessRule($rule)
     }
     Set-Acl -LiteralPath $root -AclObject $acl
+    Assert-ProtectedPath (Join-Path $root 'setup.log')
+    Assert-ProtectedPath (Join-Path $root 'recovery')
+    if (Test-Path (Join-Path $root 'recovery')) {
+        foreach ($record in Get-ChildItem -LiteralPath (Join-Path $root 'recovery') -Force) {
+            Assert-ProtectedPath $record.FullName
+            if ($record.PSIsContainer) { throw 'Unexpected directory in USB recovery data.' }
+        }
+    }
     Start-Transcript -Path (Join-Path $root 'setup.log') -Append | Out-Null
     $null = New-Item -ItemType Directory -Force (Join-Path $root 'recovery')
     $null = New-Item -Force $registry
@@ -59,6 +74,7 @@ try {
     $null = New-Item -Force "$usbRegistry\Policy"
     & $backend installer install_driver
     if ($LASTEXITCODE -ne 0) { throw 'Windows rejected the signed USB export driver.' }
+    New-ItemProperty -Path $registry -Name ExportDriverRemoved -Value 0 -PropertyType DWord -Force | Out-Null
     if (-not (Get-Service VBoxUSBMon -ErrorAction SilentlyContinue)) {
         & $backend installer install_monitor
         if ($LASTEXITCODE -ne 0) { throw 'Windows could not install the USB monitor driver.' }
@@ -71,8 +87,8 @@ try {
         Start-Service PortRelayHelper
     }
     if (-not (Get-NetFirewallRule -Name 'PortRelay.Encrypted' -ErrorAction SilentlyContinue)) {
-        New-NetFirewallRule -Name 'PortRelay.Encrypted' -DisplayName 'PortRelay encrypted device connections' -Direction Inbound -Action Allow -Protocol UDP -Program (Join-Path $install 'portrelay.exe') -Profile Private | Out-Null
-    }
+        New-NetFirewallRule -Name 'PortRelay.Encrypted' -DisplayName 'PortRelay encrypted device connections' -Direction Inbound -Action Allow -Protocol UDP -Program (Join-Path $install 'portrelay.exe') -Profile Any | Out-Null
+    } else { Set-NetFirewallRule -Name 'PortRelay.Encrypted' -Profile Any | Out-Null }
     Write-Output 'USB support is installed. Restart Windows if the app still asks you to enable USB support.'
 } catch {
     Write-Error $_

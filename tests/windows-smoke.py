@@ -95,6 +95,9 @@ def clean(owner, client):
 
 def exercise(owner, client, address, fixture, cycles):
     initial = owner.api()
+    assert not initial["sessions"] and not client.api()["sessions"], "Disconnect existing test sessions first"
+    if client.api()["id"] in initial["peers"]:
+        owner.api({"op": "revoke", "peer": client.api()["id"]})
     device = next(d for d in initial["devices"] if (d["vendor"], d["product"]) == fixture)
     assert device["blocked"] is None, device["blocked"]
     ticket = owner.api({"op": "invite"})["invitation"]
@@ -144,6 +147,7 @@ def exercise(owner, client, address, fixture, cycles):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--confirm-disposable", action="store_true", required=True, help="Confirm both machines and serial devices are disposable fixtures")
     parser.add_argument("--ssh-config", required=True)
     parser.add_argument("--windows", required=True)
     parser.add_argument("--windows-user", required=True)

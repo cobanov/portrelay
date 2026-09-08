@@ -50,6 +50,11 @@ try {
     Copy-Item "$source\Usbipd\Usbipd.csproj","$source\Usbipd\NativeMethods.txt" "$corresponding\Usbipd" -Force
     Copy-Item "$source\global.json" $corresponding -Force
     Copy-Item windows/backend/packages.lock.json "$corresponding\Usbipd" -Force
+    $versionSource = Get-ChildItem "$source\Usbipd\obj" -Filter GitVersionInformation.g.cs -Recurse | Select-Object -First 1
+    if (-not $versionSource) { throw 'Generated backend version source is missing' }
+    Copy-Item $versionSource.FullName "$corresponding\Usbipd\PortRelayArchiveVersion.cs" -Force
+    Copy-Item windows/backend/rebuild-source.ps1 "$corresponding\REBUILD.ps1" -Force
+    Copy-Item windows/backend/SOURCE-README.md "$corresponding\PORTRELAY-SOURCE.md" -Force
     Copy-Item windows "$corresponding\PortRelay-build" -Recurse -Force
     Compress-Archive -Path "$corresponding\*" -DestinationPath "$packages\portrelay-$version-windows-backend-source.zip" -Force
     Get-ChildItem $packages -File | Where-Object { $_.Name -like "portrelay-$version-windows-*" -and $_.Extension -ne '.sha256' } | ForEach-Object {

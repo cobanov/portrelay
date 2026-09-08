@@ -88,10 +88,14 @@ function renderSetup() {
   $("enable-usb").hidden = !state.setup_available;
   $("enable-usb").disabled = !!state.setup?.running;
   $("enable-usb").textContent = state.setup?.running ? "Preparing USB support…" : "Enable USB sharing";
-  $("setup-title").textContent = state.platform !== "linux" ? "USB sharing needs Linux" : "Enable USB sharing";
-  $("setup-description").textContent = state.platform !== "linux"
-    ? "This app can manage computers here. Sharing or connecting USB devices currently needs Linux on both ends."
-    : state.setup_available ? "Allow PortRelay to prepare USB support. Your system may ask for your password."
+  const supported = ["linux", "windows"].includes(state.platform);
+  $("platform-badge").textContent = state.platform === "windows" ? "Windows alpha" : state.platform === "linux" ? "Linux alpha" : "Control preview";
+  $("setup-help").href = `https://github.com/cobanov/portrelay/blob/main/docs/${state.platform === "windows" ? "windows" : "linux"}-alpha.md`;
+  $("setup-title").textContent = supported ? "Enable USB sharing" : "USB support is coming to macOS";
+  $("setup-description").textContent = !supported
+    ? "Sharing or connecting USB devices currently needs Linux or Windows. macOS device support is still in development."
+    : state.setup_available ? "Allow PortRelay to prepare USB support. Your system may ask for administrator permission."
+    : state.platform === "windows" ? "Install the Windows app to prepare USB support from this window."
     : "Install the Ubuntu or Debian package to complete setup from this window. Manual installations can use the setup guide.";
   $("setup-error").hidden = !state.setup?.error;
   $("setup-error").textContent = state.setup?.error || "";

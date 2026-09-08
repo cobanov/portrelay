@@ -60,6 +60,12 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
+          name: portrelay-windows-agent-test
+          path: target/windows-package/app/portrelay*.exe
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
           name: portrelay-windows-test-build
           path: target/windows-package/app/
           retention-days: 7
