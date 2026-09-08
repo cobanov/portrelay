@@ -1,7 +1,7 @@
 name: Build and check
 on:
   push:
-    branches: [main]
+    branches: [main, feature/windows-support]
   pull_request:
   workflow_dispatch:
 permissions:
@@ -10,7 +10,7 @@ jobs:
   check:
     strategy:
       matrix:
-        os: [ubuntu-24.04, macos-14]
+        os: [ubuntu-24.04, macos-14, windows-2025]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4

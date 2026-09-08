@@ -1,5 +1,5 @@
 use crate::{
-    backend, inventory,
+    backend,
     protocol::*,
     storage::{self, Config, Grant, Peer},
 };
@@ -169,8 +169,8 @@ impl Agent {
     pub fn address(&self) -> EndpointAddr {
         self.endpoint.addr()
     }
-    fn devices(inner: &Inner) -> Vec<Device> {
-        inventory::inventory()
+    fn devices(inner: &Inner, devices: Vec<Device>) -> Vec<Device> {
+        devices
             .into_iter()
             .map(|device| {
                 inner
@@ -187,8 +187,9 @@ impl Agent {
     pub async fn snapshot(&self) -> serde_json::Value {
         let health = backend::health(&self.helper).await;
         let setup = self.setup.snapshot().await;
+        let devices = backend::devices(&self.helper).await;
         let inner = self.inner.lock().await;
-        serde_json::json!({"version":env!("CARGO_PKG_VERSION"),"id":self.endpoint.id().to_string(),"name":inner.config.name,"network":self.network_mode,"address":self.address(),"platform":std::env::consts::OS,"setup_available":crate::setup::Setup::available(),"setup":setup,"helper_ready":health.is_ok(),"helper_error":health.err().map(|e|e.to_string()),"devices":Self::devices(&inner),"peers":inner.config.peers,"grants":inner.config.grants,"sessions":inner.sessions.values().map(|s|s.info.clone()).collect::<Vec<_>>(),"history":inner.history})
+        serde_json::json!({"version":env!("CARGO_PKG_VERSION"),"id":self.endpoint.id().to_string(),"name":inner.config.name,"network":self.network_mode,"address":self.address(),"platform":std::env::consts::OS,"setup_available":crate::setup::Setup::available(),"setup":setup,"helper_ready":health.is_ok(),"helper_error":health.err().map(|e|e.to_string()),"devices":Self::devices(&inner, devices),"peers":inner.config.peers,"grants":inner.config.grants,"sessions":inner.sessions.values().map(|s|s.info.clone()).collect::<Vec<_>>(),"history":inner.history})
     }
     pub async fn action(self: &Arc<Self>, action: Action) -> Result<serde_json::Value> {
         match action {
@@ -321,9 +322,10 @@ impl Agent {
                 acknowledge_bluetooth,
             } => {
                 if !backend::available(&self.helper) {
-                    bail!("Install the Linux device helper before sharing");
+                    bail!("Enable USB support before sharing");
                 }
-                let d = inventory::inventory()
+                let d = backend::devices(&self.helper)
+                    .await
                     .into_iter()
                     .find(|d| d.id == device)
                     .context("Device was unplugged")?;
@@ -480,7 +482,7 @@ impl Agent {
                 Ok((session, cancel)) => {
                     let mut ready = false;
                     let result=async {
-                        #[cfg(unix)] {
+                        #[cfg(any(unix, windows))] {
                             let (mut ipc,reply)=backend::open(&self.helper,&backend::HelperRequest::Export{device:device.clone(),generation:generation.clone()}).await?;
                             if cancel.is_cancelled() {bail!("Permission was revoked");}
                             let device=reply.device.context("Helper did not return device metadata")?;
@@ -489,7 +491,7 @@ impl Agent {
                             self.mark_connected(&session).await;
                             tokio::select!{_=cancel.cancelled()=>Ok(()),_=self.cancel.cancelled()=>Ok(()),r=bridge(&mut ipc,&mut recv,&mut send)=>r}
                         }
-                        #[cfg(not(unix))] {bail!("Device sharing is not implemented on this platform");}
+                        #[cfg(not(any(unix, windows)))] {bail!("Device sharing is not implemented on this platform");}
                     }.await;
                     if !ready && let Err(e) = &result {
                         let _ = write_frame(
@@ -507,7 +509,7 @@ impl Agent {
                         s.info.state = "restoring".into();
                     }
                     let mut error = result.err().map(|e| e.to_string());
-                    #[cfg(unix)]
+                    #[cfg(any(unix, windows))]
                     if ready
                         && let Err(e) = backend::open(
                             &self.helper,
@@ -538,6 +540,22 @@ impl Agent {
         Ok(())
     }
     async fn control(&self, remote: &str, request: Request) -> Result<Reply> {
+        let devices = if matches!(request, Request::List) {
+            if !self
+                .inner
+                .lock()
+                .await
+                .config
+                .peers
+                .get(remote)
+                .is_some_and(|p| p.approved)
+            {
+                bail!("Waiting for approval on the device owner’s computer");
+            }
+            backend::devices(&self.helper).await
+        } else {
+            vec![]
+        };
         let mut inner = self.inner.lock().await;
         if let Request::Pair {
             secret,
@@ -595,7 +613,7 @@ impl Agent {
         }
         match request {
             Request::List => {
-                let devices = Self::devices(&inner)
+                let devices = Self::devices(&inner, devices)
                     .into_iter()
                     .filter(|d| {
                         d.blocked.is_none()
@@ -693,7 +711,7 @@ impl Agent {
     ) -> Result<serde_json::Value> {
         if !backend::available(&self.helper) {
             bail!(
-                "Install the Linux helper to connect real devices. This platform may only manage peers."
+                "Enable USB support to connect real devices. This platform may only manage peers."
             );
         }
         let (address, session, cancel) = {
@@ -715,7 +733,7 @@ impl Agent {
             write_frame(&mut send,&Envelope{version:VERSION,request:Request::Open{device,generation}}).await?;
             let reply:Reply=tokio::time::timeout(Duration::from_secs(25),read_frame(&mut recv)).await??;
             let metadata=match reply {Reply::Ready{device}=>device,Reply::Error{message}=>bail!("{message}"),_=>bail!("Unexpected device response")};
-            #[cfg(unix)] {
+            #[cfg(any(unix, windows))] {
                 if cancel.is_cancelled(){bail!("Connection cancelled");}
                 let(mut ipc,local)=backend::open(&self.helper,&backend::HelperRequest::Import{device:metadata}).await?;
                 if cancel.is_cancelled(){bail!("Connection cancelled");}
@@ -732,7 +750,7 @@ impl Agent {
                 });
                 Ok(serde_json::json!({"session":session,"port":local.port,"message":"USB transport attached. The operating system is enumerating the device."}))
             }
-            #[cfg(not(unix))] {let _=metadata;bail!("Device attachment is not implemented on this platform");}
+            #[cfg(not(any(unix, windows)))] {let _=metadata;bail!("Device attachment is not implemented on this platform");}
         }.await;
         if let Err(e) = &result {
             self.finish(&session, Some(e.to_string())).await;

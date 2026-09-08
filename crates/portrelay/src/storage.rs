@@ -54,6 +54,8 @@ pub fn state_dir(override_dir: Option<PathBuf>) -> Result<PathBuf> {
             .to_path_buf(),
     );
     fs::create_dir_all(&dir)?;
+    #[cfg(windows)]
+    crate::windows::protect_state(&dir)?;
     #[cfg(unix)]
     {
         use std::os::unix::fs::{MetadataExt, PermissionsExt};

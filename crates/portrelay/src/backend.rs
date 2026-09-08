@@ -5,11 +5,15 @@ use std::path::Path;
 #[cfg(unix)]
 use tokio::net::UnixStream;
 
+#[cfg(not(windows))]
 pub const SOCKET: &str = "/run/portrelay/helper.sock";
+#[cfg(windows)]
+pub const SOCKET: &str = r"\\.\pipe\PortRelay.Helper.v1";
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "op", rename_all = "snake_case")]
 pub enum HelperRequest {
     Health,
+    Inventory,
     WaitExport { device: String },
     WaitImport { port: u32 },
     Export { device: String, generation: String },
@@ -22,26 +26,47 @@ pub struct HelperReply {
     pub port: Option<u32>,
 }
 pub fn available(path: &Path) -> bool {
-    cfg!(target_os = "linux") && path.exists()
+    #[cfg(windows)]
+    {
+        let _ = path;
+        crate::windows::installed()
+    }
+    #[cfg(not(windows))]
+    {
+        cfg!(target_os = "linux") && path.exists()
+    }
+}
+pub async fn devices(path: &Path) -> Vec<Device> {
+    #[cfg(windows)]
+    {
+        crate::windows::devices(path).await.unwrap_or_default()
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = path;
+        crate::inventory::inventory()
+    }
 }
 pub async fn health(path: &Path) -> Result<()> {
     if !available(path) {
-        bail!("Linux device helper is not installed or not running");
+        bail!("Device helper is not installed or not running");
     }
-    #[cfg(unix)]
+    #[cfg(any(unix, windows))]
     {
         tokio::time::timeout(
-            std::time::Duration::from_secs(2),
+            std::time::Duration::from_secs(4),
             open(path, &HelperRequest::Health),
         )
         .await??;
         Ok(())
     }
-    #[cfg(not(unix))]
+    #[cfg(not(any(unix, windows)))]
     {
         bail!("USB support currently requires Linux");
     }
 }
+#[cfg(windows)]
+pub use crate::windows::open;
 #[cfg(unix)]
 pub async fn open(path: &Path, request: &HelperRequest) -> Result<(UnixStream, HelperReply)> {
     let mut stream = UnixStream::connect(path).await.map_err(|e| {
@@ -275,7 +300,8 @@ mod linux {
         runtime: &Path,
     ) -> Result<(TcpStream, HelperReply, Recovery, PathBuf)> {
         match request {
-            HelperRequest::Health
+            HelperRequest::Inventory
+            | HelperRequest::Health
             | HelperRequest::WaitExport { .. }
             | HelperRequest::WaitImport { .. } => bail!("Not a device operation"),
             HelperRequest::Export { device, generation } => {

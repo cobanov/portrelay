@@ -5,3 +5,5 @@ pub mod inventory;
 pub mod protocol;
 pub mod setup;
 pub mod storage;
+#[cfg(windows)]
+pub mod windows;

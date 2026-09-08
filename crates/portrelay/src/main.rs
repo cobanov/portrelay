@@ -21,6 +21,12 @@ struct Cli {
 }
 #[derive(Subcommand)]
 enum Commands {
+    #[cfg(windows)]
+    #[command(hide = true)]
+    WindowsSetup {
+        #[arg(long)]
+        owner_sid: String,
+    },
     /// Start the application and open its local control window.
     Run {
         #[arg(long)]
@@ -103,6 +109,10 @@ async fn main() -> Result<()> {
         helper: backend::SOCKET.into(),
         no_open: false,
     });
+    #[cfg(windows)]
+    if let Commands::WindowsSetup { owner_sid } = &command {
+        return portrelay::windows::setup_elevated(owner_sid).await;
+    }
     if let Commands::Helper { uid, runtime_dir } = &command {
         return backend::serve(*uid, runtime_dir).await;
     }
