@@ -23,6 +23,7 @@ class Machine:
     def __init__(self, host, options, windows_user=None):
         self.host = host
         self.windows = windows_user is not None
+        self.prior_history = set()
         self.ssh = ["ssh", *options, "-o", "BatchMode=yes", "-o", "ConnectTimeout=8"]
         if windows_user:
             self.ssh += ["-l", windows_user]
@@ -90,12 +91,15 @@ def clean(owner, client):
     for machine in [owner, client]:
         state = machine.api()
         assert state["helper_ready"], state.get("helper_error")
-        assert not any(s["error"] for s in state["history"]), state["history"]
+        failures = [s for s in state["history"] if s["error"] and s["id"] not in machine.prior_history]
+        assert not failures, failures
 
 
 def exercise(owner, client, address, fixture, cycles):
     initial = owner.api()
     assert not initial["sessions"] and not client.api()["sessions"], "Disconnect existing test sessions first"
+    owner.prior_history = {s["id"] for s in initial["history"]}
+    client.prior_history = {s["id"] for s in client.api()["history"]}
     if client.api()["id"] in initial["peers"]:
         owner.api({"op": "revoke", "peer": client.api()["id"]})
     device = next(d for d in initial["devices"] if (d["vendor"], d["product"]) == fixture)

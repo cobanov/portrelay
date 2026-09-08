@@ -7,8 +7,8 @@ The current packages are for Intel/AMD 64-bit Linux with systemd.
 ## Three steps on each computer
 
 1. **Install the package.** Download for
-   [Ubuntu](https://github.com/cobanov/portrelay/releases/download/v0.1.0-alpha.2/portrelay-0.1.0-alpha.2-ubuntu-amd64.deb) or
-   [Debian](https://github.com/cobanov/portrelay/releases/download/v0.1.0-alpha.2/portrelay-0.1.0-alpha.2-debian-amd64.deb).
+   [Ubuntu](https://github.com/cobanov/portrelay/releases/download/v0.1.0-alpha.3/portrelay-0.1.0-alpha.3-ubuntu-amd64.deb) or
+   [Debian](https://github.com/cobanov/portrelay/releases/download/v0.1.0-alpha.3/portrelay-0.1.0-alpha.3-debian-amd64.deb).
    Open the file with your system's software installer and choose **Install**.
 2. **Open PortRelay.** Find it in your applications. Give this computer a name,
    then choose **Enable USB sharing** and approve the system password prompt.
@@ -27,7 +27,7 @@ One local user owns USB setup. The app opens in your browser and runs a backgrou
 service at login. Closing the window keeps connections running. Its local window
 shows actual device state; the public website is a separate concept demo.
 
-[Release notes & checksums](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.2)
+[Release notes & checksums](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.3)
 · [Tested capabilities and limitations](validation.md)
 
 <details>
@@ -36,9 +36,9 @@ shows actual device state; the public website is a separate concept demo.
 In the download folder, run the matching command:
 
 ```sh
-sudo apt install ./portrelay-0.1.0-alpha.2-ubuntu-amd64.deb
+sudo apt install ./portrelay-0.1.0-alpha.3-ubuntu-amd64.deb
 # Or, on Debian:
-sudo apt install ./portrelay-0.1.0-alpha.2-debian-amd64.deb
+sudo apt install ./portrelay-0.1.0-alpha.3-debian-amd64.deb
 ```
 
 Use `apt install`, which resolves dependencies, rather than `dpkg -i` alone.

@@ -13,11 +13,37 @@ sealed partial class WindowsDevice
     public string PortRelayClass => TryGetProperty(Node, PInvoke.DEVPKEY_Device_Class, out string value) ? value : "";
     public string PortRelayService => TryGetProperty(Node, PInvoke.DEVPKEY_Device_Service, out string value) ? value : "";
     public string PortRelayArrival => TryGetProperty(Node, PInvoke.DEVPKEY_Device_LastArrivalDate, out var value, out _) ? Convert.ToHexString(value) : "";
+    public bool PortRelayUnique => TryGetProperty(Node, PInvoke.DEVPKEY_Device_Capabilities, out uint value) && (value & 0x10) != 0;
 }
 
 static class PortRelayInventory
 {
     static readonly string Epoch = Guid.NewGuid().ToString();
+    static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (string ArrivalGeneration, string PermissionGeneration)> Returned = new();
+    public static async Task RememberReturn(PortRelayEntry original)
+    {
+        if (!original.UniqueIdentity) return;
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+        try
+        {
+            for (var attempt = 0; attempt < 20; attempt++)
+            {
+                var current = (await Read(timeout.Token)).SingleOrDefault(e => e.InstanceId == original.InstanceId);
+                if (current is not null)
+                {
+                    // The Windows exporter itself re-enumerates a device when
+                    // returning it. Preserve permission only for a bus-reported
+                    // unique identity and unchanged complete USB/IP descriptor.
+                    // Any later arrival invalidates this one specific mapping.
+                    if (current.UniqueIdentity && current.Fingerprint == original.Fingerprint && current.Device.Blocked is null)
+                        Returned[original.InstanceId] = (current.RawGeneration, original.Device.Generation);
+                    return;
+                }
+                await Task.Delay(100, timeout.Token);
+            }
+        }
+        catch (OperationCanceledException) { /* Unverified restoration requires a new grant. */ }
+    }
     public static async Task<List<PortRelayEntry>> Read(CancellationToken token)
     {
         var result = new List<PortRelayEntry>();
@@ -53,9 +79,18 @@ static class PortRelayInventory
                     : windows.PortRelayArrival.Length == 0 ? "Device arrival identity could not be verified"
                     : null;
                 var generation = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes($"{Epoch}\0{usb.InstanceId}\0{usb.BusId}\0{windows.PortRelayArrival}")));
-                result.Add(new(new(usb.BusId!.Value.ToString(), generation, usb.Description[..Math.Min(usb.Description.Length, 120)],
+                var permissionGeneration = generation;
+                if (Returned.TryGetValue(usb.InstanceId, out var returned))
+                {
+                    if (returned.ArrivalGeneration == generation) permissionGeneration = returned.PermissionGeneration;
+                    else Returned.TryRemove(usb.InstanceId, out _);
+                }
+                using var identity = new MemoryStream();
+                descriptor.Serialize(identity, true);
+                var fingerprint = Convert.ToHexStringLower(SHA256.HashData(identity.ToArray()));
+                result.Add(new(new(usb.BusId!.Value.ToString(), permissionGeneration, usb.Description[..Math.Min(usb.Description.Length, 120)],
                     descriptor.VendorId.ToString("x4"), descriptor.ProductId.ToString("x4"), bluetooth ? "bluetooth" : "usb",
-                    (uint)descriptor.Speed, ((uint)usb.BusId.Value.Bus << 16) | usb.BusId.Value.Port, blocked), usb.InstanceId));
+                    (uint)descriptor.Speed, ((uint)usb.BusId.Value.Bus << 16) | usb.BusId.Value.Port, blocked), usb.InstanceId, windows.PortRelayUnique, fingerprint, generation));
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
@@ -63,6 +98,8 @@ static class PortRelayInventory
                 // An unverified device is never advertised as available.
             }
         }
+        foreach (var instance in Returned.Keys)
+            if (!result.Any(e => e.InstanceId == instance)) Returned.TryRemove(instance, out _);
         return result;
     }
 }

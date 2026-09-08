@@ -2,30 +2,30 @@
 
 **Your devices, on either computer.**
 
-Open-source USB sharing between Linux computers, with an encrypted connection
+Open-source USB sharing between Windows and Linux computers, with an encrypted connection
 and a small local control window. No account or subscription is required.
 
-> **Linux developer alpha.** The application now transfers real USB/IP traffic
-> through Linux kernel drivers. An isolated virtual USB serial device has passed
-> two-computer transfer and recovery tests. Physical USB devices and Bluetooth
-> adapters still need compatibility testing. Windows and macOS USB backends are
-> not implemented. Read the [validation record](docs/validation.md).
+> **Windows + Linux developer alpha.** Native USB serial traffic has passed
+> Windows-to-Linux and Linux-to-Windows tests using isolated virtual devices.
+> Windows 11 x64 uses signed upstream drivers with Secure Boot enabled.
+> Physical USB and Bluetooth compatibility still need testing. macOS USB
+> support is not implemented. Read the [validation record](docs/validation.md).
 
 **[Website](https://portrelay.cobanov.dev)** ·
-**[Download Linux alpha](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.2)** ·
-**[Installation guide](docs/linux-alpha.md)**
+**[Download the alpha](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.3)** ·
+**[Windows setup](docs/windows-alpha.md)** · **[Linux setup](docs/linux-alpha.md)**
 
-## Try it on two Linux computers
+## Install on both computers
 
-1. Download the **Ubuntu** or **Debian** package on each computer and open it
-   with the system's software installer.
+1. Download and open the **Windows**, **Ubuntu**, or **Debian** installer on
+   each computer.
 2. Open **PortRelay** from your applications. Choose **Enable USB sharing**,
    then add your other computer with an invitation and approve it.
 3. Choose **Share device** on one computer and **Connect** on the other.
    **Disconnect** returns the device to its owner.
 
 The package installs dependencies, adds the app shortcut, and keeps the agent
-running after you close its window. A system password prompt enables USB support;
+running after you close its window. An administrator prompt enables USB support;
 you do not need to configure helper services manually. See the
 [short setup guide](docs/linux-alpha.md) for downloads and system requirements.
 
@@ -41,7 +41,11 @@ production relay. See [network setup](docs/linux-alpha.md#networks).
 
 ## USB and Bluetooth boundaries
 
-Linux USB export and import use the existing USB/IP kernel drivers. A separate
+Linux USB export and import use the existing USB/IP kernel drivers. Windows
+uses a separate modified usbipd-win service and the signed usbip-win2 native
+virtual controller, without WSL. See [Windows architecture](docs/adr-0003-windows-alpha.md).
+
+On Linux, a separate
 root helper binds devices, supplies private sockets to the kernel, and restores
 the original driver. The application never starts a raw USB/IP network server.
 
@@ -76,6 +80,9 @@ portrelay
 
 The [installation guide](docs/linux-alpha.md) covers prerequisites, downloads,
 headless operation, internet settings, diagnostics, upgrades, and uninstalling.
+Build the Windows installer with `./windows/build.ps1` in PowerShell on a
+Windows x64 build machine with Rust 1.97, .NET SDK 8 and 9.0.317, Python 3, Git,
+and Inno Setup 6. See [Windows source notices](windows/THIRD-PARTY-NOTICES.md).
 macOS can build the control agent, but it cannot export or attach USB devices.
 
 The implementation uses Rust/Tokio, iroh 1.1.0 QUIC, an Axum loopback API, and

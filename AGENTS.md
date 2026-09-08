@@ -2,7 +2,8 @@
 
 - Read README.md, docs/research.md, docs/architecture.md, and docs/roadmap.md
   before implementation. Also read docs/adr-0002-linux-alpha.md, docs/linux-alpha.md, and
-  docs/validation.md. A working Linux developer alpha now exists; the public
+  docs/validation.md, docs/adr-0003-windows-alpha.md, and docs/windows-alpha.md.
+  Working Linux and Windows developer backends now exist; the public
   website remains a separate simulation. Physical compatibility is unvalidated.
 - Keep all public project documentation and UI text in English.
 - Do not claim device or operating-system support without recorded evidence.

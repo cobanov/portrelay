@@ -2,7 +2,7 @@
 
 The product scope is Linux, Windows, and macOS.
 
-The Linux developer alpha implements the first encrypted USB path. See
+The Linux and Windows developer backends implement encrypted native USB paths. See
 [validation](validation.md) for kernel-fixture evidence and remaining limits.
 Physical USB/Bluetooth compatibility and the complete non-technical setup gate
 remain open. Completed code is not a claim of universal device support.
@@ -86,12 +86,13 @@ successful storage or serial test.
 
 ## 4. Windows integration
 
-- [ ] Pin and validate upstream export and import backends independently.
-- [ ] Verify production driver signatures and installer behavior on supported
-      Windows versions and CPU architectures.
-- [ ] Restrict upstream network listeners and validate local bridge isolation.
-- [ ] Implement helper/service lifecycle and correct device restoration.
-- [ ] Validate Windows/Linux in both directions, then Windows/Windows.
+- [x] Pin and validate upstream export and import backends independently.
+- [x] Load production-signed drivers on Windows 11 x64 with Secure Boot enabled.
+- [ ] Validate additional Windows versions and CPU architectures.
+- [x] Restrict upstream network listeners and validate local bridge isolation.
+- [x] Implement helper/service lifecycle and correct device restoration.
+- [x] Validate Windows/Linux in both directions with native virtual serial devices.
+- [ ] Validate Windows/Windows on two computers.
 - [ ] Package, upgrade, and uninstall on clean Windows systems without enabling
       test-signing or disabling Secure Boot.
 

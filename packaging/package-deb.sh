@@ -3,8 +3,8 @@ set -eu
 binary=${1:-target/release/portrelay}
 distro=${2:-debian}
 case "$distro" in debian) usb_dependencies=usbip ;; ubuntu) usb_dependencies=linux-tools-common ;; *) echo 'Choose debian or ubuntu' >&2; exit 1 ;; esac
-version=0.1.0~alpha.2
-name=portrelay-0.1.0-alpha.2-$distro-amd64
+version=0.1.0~alpha.3
+name=portrelay-0.1.0-alpha.3-$distro-amd64
 mkdir -p target/deb
 stage=$(mktemp -d "target/deb/$name.XXXXXX")
 mkdir -p "$stage/DEBIAN" "$stage/usr/lib/portrelay" "$stage/usr/bin" "$stage/usr/lib/systemd/system" "$stage/usr/lib/systemd/user" "$stage/usr/share/applications" "$stage/usr/share/icons/hicolor/scalable/apps" "$stage/usr/share/polkit-1/actions" "$stage/usr/share/doc/portrelay"

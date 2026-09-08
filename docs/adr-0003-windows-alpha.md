@@ -58,7 +58,12 @@ token. No raw USB/IP TCP port is made reachable through the network.
 Existing peer approval, per-device grants, exclusive leases, invitation expiry,
 and revocation apply to Windows. Device identity includes the Windows instance,
 arrival identity, and service lifetime. Replaced or unverifiable devices require
-new permission. Imported devices and protected input, storage, hub, and network
+new permission. A normal Windows export/return itself changes the arrival ID;
+permission is retained for that one managed return only when Windows reports a
+system-wide unique device identity and the complete USB/IP descriptor is unchanged.
+The mapping is bound to the observed return arrival; a later unplug/replug or
+service restart invalidates it. Devices without a unique identity require a new
+share after return. Imported devices and protected input, storage, hub, and network
 classes cannot be exported through the UI or device service.
 
 The privileged service journals every export/import before changing a device.

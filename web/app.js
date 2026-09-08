@@ -79,9 +79,9 @@ const platforms = {
     description: "Ubuntu and Debian packages prepare USB support for you. Physical device compatibility is still being tested.",
   },
   windows: {
-    stage: "PLANNED NEXT",
-    title: "Windows follows.",
-    description: "Sending and receiving devices, after the Linux foundation.",
+    stage: "DEVELOPER ALPHA",
+    title: "Ready for Windows.",
+    description: "One installer. Share a device or use one from Linux. USB serial tested in both directions; physical compatibility is still being tested.",
   },
   macos: {
     stage: "UNDER INVESTIGATION",
@@ -291,6 +291,8 @@ for (const button of document.querySelectorAll("[data-os]")) {
     byId("platform-title").textContent = platform.title;
     byId("platform-description").textContent = platform.description;
     byId("linux-downloads").hidden = button.dataset.os !== "linux";
+    byId("windows-downloads").hidden = button.dataset.os !== "windows";
+    byId("installation-guide").href = `https://github.com/cobanov/portrelay/blob/main/docs/${button.dataset.os === "macos" ? "roadmap.md" : button.dataset.os + "-alpha.md"}`;
   });
 }
 

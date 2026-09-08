@@ -137,15 +137,15 @@ once; applications may need to reconnect or retry their own operation.
 ## Platform plan
 
 The product scope is Linux, Windows, and macOS. Current acceptance evidence is
-in [the validation record](validation.md); upstream capability is not PortRelay
+in [the validation record](validation.md) and [Windows implementation](adr-0003-windows-alpha.md); upstream capability is not PortRelay
 interoperability evidence.
 
 | Capability | Linux | Windows | macOS |
 | --- | --- | --- | --- |
-| Control agent | Implemented | Planned | Builds; no packaged app yet |
-| USB export | Kernel USB/IP implemented | usbipd-win candidate | Limited userspace export candidate |
-| Native USB import | Kernel virtual controller implemented | usbip-win2 candidate | Restricted entitlement gate |
-| Dedicated USB Bluetooth adapter loan | Physical validation pending | Validate after USB | Depends on corresponding USB role |
+| Control agent | Implemented | Implemented, Windows 11 x64 | Builds; no packaged app yet |
+| USB export | Kernel USB/IP implemented | Private usbipd-win service implemented | Limited userspace export candidate |
+| Native USB import | Kernel virtual controller implemented | Signed usbip-win2 controller implemented | Restricted entitlement gate |
+| Dedicated USB Bluetooth adapter loan | Physical validation pending | Physical validation pending | Depends on corresponding USB role |
 | Individual BLE GATT bridge | Later milestone | Later milestone | Later milestone |
 
 Linux-to-Linux comes first. Each additional operating-system direction needs

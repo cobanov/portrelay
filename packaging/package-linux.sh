@@ -4,7 +4,7 @@ binary=${1:-target/release/portrelay}
 arch=${2:-$(uname -m)}
 case "$arch" in x86_64|aarch64) ;; *) echo 'Unknown architecture' >&2; exit 1;; esac
 [ -x "$binary" ] || { echo 'Build the release binary first.' >&2; exit 1; }
-version=0.1.0-alpha.2
+version=0.1.0-alpha.3
 name=portrelay-$version-linux-$arch
 stage=target/packages/$name
 mkdir -p "$stage/docs"

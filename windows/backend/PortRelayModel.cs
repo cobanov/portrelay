@@ -4,5 +4,4 @@ namespace Usbipd;
 
 sealed record PortRelayDevice(string Id, string Generation, string Name, string Vendor, string Product,
     string Kind, uint Speed, uint Devid, string? Blocked);
-sealed record PortRelayEntry(PortRelayDevice Device, string InstanceId);
-
+sealed record PortRelayEntry(PortRelayDevice Device, string InstanceId, bool UniqueIdentity, string Fingerprint, string RawGeneration);

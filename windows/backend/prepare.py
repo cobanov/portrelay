@@ -58,7 +58,7 @@ for source in pathlib.Path(__file__).parent.glob("PortRelay*.cs"):
     shutil.copy2(source, root / "Usbipd" / source.name)
 path = root / "Usbipd" / "NativeMethods.txt"
 with path.open("a", encoding="utf-8") as stream:
-    stream.write("\nDEVPKEY_Device_LastArrivalDate\nDEVPKEY_Device_Class\nDEVPKEY_Device_Service\n")
+    stream.write("\nDEVPKEY_Device_LastArrivalDate\nDEVPKEY_Device_Class\nDEVPKEY_Device_Service\nDEVPKEY_Device_Capabilities\n")
 
 shutil.copy2(pathlib.Path(__file__).parent / "packages.lock.json", root / "Usbipd" / "packages.lock.json")
 import json

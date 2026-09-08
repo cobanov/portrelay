@@ -151,6 +151,7 @@ sealed class PortRelayService : BackgroundService
         Stream? data = null;
         Task<string>? attaching = null;
         PortRelayRecovery? recovery = null;
+        PortRelayEntry? exportedEntry = null;
         string? path = null;
         string? key = null;
         var locked = false;
@@ -193,6 +194,7 @@ sealed class PortRelayService : BackgroundService
                 if (entry.Device.Generation != generation) throw new IOException("Device changed; share it again");
                 if (entry.Device.Blocked is string reason) throw new IOException(reason);
                 PortRelayWire.Validate(entry.Device);
+                exportedEntry = entry;
                 path = Path.Combine(runtime, key + ".json");
                 if (File.Exists(path)) throw new IOException("This device needs recovery");
                 recovery = new("export", bus, entry.InstanceId);
@@ -275,7 +277,11 @@ sealed class PortRelayService : BackgroundService
             if (recovery is not null && path is not null)
             {
                 if (!locked) { await prepare.WaitAsync(CancellationToken.None); locked = true; }
-                try { await Clean(recovery, path); }
+                try
+                {
+                    await Clean(recovery, path);
+                    if (exportedEntry is not null) await PortRelayInventory.RememberReturn(exportedEntry);
+                }
                 catch (Exception ex) { errors.Enqueue(ex.Message); logger.LogError(ex, "USB cleanup failed"); }
                 if (key is not null && sessions.TryRemove(key, out var done)) done.TrySetResult();
                 if (recovery.Kind == "export") exports.TryRemove(recovery.Bus, out _);

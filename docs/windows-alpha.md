@@ -69,7 +69,8 @@ existing usbipd-win, VirtualBox USB monitor, or separately installed USBip clien
 - **No shared devices:** approve the other computer, select it, and share a
   device on its original computer. Both PortRelay apps must be running.
 - **Device changed:** refresh and share it again. Permissions do not silently
-  transfer to a different device that takes the same USB port.
+  transfer to a different device that takes the same USB port. Devices without
+  a unique hardware identity also require a new share after returning them.
 - **Device needs recovery:** disconnect it, restart Windows, and reopen PortRelay.
   Unresolved device recovery blocks new connections and uninstall until it is
   reconciled. Do not manually delete recovery records to bypass that check.
