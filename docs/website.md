@@ -43,7 +43,8 @@ responses are checked separately.
 `npm run dev` serves `web/` on loopback. `npm run check` checks JavaScript syntax.
 `npm run build` verifies local links and asset references, then copies `web/`
 into `dist/`. There are no runtime JavaScript packages. Fonts are loaded from
-Google Fonts with system fallbacks; no analytics or signup service is included.
+Google Fonts with system fallbacks. There is no signup service. Cloudflare's
+current zone configuration injects its Web Analytics beacon into production HTML.
 
 Cloudflare Pages configuration is in `wrangler.json`:
 
@@ -66,3 +67,15 @@ The output can be deployed to other static hosts without a platform runtime.
 The previous private preview at `portrelay.cobanovdev.chatgpt.site` and its
 `.openai/hosting.json` project identifier are retained as history. They are not
 the production deployment target and are not synchronized by Pages deployment.
+
+## Production verification
+
+On 2026-09-08, production deployment `068648ba-2e7f-4091-9967-6a577df31757`
+published source commit `0ef586391fbeb0e74850c916b0c6fa9aae488dbd`. Cloudflare
+reports the custom domain and certificate validation as active. HTTPS requests
+using a browser user agent return 200 for the page and all five referenced or
+discovery assets. CSS, JavaScript, favicon, robots, and sitemap match the build
+byte for byte. HTML differs only by Cloudflare's injected analytics script.
+The published response headers are present. Default Python user-agent requests
+receive 403 from the existing edge configuration; browser-user-agent HTTP checks
+pass. These checks do not constitute browser rendering or interaction QA.
