@@ -5,11 +5,13 @@
 Open-source USB sharing between Windows and Linux computers, with an encrypted connection
 and a small local control window. No account or subscription is required.
 
-> **Windows + Linux developer alpha.** Native USB serial traffic has passed
+> **v0.1.0-alpha.3: Windows + Linux.** Native USB serial traffic has passed
 > Windows-to-Linux and Linux-to-Windows tests using isolated virtual devices.
 > Windows 11 x64 uses signed upstream drivers with Secure Boot enabled.
 > Physical USB and Bluetooth compatibility still need testing. macOS USB
 > support is not implemented. Read the [validation record](docs/validation.md).
+> Windows has a known driver-removal stall after forced app shutdown; start on a
+> test computer and read the [Windows limitations](docs/windows-alpha.md).
 
 **[Website](https://portrelay.cobanov.dev)** ·
 **[Download the alpha](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.3)** ·
@@ -26,8 +28,9 @@ and a small local control window. No account or subscription is required.
 
 The package installs dependencies, adds the app shortcut, and keeps the agent
 running after you close its window. An administrator prompt enables USB support;
-you do not need to configure helper services manually. See the
-[short setup guide](docs/linux-alpha.md) for downloads and system requirements.
+you do not need to configure helper services manually. Follow the
+[Windows guide](docs/windows-alpha.md) or [Linux guide](docs/linux-alpha.md)
+for system requirements and troubleshooting.
 
 The local interface shows actual devices, paired computers, permissions,
 connections, and recovery errors. Each device is private until explicitly

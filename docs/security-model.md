@@ -10,7 +10,7 @@ This describes the developer alpha, not an independent security audit.
   consumes a matching invitation once and requires local approval of the new
   peer. Invitations are bearer secrets and must be exchanged privately.
 - Inventory requires approval. A device also needs a grant for the authenticated
-  peer and the current device generation. Device identity includes the boot ID,
+  peer and the current device generation. Linux device identity includes the boot ID,
   kernel device instance, bus/device number, and a hash of identifying data.
   USB serial strings are not exposed in the API or device protocol.
 - One export lease is acquired atomically per device. Removing trust or sharing
@@ -22,7 +22,7 @@ This describes the developer alpha, not an independent security audit.
   limited to 30 attempts/minute, 8 invitations, 64 known peers, 16 device
   sessions, and 32 simultaneous incoming transport tasks. First frames and
   connection establishment have deadlines. State-changing 0-RTT is not enabled.
-- The root helper accepts a mode-0600 Unix socket owned by the configured UID,
+- The Linux root helper accepts a mode-0600 Unix socket owned by the configured UID,
   inside a root-owned directory. It verifies the peer UID. It uses typed
   operations and fixed sysfs paths; it does not evaluate shell fragments.
 - Existing distribution `usbip` executables bind/unbind Linux devices. Connected
@@ -30,6 +30,13 @@ This describes the developer alpha, not an independent security audit.
   no `usbipd` server is started. A temporary loopback listener only constructs a
   verified socket pair and closes before USB data starts. The installer also
   limits the helper's IP traffic to localhost with systemd.
+- The Windows LocalSystem helper uses private named pipes. The control pipe
+  accepts only the configured owner and SYSTEM; raw USB/IP is SYSTEM-only.
+  The agent authenticates the pipe server PID through Service Control Manager.
+  Native import verifies the exact kernel-owned TCP tuple and restricts the
+  dedicated virtual controller to SYSTEM and administrators. Windows device
+  generations and managed-return permissions are described in
+  [ADR 0003](adr-0003-windows-alpha.md).
 - The helper rejects already-managed USB/IP devices and protects hubs, input,
   storage, imported devices, and recognized network interfaces. A Bluetooth loan
   needs explicit acknowledgement in the local application. Kernel metadata and
@@ -56,6 +63,14 @@ separate OS authorization. It is not a root service. The device helper retains
 `NoNewPrivileges`, private runtime storage, UID-authenticated IPC, and its systemd
 filesystem/network restrictions. No password enters the browser or agent API.
 
+## Windows setup authorization
+
+Windows setup uses the native UAC prompt to elevate a fixed packaged setup
+script. It keeps the original user's SID as USB owner when a different
+administrator approves. No password enters the browser or agent API. The
+installer allows only the encrypted agent's UDP traffic; it does not expose
+the device service or local HTTP API. See [Windows setup](windows-alpha.md).
+
 ## Remaining limits
 
 A trusted USB device can attack an operating-system driver. Network encryption
@@ -65,7 +80,7 @@ kernels are not covered by unit tests. An isolated kernel gadget is useful
 integration evidence but is not a physical-device certification.
 
 Hostile local processes running as the same user can control that user's agent
-and access its helper. Root can inspect all device traffic. These are local trust
+and access its helper. Root or Windows administrators can inspect device traffic. These are local trust
 boundaries, not sandboxed adversaries. Pairing records and device permissions are
 not automatically synchronized between installations. There is no automatic
 reconnect, update service, public relay operation, or telemetry in the agent.
@@ -73,3 +88,6 @@ reconnect, update service, public relay operation, or telemetry in the agent.
 A recovery error remains a recovery error. The helper retains its journal,
 reports the error to the local UI, and rejects new device operations until it is
 resolved. Do not remove recovery records to make status appear healthy.
+The Windows validation record also tracks an unresolved native controller/PnP
+stall after repeated imports and a forced app shutdown. Empty application
+sessions or journals do not establish complete kernel resource reclamation.

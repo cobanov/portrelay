@@ -157,8 +157,9 @@ Use one installation method. macOS builds the control agent but has no USB backe
   `sudo apt remove portrelay`. User identity and pairings are preserved.
   `sudo apt purge portrelay` also clears the system's owner configuration.
 
-No SIP or signature-enforcement changes are required. Windows integration
-remains planned. macOS device integration
-is a separate future stage, with export and import evaluated independently.
+No SIP or signature-enforcement changes are required. A native
+[Windows 11 x64 alpha](windows-alpha.md) is available, with Windows/Linux
+virtual serial tests in both directions. macOS device integration remains
+a separate future stage, with export and import evaluated independently.
 
 </details>

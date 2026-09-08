@@ -4,7 +4,8 @@ Date: 2026-09-08
 
 Status: original design. The implemented Linux alpha and the local-browser UI
 adjustment are recorded in [ADR 0002](adr-0002-linux-alpha.md). Physical hardware
-validation and additional platform backends remain pending.
+validation remains pending. The implemented Windows 11 x64 backend is recorded
+in [ADR 0003](adr-0003-windows-alpha.md); macOS USB remains future work.
 
 The [research](research.md) supplies the upstream evidence. The design below is
 PortRelay's engineering decision, not a claim that these components already work

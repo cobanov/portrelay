@@ -7,7 +7,7 @@
     <title>PortRelay | Plug in there. Use it here.</title>
     <meta
       name="description"
-      content="USB and Bluetooth, between your computers. An open-source USB-sharing alpha for Windows and Linux, with a live local interface. Explore the demo and validation results."
+      content="Open-source USB sharing for Windows and Linux. Download alpha.3, try the concept demo, and follow Bluetooth and macOS development."
     />
     <meta property="og:type" content="website" />
     <meta
@@ -16,7 +16,7 @@
     />
     <meta
       property="og:description"
-      content="A printer at your desk. A laptop anywhere. See how open-source device sharing could work."
+      content="Windows and Linux USB sharing, now in alpha.3. One installer, approved computers, and encrypted connections."
     />
     <meta property="og:url" content="https://portrelay.cobanov.dev" />
     <meta property="og:locale" content="en_US" />
@@ -157,12 +157,16 @@
           <span class="status-dot"></span>FREE & OPEN SOURCE<span
             class="eyebrow-divider"
           ></span
-          >LINUX ALPHA
+          >WINDOWS + LINUX ALPHA.3
         </p>
         <h1 id="hero-title">Plug in there. <span>Use it here.</span></h1>
         <p class="hero-description">
-          USB and Bluetooth. Across the room or across the internet.
+          USB sharing for Windows and Linux. Bluetooth is next.
         </p>
+        <div class="hero-actions">
+          <a class="button button-dark" href="#get-app"><svg class="icon"><use href="#i-download" /></svg>Download alpha.3</a>
+          <a class="text-link" href="https://github.com/cobanov/portrelay/blob/main/docs/validation.md">What works today <svg class="icon"><use href="#i-arrow" /></svg></a>
+        </div>
         <div
           class="example-selector"
           role="group"
@@ -399,7 +403,7 @@
         aria-labelledby="get-app-title"
       >
         <div class="release-intro">
-          <span class="small-label">WINDOWS + LINUX ALPHA</span>
+          <span class="small-label">VERSION 0.1.0-ALPHA.3</span>
           <h2 id="get-app-title">A little app.<br />A lot less distance.</h2>
           <p>Install. Add a computer. Choose a device.</p>
           <a class="text-link" href="https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.3"
@@ -415,18 +419,18 @@
           >
             <button
               class="os-button selected"
-              data-os="linux"
+              data-os="windows"
               aria-pressed="true"
               disabled
             >
-              <svg class="icon"><use href="#i-terminal" /></svg>Linux</button
+              <svg class="icon"><use href="#i-windows" /></svg>Windows</button
             ><button
               class="os-button"
-              data-os="windows"
+              data-os="linux"
               aria-pressed="false"
               disabled
             >
-              <svg class="icon"><use href="#i-windows" /></svg>Windows</button
+              <svg class="icon"><use href="#i-terminal" /></svg>Linux</button
             ><button
               class="os-button"
               data-os="macos"
@@ -438,27 +442,28 @@
           </div>
           <div class="platform-content" aria-live="polite" aria-atomic="true">
             <span class="platform-stage" id="platform-stage"
-              >DEVELOPER ALPHA</span
+              >ALPHA.3 · EXPERIMENTAL</span
             >
-            <h3 id="platform-title">Start with Linux.</h3>
+            <h3 id="platform-title">Windows 11, one installer.</h3>
             <p id="platform-description">
-              Ubuntu and Debian packages prepare USB support for you. Physical device compatibility is still being tested.
+              Share USB with Linux. Tested both ways with virtual serial devices.
             </p>
           </div>
-          <div class="download-buttons" id="linux-downloads">
+          <div class="download-buttons" id="linux-downloads" hidden>
             <a class="button button-dark" href="https://github.com/cobanov/portrelay/releases/download/v0.1.0-alpha.3/portrelay-0.1.0-alpha.3-ubuntu-amd64.deb"><svg class="icon"><use href="#i-download" /></svg>Ubuntu 24.04</a>
             <a class="button button-light" href="https://github.com/cobanov/portrelay/releases/download/v0.1.0-alpha.3/portrelay-0.1.0-alpha.3-debian-amd64.deb"><svg class="icon"><use href="#i-download" /></svg>Debian 13</a>
             <span class="download-note">Intel / AMD 64-bit · Experimental alpha</span>
           </div>
-          <div class="download-buttons" id="windows-downloads" hidden>
+          <div class="download-buttons" id="windows-downloads">
             <a class="button button-dark" href="https://github.com/cobanov/portrelay/releases/download/v0.1.0-alpha.3/portrelay-0.1.0-alpha.3-windows-x64-setup.exe"><svg class="icon"><use href="#i-download" /></svg>Download for Windows</a>
             <span class="download-note">Windows 11 · Intel / AMD 64-bit · Experimental alpha</span>
           </div>
+          <p class="platform-warning" id="windows-limit">Driver removal can stall after an app crash. <a href="https://github.com/cobanov/portrelay/blob/main/docs/windows-alpha.md">Start on a test computer.</a></p>
           <a
             id="installation-guide"
             class="roadmap-link"
-            href="https://github.com/cobanov/portrelay/blob/main/docs/linux-alpha.md"
-            >Installation guide <svg class="icon"><use href="#i-arrow" /></svg
+            href="https://github.com/cobanov/portrelay/blob/main/docs/windows-alpha.md"
+            >Windows setup guide <svg class="icon"><use href="#i-arrow" /></svg
           ></a>
         </div>
       </section>
@@ -478,8 +483,8 @@
       >
       <p>Open source. Yours to make better.</p>
       <div>
-        <a href="https://github.com/cobanov/portrelay/blob/main/LICENSE"
-          >MIT License</a
+        <a href="https://github.com/cobanov/portrelay#license"
+          >Licenses</a
         ><span class="footer-dot">·</span
         ><a href="https://cobanov.dev"
           >Made by cobanov <svg class="icon"><use href="#i-external" /></svg

@@ -1,10 +1,12 @@
 # Product website
 
 Production: **[portrelay.cobanov.dev](https://portrelay.cobanov.dev)**, hosted on
-Cloudflare Pages. The website offers separate Ubuntu and Debian package downloads, release
-checksums, and the short setup guide. Windows and macOS remain visible planned
-platforms, without inactive download buttons or fabricated installers. Its interactive device examples remain a simulated concept,
-separate from the real installed application.
+Cloudflare Pages. The website offers Windows 11 x64, Ubuntu, and Debian downloads
+for **v0.1.0-alpha.3**, checksums, and platform-specific setup guides. Windows is
+the initial download selection; macOS shows development progress without a
+download. The hero links directly to installation and the validation record.
+The Windows panel identifies the known controller-removal limitation. Interactive
+device examples remain a simulated concept, separate from the installed app.
 
 ## Design
 

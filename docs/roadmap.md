@@ -93,8 +93,10 @@ successful storage or serial test.
 - [x] Implement helper/service lifecycle and correct device restoration.
 - [x] Validate Windows/Linux in both directions with native virtual serial devices.
 - [ ] Validate Windows/Windows on two computers.
-- [ ] Package, upgrade, and uninstall on clean Windows systems without enabling
-      test-signing or disabling Secure Boot.
+- [x] Publish the Windows 11 x64 installer; exercise native UAC, login startup,
+      package replacement, and clean-state uninstall with Secure Boot enabled.
+- [ ] Resolve the upstream controller stall during removal after repeated imports
+      and forced app shutdown. Extend removal/recovery tests to more Windows systems.
 
 ## 5. macOS and individual Bluetooth devices
 

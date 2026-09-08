@@ -74,14 +74,14 @@ const localDevices = [
 ];
 const platforms = {
   linux: {
-    stage: "DEVELOPER ALPHA",
-    title: "Start with Linux.",
-    description: "Ubuntu and Debian packages prepare USB support for you. Physical device compatibility is still being tested.",
+    stage: "ALPHA.3 · EXPERIMENTAL",
+    title: "Ubuntu or Debian. Your choice.",
+    description: "Share USB with Windows or Linux. Packages prepare USB support; physical devices still need testing.",
   },
   windows: {
-    stage: "DEVELOPER ALPHA",
-    title: "Ready for Windows.",
-    description: "One installer. Share a device or use one from Linux. USB serial tested in both directions; physical compatibility is still being tested.",
+    stage: "ALPHA.3 · EXPERIMENTAL",
+    title: "Windows 11, one installer.",
+    description: "Share USB with Linux. Tested both ways with virtual serial devices.",
   },
   macos: {
     stage: "UNDER INVESTIGATION",
@@ -292,6 +292,8 @@ for (const button of document.querySelectorAll("[data-os]")) {
     byId("platform-description").textContent = platform.description;
     byId("linux-downloads").hidden = button.dataset.os !== "linux";
     byId("windows-downloads").hidden = button.dataset.os !== "windows";
+    byId("windows-limit").hidden = button.dataset.os !== "windows";
+    byId("installation-guide").firstChild.textContent = button.dataset.os === "macos" ? "Follow macOS progress " : button.dataset.os === "windows" ? "Windows setup guide " : "Linux setup guide ";
     byId("installation-guide").href = `https://github.com/cobanov/portrelay/blob/main/docs/${button.dataset.os === "macos" ? "roadmap.md" : button.dataset.os + "-alpha.md"}`;
   });
 }

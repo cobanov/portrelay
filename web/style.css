@@ -1750,7 +1750,11 @@ h1 > span {
   }
 }
 
-.download-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0 12px; }
+.download-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 24px 12px; }
 .download-buttons[hidden] { display: none; }
 .download-buttons .button { font-size: 13px; padding: 12px 16px; }
-.download-note { flex-basis: 100%; color: var(--muted, #64748b); font-size: 11px; padding-top: 2px; }
+.download-note { flex-basis: 100%; color: var(--muted, #64748b); font-size: 14px; padding-top: 2px; }
+
+.hero-actions { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 14px 24px; margin-top: 22px; font-size: 14px; }
+.platform-warning { margin: 0 24px 18px; color: #526984; font-size: 14px; line-height: 1.6; }
+.platform-warning a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }

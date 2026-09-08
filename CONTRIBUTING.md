@@ -1,12 +1,15 @@
 # Contributing to PortRelay
 
-The repository contains the Linux application, restricted root helper, local
-control UI, research, and a separate static product demo. Start with
+The repository contains the Windows and Linux application, separate privileged
+device helpers, local control UI, research, and a static product demo. Start with
 [the roadmap](docs/roadmap.md) and [validation record](docs/validation.md).
 Build and check the Rust workspace with `cargo build --locked`,
 `cargo test --locked --workspace`, and
 `cargo clippy --locked --workspace --all-targets -- -D warnings`.
 Website commands are in the [README](README.md#website-development).
+Windows packaging and the separate GPL device service are described in
+[ADR 0003](docs/adr-0003-windows-alpha.md) and the
+[Windows source notices](windows/THIRD-PARTY-NOTICES.md).
 
 Keep changes focused on a documented milestone. For backend changes, include the
 operating system, kernel or driver version, device identifiers, and what a real
