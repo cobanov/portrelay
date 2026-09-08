@@ -16,7 +16,7 @@ try {
     $null = $sid.Translate([Security.Principal.NTAccount])
     if (Test-Path $registry) {
         $existing = Get-ItemProperty $registry
-        if ($existing.OwnerSid -ne $OwnerSid -or $existing.InstallPath -ne $install) { throw 'Another Windows user or installation owns PortRelay USB support.' }
+        if (($existing.PSObject.Properties['OwnerSid'] -and $existing.OwnerSid -ne $OwnerSid) -or ($existing.PSObject.Properties['InstallPath'] -and $existing.InstallPath -ne $install)) { throw 'Another Windows user or installation owns PortRelay USB support.' }
     } else {
         if ((Test-Path $usbRegistry) -or (Get-Service usbipd,VBoxUSBMon -ErrorAction SilentlyContinue)) {
             throw 'An existing usbipd-win or VirtualBox USB service is installed. PortRelay will not replace it. Remove that USB service first if you want PortRelay to manage these devices.'

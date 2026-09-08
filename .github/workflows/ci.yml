@@ -50,7 +50,15 @@ jobs:
             9.0.317
       - run: rustup toolchain install 1.97.0 --profile minimal
       - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
       - run: ./windows/build.ps1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: portrelay-windows-test-build
+          path: target/windows-package/app/
+          retention-days: 7
       - run: dotnet run --project windows/tests/PortRelay.WireTests.csproj
       - uses: actions/upload-artifact@v4
         with:

@@ -31,3 +31,31 @@ Source: "{#Stage}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs crea
 Name: "{commonprograms}\PortRelay"; Filename: "{app}\portrelay-desktop.exe"; WorkingDir: "{app}"
 [Run]
 Filename: "{app}\portrelay-desktop.exe"; Description: "Open PortRelay"; Flags: nowait postinstall skipifsilent runasoriginaluser; WorkingDir: "{app}"
+[Code]
+function ServiceCommand(const Action: String): Boolean;
+var Code: Integer;
+begin
+  Result := True;
+  if FileExists(ExpandConstant('{app}\service-control.ps1')) then
+    Result := Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'),
+      '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "' + ExpandConstant('{app}\service-control.ps1') + '" -Action ' + Action,
+      ExpandConstant('{app}'), SW_HIDE, ewWaitUntilTerminated, Code) and (Code = 0);
+end;
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+begin
+  Result := '';
+  if not ServiceCommand('Stop') then
+    Result := 'PortRelay could not return a USB device to its owner. Open PortRelay, finish recovery, and retry the update.';
+end;
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep = ssPostInstall then
+    if not ServiceCommand('Start') then
+      MsgBox('The app was updated. Restart Windows to finish starting USB support.', mbInformation, MB_OK);
+end;
+function InitializeUninstall(): Boolean;
+begin
+  Result := ServiceCommand('Remove');
+  if not Result then
+    MsgBox('PortRelay could not finish USB cleanup. Restart Windows, open PortRelay, disconnect devices, and retry uninstalling.', mbError, MB_OK);
+end;

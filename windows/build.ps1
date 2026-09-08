@@ -21,6 +21,8 @@ try {
 } finally { Pop-Location }
 Copy-Item "$source\Drivers\x64\*.license" (Join-Path $stage 'device-service\Drivers')
 Copy-Item "$source\LICENSES" (Join-Path $stage 'device-service\LICENSES') -Recurse -Force
+Invoke-WebRequest 'https://raw.githubusercontent.com/dotnet/runtime/v9.0.19/LICENSE.TXT' -OutFile (Join-Path $stage 'device-service\LICENSES\DOTNET-LICENSE.txt')
+Invoke-WebRequest 'https://raw.githubusercontent.com/dotnet/runtime/v9.0.19/THIRD-PARTY-NOTICES.TXT' -OutFile (Join-Path $stage 'device-service\LICENSES\DOTNET-NOTICES.txt')
 New-Item -ItemType Directory -Force (Join-Path $stage 'drivers') | Out-Null
 $driver = Join-Path $stage 'drivers\USBip-0.9.8.0-x64.exe'
 if (-not (Test-Path $driver)) { Invoke-WebRequest 'https://github.com/vadimgrn/usbip-win2/releases/download/v.0.9.8.0/USBip-0.9.8.0-x64.exe' -OutFile $driver }
