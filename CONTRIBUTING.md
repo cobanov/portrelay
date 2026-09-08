@@ -1,7 +1,10 @@
 # Contributing to PortRelay
 
-The repository currently contains research and a proposed architecture. Start
-with [the roadmap](docs/roadmap.md); there is no build command or installer yet.
+The repository contains research, a proposed architecture, and a static product
+website with an interactive desktop concept. Start with
+[the roadmap](docs/roadmap.md). Website development commands are in the
+[README](README.md#website-and-desktop-preview); there is no native application
+build or installer yet.
 
 Keep changes focused on a documented milestone. For backend changes, include the
 operating system, kernel or driver version, device identifiers, and what a real

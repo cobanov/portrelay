@@ -6,9 +6,38 @@ PortRelay is an open-source project to make USB and Bluetooth devices available
 to another computer over a local network or the internet, without a subscription
 or a required cloud account.
 
-> **Status: project bootstrap and research.** There is no runnable application,
+> **Status: website and interactive desktop concept.** The product website runs
+> locally and includes simulated device sharing. There is no native desktop app,
 > device forwarding implementation, or installer yet. The capabilities below
 > describe the intended product, not released functionality.
+
+## Website and desktop preview
+
+The website in `web/` explains the planned three-step setup and includes an
+interactive desktop concept. Try connecting and disconnecting example remote
+devices, switching between paired computers, and sharing local example devices.
+The Linux, Windows, and macOS selector shows their actual development status.
+All device state stays in browser memory and resets on reload. No hardware API,
+local agent, or real device connection is used.
+
+The website uses plain HTML, CSS, and JavaScript, with no runtime packages.
+With Node.js 22 or newer:
+
+```sh
+npm install
+npm run dev
+```
+
+Open the local address printed by the server. For a static production build:
+
+```sh
+npm run check
+npm run build
+```
+
+Publish `dist/` with any static host. The `.openai/hosting.json` file also
+configures the current Sites deployment. Source and design decisions are
+documented in [the website notes](docs/website.md).
 
 ## The intended experience
 

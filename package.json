@@ -1,0 +1,16 @@
+{
+  "name": "portrelay-website",
+  "private": true,
+  "version": "0.1.0",
+  "description": "PortRelay product website and interactive desktop concept",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "build": "node scripts/build.mjs",
+    "check": "node --check web/app.js && node --check scripts/build.mjs && node --check scripts/serve.mjs"
+  }
+}

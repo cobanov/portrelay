@@ -1,7 +1,8 @@
 # Project instructions
 
 - Read README.md, docs/research.md, docs/architecture.md, and docs/roadmap.md
-  before implementation. The repository is currently a research bootstrap.
+  before implementation. The repository contains research and a static product
+  website with a simulated desktop concept; native device sharing is not built.
 - Keep all public project documentation and UI text in English.
 - Do not claim device or operating-system support without recorded evidence.
   Discovery, BLE GATT access, full adapter sharing, and OS-level virtual device
@@ -18,3 +19,10 @@
   code, physical hardware checks for compatibility claims, and fresh-system
   checks for installers. Keep mocked examples explicitly labeled.
 - Never add assistant signatures or co-author trailers to commits or PRs.
+- Website source lives in web/. Use npm run dev for a local preview and
+  npm run check && npm run build before publishing. Keep this site static and
+  dependency-free unless a new capability actually requires a runtime package.
+- Keep example devices and sessions explicitly labeled as a preview. Do not add
+  pretend download links or install commands for an unreleased desktop app.
+- The existing Sites project is recorded in .openai/hosting.json. Reuse it and
+  never create a replacement merely to publish an update.

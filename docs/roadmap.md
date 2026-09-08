@@ -10,6 +10,16 @@ published installers, tested device pairs, or scheduled release dates yet.
 - [x] Research upstream USB and Bluetooth implementations before writing code.
 - [x] Record initial architecture, platform limitations, and acceptance gates.
 
+## 0.1. Product website and interface concept
+
+- [x] Build a static product website with the planned three-step setup in the hero.
+- [x] Add an explicitly simulated desktop interface for remote connection,
+      local sharing, occupied devices, and paired-computer selection.
+- [x] Explain Linux, Windows, and macOS development status without fake installers.
+- [x] Add a portable static build and Sites configuration for an owner-only preview.
+
+This does not close the native desktop, device-sharing, or installer milestones.
+
 ## 1. Prove the device path
 
 - [ ] Create the Rust agent/CLI workspace and pin dependency versions.
