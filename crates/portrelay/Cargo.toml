@@ -1,5 +1,6 @@
 [package]
 name = "portrelay"
+default-run = "portrelay"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
