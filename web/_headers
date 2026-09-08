@@ -4,6 +4,11 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=(), usb=(), bluetooth=()
   X-Frame-Options: DENY
 
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+
 /install.sh
   Content-Type: text/plain; charset=utf-8
   Cache-Control: no-cache

@@ -69,6 +69,9 @@ see the precise fixture boundaries in [validation](validation.md).
 into `dist/`. There are no runtime JavaScript packages. Fonts are loaded from
 Google Fonts with system fallbacks. There is no signup service. Cloudflare's
 current zone configuration injects its Web Analytics beacon into production HTML.
+Build output references CSS and JavaScript with content hashes in their filenames,
+so cached assets from an earlier visit cannot mix with the new HTML. HTML and
+installer scripts request cache revalidation.
 
 Cloudflare Pages configuration is in `wrangler.json`:
 

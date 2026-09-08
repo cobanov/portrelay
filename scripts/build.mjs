@@ -1,4 +1,5 @@
-import { cp, mkdir, readFile, readdir, rm, stat } from "node:fs/promises";
+import { cp, mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -28,6 +29,18 @@ if (config.pages_build_output_dir !== "dist")
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
 await cp(source, output, { recursive: true });
+// A returning visitor may have the previous CSS/JS cached for hours. Bind the
+// new HTML to the exact assets in this build, including across Pages deploys.
+let publishedHtml = html;
+for (const asset of ["style.css", "app.js"]) {
+  const contents = await readFile(path.join(source, asset));
+  const digest = createHash("sha256").update(contents).digest("hex").slice(0, 12);
+  const { name, ext } = path.parse(asset);
+  const versioned = `${name}.${digest}${ext}`;
+  await writeFile(path.join(output, versioned), contents);
+  publishedHtml = publishedHtml.replaceAll(`"/${asset}"`, `"/${versioned}"`);
+}
+await writeFile(path.join(output, "index.html"), publishedHtml);
 console.log(
   `Built ${(await readdir(output)).length} public files. HTML links and assets verified.`,
 );
