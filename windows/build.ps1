@@ -17,7 +17,7 @@ if ($revision -ne 'aa3db8b82c4cb5071fd31bc54211606c70886912') { throw 'Unexpecte
 Push-Location $source
 try {
     dotnet tool restore
-    dotnet publish Usbipd/Usbipd.csproj -c Release -r win-x64 -p:Platform=x64 -p:PublishSingleFile=true -p:PublishAot=false -p:PublishTrimmed=false -p:TreatWarningsAsErrors=false -o (Join-Path $stage 'device-service')
+    dotnet publish Usbipd/Usbipd.csproj -c Release -r win-x64 -p:Platform=x64 -p:RuntimeIdentifiers=win-x64 -p:PublishSingleFile=true -p:PublishAot=false -p:PublishTrimmed=false -p:TreatWarningsAsErrors=false -o (Join-Path $stage 'device-service')
 } finally { Pop-Location }
 Copy-Item "$source\Drivers\x64\*.license" (Join-Path $stage 'device-service\Drivers')
 Copy-Item "$source\LICENSES" (Join-Path $stage 'device-service\LICENSES') -Recurse -Force

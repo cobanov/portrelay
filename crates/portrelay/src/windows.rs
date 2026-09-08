@@ -80,9 +80,6 @@ fn process_identity(process: HANDLE, class: TOKEN_INFORMATION_CLASS) -> Result<S
         if GetTokenInformation(
             token.0,
             class,
-            TokenOwner,
-            TOKEN_OWNER,
-            TOKEN_INFORMATION_CLASS,
             storage.as_mut_ptr().cast(),
             length,
             &mut length,

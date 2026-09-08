@@ -35,8 +35,8 @@ try {
     Start-Transcript -Path (Join-Path $root 'setup.log') -Append | Out-Null
     $null = New-Item -ItemType Directory -Force (Join-Path $root 'recovery')
     $null = New-Item -Force $registry
-    New-ItemProperty $registry OwnerSid $OwnerSid -PropertyType String -Force | Out-Null
-    New-ItemProperty $registry InstallPath $install -PropertyType String -Force | Out-Null
+    New-ItemProperty -Path $registry -Name OwnerSid -Value $OwnerSid -PropertyType String -Force | Out-Null
+    New-ItemProperty -Path $registry -Name InstallPath -Value $install -PropertyType String -Force | Out-Null
     $clientInstaller = Join-Path $install 'drivers\USBip-0.9.8.0-x64.exe'
     $hash = (Get-FileHash -LiteralPath $clientInstaller -Algorithm SHA256).Hash
     if ($hash -ne '81F426741F7EE2ED991FEBE24A22DACA8400B6AE2F171054E3FB404897E15D39') { throw 'The USB driver download failed integrity verification. Reinstall PortRelay.' }
@@ -44,13 +44,13 @@ try {
     if (-not (Test-Path $client)) {
         $process = Start-Process -FilePath $clientInstaller -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /COMPONENTS=main,client' -Wait -PassThru
         if ($process.ExitCode -notin @(0, 3010)) { throw "The signed USB driver installer failed ($($process.ExitCode)). Restart Windows and retry." }
-        New-ItemProperty $registry InstalledClient 1 -PropertyType DWord -Force | Out-Null
+        New-ItemProperty -Path $registry -Name InstalledClient -Value 1 -PropertyType DWord -Force | Out-Null
     } elseif ((Get-Item $client).VersionInfo.FileVersion -notlike '0.9.8.0*') {
         throw 'A different USBip client version is installed. Update it to the signed 0.9.8.0 release before continuing.'
     }
     $null = New-Item -Force $usbRegistry
-    New-ItemProperty $usbRegistry APPLICATIONFOLDER (Join-Path $install 'device-service') -PropertyType String -Force | Out-Null
-    New-ItemProperty $usbRegistry Version '5.3.0' -PropertyType String -Force | Out-Null
+    New-ItemProperty -Path $usbRegistry -Name APPLICATIONFOLDER -Value (Join-Path $install 'device-service') -PropertyType String -Force | Out-Null
+    New-ItemProperty -Path $usbRegistry -Name Version -Value '5.3.0' -PropertyType String -Force | Out-Null
     $null = New-Item -Force "$usbRegistry\Devices"
     $null = New-Item -Force "$usbRegistry\Policy"
     & $backend installer install_driver
