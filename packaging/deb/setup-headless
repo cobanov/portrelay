@@ -1,0 +1,22 @@
+#!/bin/sh
+# Explicit administrator opt-in: keep this user's agent running without a login.
+set -eu
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+[ "$(id -u)" -eq 0 ] || { echo 'Run with sudo and specify the regular account that will own PortRelay.' >&2; exit 1; }
+[ "$#" -eq 1 ] || { echo 'Usage: sudo /usr/lib/portrelay/setup-headless USERNAME' >&2; exit 1; }
+setup_user=$1
+case "$setup_user" in ''|*[!a-zA-Z0-9_-]*|-*) echo 'Specify a regular local username.' >&2; exit 1 ;; esac
+setup_uid=$(id -u "$setup_user")
+[ "$setup_uid" -ne 0 ] || { echo 'PortRelay must belong to a regular account, not root.' >&2; exit 1; }
+[ -d /run/systemd/system ] || { echo 'A running systemd system is required.' >&2; exit 1; }
+if [ -f /etc/portrelay/owner.conf ] && ! grep -qx "PORTRELAY_UID=$setup_uid" /etc/portrelay/owner.conf; then
+    echo 'Another local user owns PortRelay. Keep that owner or remove their setup first.' >&2; exit 1
+fi
+loginctl enable-linger "$setup_user"
+systemctl start "user@$setup_uid.service"
+runuser -u "$setup_user" -- env XDG_RUNTIME_DIR="/run/user/$setup_uid" DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$setup_uid/bus" \
+    /usr/lib/portrelay/portrelay desktop --no-open
+PKEXEC_UID=$setup_uid /usr/lib/portrelay/setup-usb
+echo "PortRelay is ready for $setup_user and starts at boot, even without a login."
+echo 'Run portrelay status or portrelay invite as that user. Devices remain private until shared.'

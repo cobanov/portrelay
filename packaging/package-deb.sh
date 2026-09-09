@@ -2,17 +2,20 @@
 set -eu
 binary=${1:-target/release/portrelay}
 distro=${2:-debian}
+arch=${3:-$(dpkg --print-architecture)}
+case "$arch" in amd64|arm64|armhf) ;; *) echo 'Choose amd64, arm64, or armhf' >&2; exit 1 ;; esac
 case "$distro" in debian) usb_dependencies=usbip ;; ubuntu) usb_dependencies=linux-tools-common ;; *) echo 'Choose debian or ubuntu' >&2; exit 1 ;; esac
-release_version=$(python3 -c 'import tomllib; print(tomllib.load(open("Cargo.toml", "rb"))["workspace"]["package"]["version"])')
-[ "$("$binary" --version)" = "portrelay $release_version" ] || { echo 'Binary and package versions do not match.' >&2; exit 1; }
+[ "$distro:$arch" != ubuntu:armhf ] || { echo 'Ubuntu armhf is not a release target.' >&2; exit 1; }
+release_version=$(python3 scripts/check-linux-binary.py "$binary" "$arch")
 version=$(printf '%s' "$release_version" | sed 's/-/~/')
-name=portrelay-$release_version-$distro-amd64
+name=portrelay-$release_version-$distro-$arch
 mkdir -p target/deb
 stage=$(mktemp -d "target/deb/$name.XXXXXX")
 mkdir -p "$stage/DEBIAN" "$stage/usr/lib/portrelay" "$stage/usr/bin" "$stage/usr/lib/systemd/system" "$stage/usr/lib/systemd/user" "$stage/usr/share/applications" "$stage/usr/share/icons/hicolor/scalable/apps" "$stage/usr/share/polkit-1/actions" "$stage/usr/share/doc/portrelay"
 install -m755 "$binary" "$stage/usr/lib/portrelay/portrelay"
 ln -s ../lib/portrelay/portrelay "$stage/usr/bin/portrelay"
 install -m755 packaging/deb/setup-usb "$stage/usr/lib/portrelay/setup-usb"
+install -m755 packaging/deb/setup-headless "$stage/usr/lib/portrelay/setup-headless"
 cp packaging/deb/portrelay-helper.service "$stage/usr/lib/systemd/system/"
 cp packaging/deb/portrelay.service "$stage/usr/lib/systemd/user/"
 cp packaging/deb/dev.cobanov.portrelay.setup.policy "$stage/usr/share/polkit-1/actions/"
@@ -24,11 +27,11 @@ for script in preinst postinst prerm postrm; do install -m755 "packaging/deb/$sc
 cat > "$stage/DEBIAN/control" <<CONTROL
 Package: portrelay
 Version: $version
-Architecture: amd64
+Architecture: $arch
 Maintainer: Mert Cobanov <mertcobanov@gmail.com>
 Section: net
 Priority: optional
-Depends: libc6 (>= 2.36), systemd, dbus-user-session, pkexec, polkitd, xdg-utils, kmod, util-linux, $usb_dependencies
+Depends: libc6 (>= 2.36), systemd, libpam-systemd, dbus-user-session, pkexec, polkitd, xdg-utils, kmod, util-linux, $usb_dependencies
 Homepage: https://portrelay.cobanov.dev
 Description: Encrypted USB sharing between your Linux computers
  Pair computers, choose a device, and connect through a local control window.

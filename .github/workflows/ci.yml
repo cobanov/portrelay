@@ -10,7 +10,7 @@ jobs:
   check:
     strategy:
       matrix:
-        os: [ubuntu-24.04, macos-14, windows-2025]
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-14, windows-2025]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -23,22 +23,76 @@ jobs:
       - run: cargo +1.97.0 clippy --locked --workspace --all-targets -- -D warnings
       - run: node --check app-ui/app.js && npm run check && npm run build
   linux-package:
-    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            arch: x86_64
+            deb_arch: amd64
+          - runner: ubuntu-24.04-arm
+            arch: aarch64
+            deb_arch: arm64
+    runs-on: ${{ matrix.runner }}
     container: rust:1.97-bookworm
     steps:
       - uses: actions/checkout@v4
       - run: cargo build --locked --release
-      - run: ./packaging/package-linux.sh target/release/portrelay x86_64
-      - run: ./packaging/package-deb.sh target/release/portrelay debian
-      - run: ./packaging/package-deb.sh target/release/portrelay ubuntu
+      - run: ./packaging/package-linux.sh target/release/portrelay ${{ matrix.arch }}
+      - run: ./packaging/package-deb.sh target/release/portrelay debian ${{ matrix.deb_arch }}
+      - run: ./packaging/package-deb.sh target/release/portrelay ubuntu ${{ matrix.deb_arch }}
       - uses: actions/upload-artifact@v4
         with:
-          name: portrelay-linux-x86_64-alpha
+          name: portrelay-linux-${{ matrix.arch }}-alpha
           path: |
             target/packages/*.tar.gz
             target/packages/*.deb
             target/packages/*.sha256
           retention-days: 30
+  linux-armv7-package:
+    runs-on: ubuntu-24.04-arm
+    container: rust:1.97-bookworm
+    env:
+      CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER: arm-linux-gnueabihf-gcc
+      CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_RUNNER: qemu-arm -L /usr/arm-linux-gnueabihf
+      PORTRELAY_PACKAGE_RUNNER: qemu-arm -L /usr/arm-linux-gnueabihf
+      CC_armv7_unknown_linux_gnueabihf: arm-linux-gnueabihf-gcc
+      AR_armv7_unknown_linux_gnueabihf: arm-linux-gnueabihf-ar
+    steps:
+      - uses: actions/checkout@v4
+      - run: apt-get update && apt-get install -y gcc-arm-linux-gnueabihf libc6-dev-armhf-cross qemu-user
+      - run: rustup target add armv7-unknown-linux-gnueabihf
+      - run: cargo test --locked --workspace --target armv7-unknown-linux-gnueabihf
+      - run: cargo build --locked --release --target armv7-unknown-linux-gnueabihf
+      - run: ./packaging/package-linux.sh target/armv7-unknown-linux-gnueabihf/release/portrelay armv7
+      - run: ./packaging/package-deb.sh target/armv7-unknown-linux-gnueabihf/release/portrelay debian armhf
+      - uses: actions/upload-artifact@v4
+        with:
+          name: portrelay-linux-armv7-alpha
+          path: |
+            target/packages/*.tar.gz
+            target/packages/*.deb
+            target/packages/*.sha256
+          retention-days: 30
+  linux-headless-install:
+    needs: linux-package
+    strategy:
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            arch: x86_64
+            deb_arch: amd64
+          - runner: ubuntu-24.04-arm
+            arch: aarch64
+            deb_arch: arm64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: portrelay-linux-${{ matrix.arch }}-alpha
+          path: target/packages
+      - run: sudo env GITHUB_ACTIONS=true ./tests/headless-install.sh target/packages/*-ubuntu-${{ matrix.deb_arch }}.deb
   windows-backend-check:
     runs-on: windows-2025
     steps:

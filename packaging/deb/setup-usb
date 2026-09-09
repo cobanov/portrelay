@@ -17,9 +17,9 @@ if [ -f /etc/portrelay/owner.conf ] && ! grep -qx "PORTRELAY_UID=$setup_uid" /et
 fi
 . /etc/os-release
 case "$ID" in
-    debian) usbip_program=/usr/sbin/usbip ;;
+    debian|raspbian) usbip_program=/usr/sbin/usbip ;;
     ubuntu) usbip_program=/usr/bin/usbip ;;
-    *) echo 'This installer supports Ubuntu and Debian.' >&2; exit 1 ;;
+    *) echo 'This installer supports Ubuntu, Debian, and Raspberry Pi OS.' >&2; exit 1 ;;
 esac
 log=/var/lib/portrelay/setup.log
 umask 077
