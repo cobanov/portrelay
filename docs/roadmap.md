@@ -156,3 +156,15 @@ uninstall results. Publish the failures and exclusions alongside successes.
 - [x] Run native ARM64 and emulated ARMv7 application tests.
 - [ ] Record physical Raspberry Pi USB handoff, Bluetooth pairing, and recovery.
 - [x] Replace advanced JSON terminal actions with a simpler interactive flow (alpha.6 menu and short commands).
+
+## Focused input control (alpha.7 / Mac preview.2)
+
+- [x] Mac app window sends keyboard/mouse events over authenticated transport.
+- [x] Separate input grants, exclusive sessions, bounded batches and watchdogs.
+- [x] Restricted Linux uinput helper and optional desktop/terminal setup.
+- [x] Mac to ARM Linux kernel acceptance and Chrome start/input/Escape flow.
+- [ ] Visible receiving-app acceptance, lock transitions, crash stress and latency.
+- [ ] Additional browser, Wayland, Windows sender and keyboard-layout acceptance.
+- [ ] Native global capture, screen-edge switching and Mac/Windows input receivers.
+
+These are separate from whole USB HID and Bluetooth device sharing.

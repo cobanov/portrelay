@@ -17,6 +17,10 @@ use std::{
 pub enum Commands {
     /// Choose computers and devices in an interactive menu (also works over SSH).
     Menu,
+    /// Allow an approved computer to control this Linux desktop (separate from USB).
+    InputAllow { computer: String },
+    /// Stop keyboard/mouse control and remove the computer's permission.
+    InputDeny { computer: String },
     /// List USB devices attached to this computer.
     Devices,
     /// List paired computers and pending approvals.
@@ -536,6 +540,22 @@ async fn execute(client: &Client, command: Commands) -> Result<()> {
     let state = client.state().await?;
     match command {
         Commands::Menu => unreachable!(),
+        Commands::InputAllow { ref computer } | Commands::InputDeny { ref computer } => {
+            let allowed = matches!(command, Commands::InputAllow { .. });
+            let choices = peer_choices(&state, true);
+            let index = select("computer", &choices, Some(computer), true)?;
+            client
+                .action(json!({"op":"input_allow","peer":choices[index].id,"allowed":allowed}))
+                .await?;
+            println!(
+                "{}",
+                if allowed {
+                    "Keyboard and mouse control allowed while this Linux desktop is unlocked."
+                } else {
+                    "Keyboard and mouse control stopped and permission removed."
+                }
+            );
+        }
         Commands::Devices => show_devices(&state),
         Commands::Computers => {
             if state.peers.is_empty() {

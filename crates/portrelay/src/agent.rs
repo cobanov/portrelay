@@ -37,6 +37,8 @@ struct Session {
     info: SessionInfo,
     cancel: CancellationToken,
     exported_device: Option<Device>,
+    input_tx: Option<tokio::sync::mpsc::Sender<input_control::QueuedInput>>,
+    input_sequence: u64,
 }
 struct PendingInvite {
     secret: String,
@@ -59,10 +61,26 @@ pub struct Agent {
     inner: Mutex<Inner>,
     limits: Arc<Semaphore>,
     setup: crate::setup::Setup,
+    input_setup: crate::setup::Setup,
 }
 #[derive(Deserialize)]
 #[serde(tag = "op", rename_all = "snake_case")]
 pub enum Action {
+    InputAllow {
+        peer: String,
+        allowed: bool,
+    },
+    InputStatus {
+        peer: String,
+    },
+    InputStart {
+        peer: String,
+    },
+    InputEvents {
+        session: String,
+        batch: crate::input::Batch,
+    },
+    SetupInput,
     SetupUsb,
     BluetoothSettings,
     Rename {
@@ -162,6 +180,7 @@ impl Agent {
             }),
             limits: Arc::new(Semaphore::new(32)),
             setup: crate::setup::Setup::default(),
+            input_setup: crate::setup::Setup::default(),
         });
         let a = agent.clone();
         tokio::spawn(async move {
@@ -192,12 +211,37 @@ impl Agent {
     }
     pub async fn snapshot(&self) -> serde_json::Value {
         let (health, devices) = backend::inspect(&self.helper).await;
+        let input_health = crate::input::health().await;
         let setup = self.setup.snapshot().await;
+        let input_setup = self.input_setup.snapshot().await;
         let inner = self.inner.lock().await;
-        serde_json::json!({"version":env!("CARGO_PKG_VERSION"),"id":self.endpoint.id().to_string(),"name":inner.config.name,"network":self.network_mode,"address":self.address(),"platform":std::env::consts::OS,"capabilities":{"usb_export":cfg!(any(target_os="linux",target_os="macos",windows)),"usb_import":cfg!(any(target_os="linux",windows)),"import_reason":backend::import_unavailable_reason()},"setup_available":crate::setup::Setup::available(),"setup":setup,"helper_ready":health.is_ok(),"helper_error":health.err().map(|e|e.to_string()),"devices":Self::devices(&inner, devices),"peers":inner.config.peers,"grants":inner.config.grants,"sessions":inner.sessions.values().map(|s|s.info.clone()).collect::<Vec<_>>(),"history":inner.history})
+        serde_json::json!({"version":env!("CARGO_PKG_VERSION"),"id":self.endpoint.id().to_string(),"name":inner.config.name,"network":self.network_mode,"address":self.address(),"platform":std::env::consts::OS,"capabilities":{"usb_export":cfg!(any(target_os="linux",target_os="macos",windows)),"usb_import":cfg!(any(target_os="linux",windows)),"import_reason":backend::import_unavailable_reason()},"input":{"receive_supported":cfg!(target_os="linux"),"setup_available":crate::setup::Setup::input_available(),"setup":input_setup,"ready":input_health.is_ok(),"error":input_health.err().map(|e|e.to_string()),"controllers":inner.config.input_controllers},"setup_available":crate::setup::Setup::available(),"setup":setup,"helper_ready":health.is_ok(),"helper_error":health.err().map(|e|e.to_string()),"devices":Self::devices(&inner, devices),"peers":inner.config.peers,"grants":inner.config.grants,"sessions":inner.sessions.values().map(|s|s.info.clone()).collect::<Vec<_>>(),"history":inner.history})
     }
     pub async fn action(self: &Arc<Self>, action: Action) -> Result<serde_json::Value> {
         match action {
+            Action::InputAllow { peer, allowed } => self.allow_input(peer, allowed).await,
+            Action::InputStatus { peer } => {
+                let address = self.peer(&peer).await?;
+                match self.request(address, Request::InputStatus).await? {
+                    Reply::InputStatus {
+                        ready,
+                        allowed,
+                        busy,
+                    } => Ok(serde_json::json!({"ready":ready,"allowed":allowed,"busy":busy})),
+                    Reply::Error { message } => bail!("{message}"),
+                    _ => bail!(
+                        "Update PortRelay on the other computer to use keyboard and mouse control"
+                    ),
+                }
+            }
+            Action::InputStart { peer } => self.start_input(peer).await,
+            Action::InputEvents { session, batch } => self.send_input(session, batch).await,
+            Action::SetupInput => {
+                self.input_setup.start_input().await?;
+                Ok(
+                    serde_json::json!({"message":"Approve system permission to enable receiving keyboard and mouse control."}),
+                )
+            }
             Action::SetupUsb => {
                 self.setup.start().await?;
                 Ok(
@@ -312,6 +356,7 @@ impl Agent {
             Action::Revoke { peer } => {
                 let mut inner = self.inner.lock().await;
                 inner.config.peers.remove(&peer);
+                inner.config.input_controllers.retain(|p| p != &peer);
                 for g in inner.config.grants.values_mut() {
                     g.peers.retain(|x| x != &peer);
                 }
@@ -511,6 +556,9 @@ impl Agent {
             .await?;
             return Ok(());
         }
+        if matches!(envelope.request, Request::InputOpen) {
+            return self.receive_input(conn, remote, send, recv).await;
+        }
         if let Request::Open { device, generation } = &envelope.request {
             let preparation = self.reserve_export(&remote, device, generation).await;
             match preparation {
@@ -594,6 +642,19 @@ impl Agent {
         Ok(())
     }
     async fn control(&self, remote: &str, request: Request) -> Result<Reply> {
+        if matches!(request, Request::InputStatus) {
+            self.peer(remote).await?;
+            let ready = crate::input::health().await.is_ok();
+            let inner = self.inner.lock().await;
+            return Ok(Reply::InputStatus {
+                ready,
+                allowed: inner.config.input_controllers.iter().any(|p| p == remote),
+                busy: inner
+                    .sessions
+                    .values()
+                    .any(|s| s.info.direction.starts_with("input-")),
+            });
+        }
         let devices = if matches!(request, Request::List) {
             if !self
                 .inner
@@ -643,6 +704,7 @@ impl Agent {
             }
             inner.invitations.remove(index);
             // Re-pairing never silently restores revoked sharing grants.
+            inner.config.input_controllers.retain(|p| p != remote);
             inner.config.peers.insert(
                 remote.into(),
                 Peer {
@@ -740,6 +802,8 @@ impl Agent {
                 },
                 cancel: cancel.clone(),
                 exported_device: None,
+                input_tx: None,
+                input_sequence: 1,
             },
         );
         Ok((id, cancel))
@@ -828,6 +892,8 @@ impl Agent {
         }
     }
 }
+#[path = "input_agent.rs"]
+mod input_control;
 fn session_error(error: anyhow::Error) -> Option<String> {
     // QUIC surfaces an intentional peer disconnect as an I/O "connection lost"
     // error. Preserve real network/helper failures, but recognize our explicit
@@ -835,7 +901,7 @@ fn session_error(error: anyhow::Error) -> Option<String> {
     let normal = error.chain().any(|cause| matches!(
         cause.downcast_ref::<iroh::endpoint::ConnectionError>(),
         Some(iroh::endpoint::ConnectionError::ApplicationClosed(close))
-            if close.error_code == 0u32.into() && close.reason.as_ref() == b"device session ended"
+            if close.error_code == 0u32.into() && (close.reason.as_ref() == b"device session ended" || close.reason.as_ref() == b"input session ended")
     ));
     if normal {
         None
@@ -864,6 +930,7 @@ mod tests {
         for (code, reason, normal) in [
             (0u32, "device session ended", true),
             (1, "device session ended", false),
+            (0, "input session ended", true),
             (0, "request complete", false),
         ] {
             let transport =
@@ -906,6 +973,70 @@ mod tests {
             .await
             .unwrap();
         ticket
+    }
+    #[tokio::test]
+    async fn input_control_needs_separate_permission_and_has_one_exclusive_lease() {
+        let a = tempfile::tempdir().unwrap();
+        let b = tempfile::tempdir().unwrap();
+        let owner = make(a.path(), "Desktop").await;
+        let client = make(b.path(), "Controller").await;
+        let id = client.endpoint.id().to_string();
+        assert!(matches!(
+            client
+                .request(owner.address(), Request::InputOpen)
+                .await
+                .unwrap(),
+            Reply::Error { .. }
+        ));
+        pair(&owner, &client).await;
+        owner
+            .action(Action::Approve { peer: id.clone() })
+            .await
+            .unwrap();
+        assert!(matches!(
+            client
+                .request(owner.address(), Request::InputOpen)
+                .await
+                .unwrap(),
+            Reply::Error { .. }
+        ));
+        let (session, cancel) = {
+            let mut inner = owner.inner.lock().await;
+            assert!(Agent::reserve_input(&mut inner, &id, true).is_err());
+            inner.config.input_controllers.push(id.clone());
+            owner.persist(&inner).unwrap();
+            let lease = Agent::reserve_input(&mut inner, &id, true).unwrap();
+            assert!(Agent::reserve_input(&mut inner, &id, true).is_err());
+            assert!(Agent::reserve_input(&mut inner, &id, false).is_err());
+            lease
+        };
+        owner
+            .action(Action::InputAllow {
+                peer: id.clone(),
+                allowed: false,
+            })
+            .await
+            .unwrap();
+        assert!(cancel.is_cancelled());
+        assert!(
+            Config::load(a.path(), None)
+                .unwrap()
+                .input_controllers
+                .is_empty()
+        );
+        owner.finish(&session, None).await;
+        owner
+            .inner
+            .lock()
+            .await
+            .config
+            .input_controllers
+            .push(id.clone());
+        pair(&owner, &client).await;
+        assert!(owner.inner.lock().await.config.input_controllers.is_empty());
+        assert!(!owner.inner.lock().await.config.peers[&id].approved);
+        owner.shutdown().await;
+        client.shutdown().await;
     }
     #[tokio::test]
     async fn computer_name_survives_restart_and_invalid_names_preserve_it() {

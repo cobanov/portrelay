@@ -29,6 +29,9 @@ pub struct Config {
     pub peers: BTreeMap<String, Peer>,
     #[serde(default)]
     pub grants: BTreeMap<String, Grant>,
+    /// Separate permission to control this computer. Pairing alone never grants it.
+    #[serde(default)]
+    pub input_controllers: Vec<String>,
 }
 #[derive(Serialize, Deserialize)]
 pub struct ApiAccess {
@@ -106,6 +109,7 @@ impl Config {
                 }),
                 peers: BTreeMap::new(),
                 grants: BTreeMap::new(),
+                input_controllers: vec![],
             }
         };
         if let Some(name) = name {

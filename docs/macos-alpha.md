@@ -1,8 +1,8 @@
-# macOS export development preview
+# macOS development preview
 
-**[Download Mac preview.1](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-macos-preview.1)**
+**[Download Mac preview.2](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-macos-preview.2)**
 for Apple Silicon (M1 or newer), macOS 14+. This is a signed, notarized
-**experimental export preview**, separate from the Windows/Linux alpha.
+**experimental input and export preview**, separate from the Windows/Linux alpha.
 
 ## Install
 
@@ -15,6 +15,17 @@ No Terminal, Xcode, Rust, root helper or system extension is needed to install
 this download. The app uses Developer ID signing and an Apple notarization ticket.
 It does not yet have a menu-bar UI or automatic updates. Read the limited device
 scope below before choosing a test adapter.
+
+## Control a Linux desktop
+
+Pair the Mac with Linux alpha.7. On Linux, choose **Enable receiving control**,
+then **Allow keyboard & mouse** for the Mac. On Mac, click **Control [computer]**.
+Keep the window in front. **Esc** returns control to the Mac. No global Input
+Monitoring or Accessibility permission is needed for this focused mode.
+
+The Linux screen must be visible separately. No video or clipboard is sent.
+This does not detach a USB or Bluetooth mouse from the Mac. See
+[the input guide](input-control.md) for keyboard/browser limits and terminal setup.
 
 ## What is implemented
 

@@ -21,7 +21,7 @@ binpath=subprocess.check_output(['swift','build','--package-path','macos','-c','
 shutil.copy2(Path(binpath)/'portrelay-macos-usb',contents/'MacOS/portrelay-macos-usb')
 info={'CFBundleName':'PortRelay','CFBundleDisplayName':'PortRelay','CFBundleIdentifier':'dev.cobanov.portrelay',
 'CFBundleExecutable':'portrelay-desktop','CFBundlePackageType':'APPL','CFBundleShortVersionString':version.split('-')[0],
-'CFBundleVersion':'1','LSMinimumSystemVersion':'14.0','NSHighResolutionCapable':True,
+'CFBundleVersion':'2','LSMinimumSystemVersion':'14.0','NSHighResolutionCapable':True,
 'LSApplicationCategoryType':'public.app-category.utilities',
 'NSLocalNetworkUsageDescription':'PortRelay connects to computers you pair with to share selected USB devices.',
 'NSHumanReadableCopyright':'PortRelay contributors. MIT license.'}
@@ -30,7 +30,7 @@ for source,name in [('LICENSE','LICENSE.txt'),('macos/UPSTREAM-LICENSE','usbipd-
  shutil.copy2(root/source,contents/'Resources'/name)
 revision=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
 dirty=bool(subprocess.check_output(['git','status','--porcelain','--untracked-files=normal'],text=True).strip())
-(contents/'Resources/build.json').write_text(json.dumps({'version':version,'commit':revision,'uncommitted_changes':dirty,'role':'macos-export-preview','usb_import':False},indent=2)+'\n')
+(contents/'Resources/build.json').write_text(json.dumps({'version':version,'commit':revision,'uncommitted_changes':dirty,'role':'macos-input-and-export-preview','usb_import':False,'input_send':True,'input_receive':False},indent=2)+'\n')
 print(app)
 PY
 app=target/macos/package/PortRelay.app

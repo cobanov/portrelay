@@ -15,6 +15,8 @@ mkdir -p "$stage/DEBIAN" "$stage/usr/lib/portrelay" "$stage/usr/bin" "$stage/usr
 install -m755 "$binary" "$stage/usr/lib/portrelay/portrelay"
 ln -s ../lib/portrelay/portrelay "$stage/usr/bin/portrelay"
 install -m755 packaging/deb/setup-usb "$stage/usr/lib/portrelay/setup-usb"
+install -m755 packaging/deb/setup-input "$stage/usr/lib/portrelay/setup-input"
+cp packaging/deb/portrelay-input.service "$stage/usr/lib/systemd/system/"
 install -m755 packaging/deb/setup-headless "$stage/usr/lib/portrelay/setup-headless"
 cp packaging/deb/portrelay-helper.service "$stage/usr/lib/systemd/system/"
 cp packaging/deb/portrelay.service "$stage/usr/lib/systemd/user/"

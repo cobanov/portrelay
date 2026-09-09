@@ -1,0 +1,30 @@
+#!/bin/sh
+# Local administrator action; the peer-facing API cannot supply a target user.
+set -eu
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+export PATH
+[ "$(id -u)" -eq 0 ] || { echo 'Run: sudo /usr/lib/portrelay/setup-input' >&2; exit 1; }
+setup_uid=${PKEXEC_UID:-${SUDO_UID:-}}
+case "$setup_uid" in ''|*[!0-9]*) echo 'Run this with sudo from your desktop user.' >&2; exit 1;; esac
+[ "$setup_uid" -ne 0 ] || { echo 'Choose a regular desktop user.' >&2; exit 1; }
+getent passwd "$setup_uid" >/dev/null || { echo 'Desktop user does not exist.' >&2; exit 1; }
+install -d -m755 /etc/portrelay
+install -d -m700 /var/lib/portrelay
+exec 9>/var/lib/portrelay/input-setup.lock
+flock -n 9 || { echo 'Input setup is already running.' >&2; exit 1; }
+if [ -f /etc/portrelay/input-owner.conf ] && ! grep -qx "PORTRELAY_INPUT_UID=$setup_uid" /etc/portrelay/input-owner.conf; then
+    echo 'Another user owns the input service. Remove their setup first.' >&2; exit 1
+fi
+install -d -m755 /etc/modules-load.d
+printf 'uinput\n' > /etc/modules-load.d/portrelay-input.conf
+chmod 644 /etc/modules-load.d/portrelay-input.conf
+modprobe uinput
+[ -c /dev/uinput ] || { echo 'This kernel does not provide uinput.' >&2; exit 1; }
+umask 077
+printf 'PORTRELAY_INPUT_UID=%s\n' "$setup_uid" > /etc/portrelay/input-owner.conf.new
+mv /etc/portrelay/input-owner.conf.new /etc/portrelay/input-owner.conf
+systemctl daemon-reload
+systemctl enable --now portrelay-input.service
+systemctl is-active --quiet portrelay-input.service
+echo 'Input support enabled. In PortRelay, allow keyboard and mouse control for your other computer.'
+echo 'Receiving requires your Linux desktop to be signed in and unlocked.'

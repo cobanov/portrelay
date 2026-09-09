@@ -2,6 +2,7 @@
 set -eu
 if [ "$1" = configure ] && [ -d /run/systemd/system ]; then
     systemctl daemon-reload
+    if [ -f /etc/portrelay/input-owner.conf ]; then systemctl enable --now portrelay-input.service; fi
     if [ -f /etc/portrelay/owner.conf ]; then systemctl enable --now portrelay-helper.service; fi
     if [ -f /var/lib/portrelay/restart-users ]; then
         while IFS= read -r uid; do

@@ -27,6 +27,13 @@ struct Cli {
 }
 #[derive(Subcommand)]
 enum Commands {
+    /// Run the separate Linux keyboard/pointer helper as root.
+    InputHelper {
+        #[arg(long)]
+        uid: u32,
+        #[arg(long, default_value = "/run/portrelay-input")]
+        runtime_dir: PathBuf,
+    },
     #[cfg(windows)]
     #[command(hide = true)]
     WindowsSetup {
@@ -121,6 +128,9 @@ async fn main() -> Result<()> {
         helper: backend::default_helper(),
         no_open: false,
     });
+    if let Commands::InputHelper { uid, runtime_dir } = &command {
+        return portrelay::input::serve(*uid, runtime_dir).await;
+    }
     #[cfg(windows)]
     if let Commands::WindowsSetup { owner_sid } = &command {
         return portrelay::windows::setup_elevated(owner_sid).await;

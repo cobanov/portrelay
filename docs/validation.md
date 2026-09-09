@@ -1,9 +1,38 @@
 # Alpha validation record
 
-Dates: 2026-09-08 and 2026-09-09. Current version: `0.1.0-alpha.6`.
+Dates: 2026-09-08 and 2026-09-09. Current source version: `0.1.0-alpha.7`. Published assets are listed in the release notes.
 
 The kernel device tests below were recorded for alpha.1. Alpha.2 changes the
 installer and onboarding; the device transport/helper backend is unchanged.
+
+## Keyboard and mouse control (alpha.7 / Mac preview.2, 2026-09-09)
+
+- Sender: Apple Silicon Mac, macOS 26; the unprivileged PortRelay agent and
+  Chrome local control window. Receiver: DGX Spark, Ubuntu 24.04.4 LTS ARM64,
+  kernel `6.17.0-1031-nvidia`, X11 desktop, active unlocked local user.
+- Real encrypted iroh connection over the hosts' Tailscale addresses. The input
+  path does not use a public USB/IP listener or claim a physical USB device.
+- `tests/input-smoke.py` passed: pairing plus separate input permission,
+  exclusive control, x/y motion, horizontal/vertical scrolling, five mouse
+  buttons, key down/repeat/up, explicit release, replay rejection, receiver
+  revocation/reconnect denial and missing browser heartbeat cleanup.
+- The real Chrome **Control** button opened the capture surface. A test `A`
+  key down/up, mouse movement and left-button down/up reached Spark's kernel
+  input devices. **Esc** ended capture and both virtual devices disappeared.
+- These tests used `tests/input-kernel-capture.py` to exclusively grab only
+  PortRelay's virtual keyboard and pointer. No test input reached existing
+  desktop applications. This is kernel input evidence, not a visible Spark
+  application test or full physical keyboard/mouse compatibility certification.
+- Mac unit tests and clippy passed; Linux ARM unit tests passed. Browser input
+  queue tests verify fractional/coalesced motion, wheel direction, physical
+  keycodes and overflow. Existing terminal pairing/menu/fixture tests passed.
+- Other browser/OS combinations, Wayland desktop behavior, locked-session
+  transitions, abrupt helper/agent crash while holding keys, real typing in a
+  desktop app and long-session latency remain separate acceptance checks.
+
+The mouse stays connected to the Mac. This feature does not implement full
+USB HID export, Mac USB import, Bluetooth adapter migration, screen video or
+clipboard forwarding. See [input control](input-control.md).
 
 ## What works in the recorded setup
 

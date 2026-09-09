@@ -108,3 +108,15 @@ physical peripheral works. The menu shows the current helper status and
 `portrelay sessions` includes recent connection errors. The authenticated
 control API stays on loopback. This feature does not add automatic peer
 discovery, a public relay, or new physical-device evidence.
+
+## Allow keyboard and mouse control on Linux (alpha.7)
+
+```sh
+sudo /usr/lib/portrelay/setup-input
+portrelay input-allow 'My Mac'
+portrelay input-deny 'My Mac'
+```
+
+This permission is separate from pairing and USB grants. The Linux receiver
+needs an unlocked local desktop. Sending input uses the focused app window.
+[Input control guide](input-control.md).

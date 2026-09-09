@@ -20,6 +20,9 @@ case "$1" in remove|upgrade|deconfigure)
         done
         if [ "$1" = remove ]; then systemctl disable --now portrelay-helper.service; else systemctl stop portrelay-helper.service; fi
     fi
+    if [ -d /run/systemd/system ] && systemctl cat portrelay-input.service >/dev/null 2>&1; then
+        if [ "$1" = remove ]; then systemctl disable --now portrelay-input.service; else systemctl stop portrelay-input.service; fi
+    fi
     for record in /run/portrelay/*.json; do
         [ ! -e "$record" ] || { echo 'A USB device still needs recovery. Restart the PortRelay helper and resolve it before removing or upgrading.' >&2; exit 1; }
     done

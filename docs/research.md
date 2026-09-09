@@ -121,3 +121,11 @@ repository is reused.
 Developer ID distribution follows Apple's [notarization workflow](https://developer.apple.com/documentation/security/customizing-the-notarization-workflow).
 Signing/notarization and physical USB compatibility are separate acceptance
 checks. See [ADR 0004](adr-0004-macos-export.md) for the implementation decision.
+
+## Focused input control follow-up (2026-09-09)
+
+Reviewed Deskflow, Apple's CGEvent taps, browser Pointer Lock, Linux uinput and
+the Rust evdev wrapper before implementing Mac-to-Linux input control. The
+first mode reuses the focused local window and encrypted agent connection; no
+Deskflow source is copied. [ADR 0005](adr-0005-input-control.md) records primary
+sources, licenses, authorization and remaining limits.

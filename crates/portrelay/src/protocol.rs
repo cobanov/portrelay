@@ -39,6 +39,8 @@ pub enum Request {
         address: EndpointAddr,
     },
     List,
+    InputStatus,
+    InputOpen,
     Open {
         device: String,
         generation: String,
@@ -47,10 +49,24 @@ pub enum Request {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "status", rename_all = "snake_case")]
 pub enum Reply {
-    Pending { name: String },
-    Devices { devices: Vec<RemoteDevice> },
-    Ready { device: Device },
-    Error { message: String },
+    Pending {
+        name: String,
+    },
+    Devices {
+        devices: Vec<RemoteDevice>,
+    },
+    Ready {
+        device: Device,
+    },
+    Error {
+        message: String,
+    },
+    InputStatus {
+        ready: bool,
+        allowed: bool,
+        busy: bool,
+    },
+    InputReady,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RemoteDevice {

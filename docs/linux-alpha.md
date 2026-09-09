@@ -210,3 +210,11 @@ can use the normal Windows/Linux window or its own terminal menu.
 See the [terminal guide](terminal.md) for the three-step flow, short commands,
 and scripting. The existing `portrelay status` and `portrelay api` JSON commands
 remain available. The HTTP control interface stays authenticated on loopback.
+
+## Keyboard and mouse control
+
+Alpha.7 also receives keyboard and mouse events from a paired Mac's control
+window. Choose **Enable receiving control**, then explicitly allow the Mac
+on its computer card. USB/IP is not required for input control. Receiving needs
+your unlocked local desktop; a headless server can still use USB sharing.
+[Setup, terminal commands and limits](input-control.md).

@@ -2,7 +2,7 @@
 set -eu
 if [ -d /run/systemd/system ]; then systemctl daemon-reload; fi
 if [ "$1" = purge ]; then
-    for path in /etc/portrelay/owner.conf /var/lib/portrelay/setup.log /var/lib/portrelay/setup.lock /var/lib/portrelay/restart-users; do
+    for path in /etc/modules-load.d/portrelay-input.conf /etc/portrelay/input-owner.conf /var/lib/portrelay/input-setup.lock /etc/portrelay/owner.conf /var/lib/portrelay/setup.log /var/lib/portrelay/setup.lock /var/lib/portrelay/restart-users; do
         if [ -f "$path" ]; then rm "$path"; fi
     done
     rmdir /etc/portrelay /var/lib/portrelay 2>/dev/null || true

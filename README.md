@@ -3,9 +3,10 @@
 **Your devices, on either computer.**
 
 Open-source USB sharing between Windows and Linux computers, with an encrypted connection
-and a small local control window. No account or subscription is required.
+and a small local control window. Mac users can also send keyboard and mouse
+control to an unlocked Linux desktop. No account or subscription is required.
 
-> **v0.1.0-alpha.6: Windows + Linux + ARM, now with a terminal menu.** Native USB serial traffic has passed
+> **v0.1.0-alpha.7: keyboard and mouse control to Linux.** Native USB serial traffic has passed
 > Windows-to-Linux and Linux-to-Windows tests using isolated virtual devices.
 > Windows 11 x64 uses signed upstream drivers with Secure Boot enabled.
 > Physical USB and Bluetooth compatibility still need testing. A separate [Mac export development preview](docs/macos-alpha.md)
@@ -15,9 +16,20 @@ and a small local control window. No account or subscription is required.
 > test computer and read the [Windows limitations](docs/windows-alpha.md).
 
 **[Website](https://portrelay.cobanov.dev)** ·
-**[Download the alpha](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.6)** ·
-**[Mac preview](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-macos-preview.1)** ·
+**[Download the alpha](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.7)** ·
+**[Mac preview](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-macos-preview.2)** ·
 **[Windows setup](docs/windows-alpha.md)** · **[Linux setup](docs/linux-alpha.md)** · **[Raspberry Pi / headless](docs/raspberry-pi.md)**
+
+## Use your Mac mouse on Linux
+
+1. Install **Mac preview.2** and **Linux alpha.7**, then pair the computers.
+2. On Linux, choose **Enable receiving control**, then **Allow keyboard & mouse**
+   for your Mac.
+3. On Mac, choose **Control [computer]**. **Esc** returns control to the Mac.
+
+Keep the Linux screen visible. This feature sends input only, with no video or
+clipboard. It works independently of USB/IP and does not detach the Mac's mouse.
+[Setup and current limits](docs/input-control.md).
 
 ## Install on both computers
 
@@ -59,7 +71,8 @@ The scripts verify the pinned release SHA-256 before installing. Linux selects
 its distribution package and installs dependencies; Windows opens the existing
 installer with the normal administrator prompt. Then open PortRelay to enable
 USB and pair computers. [Read the Linux script](web/install.sh) or
-[Windows script](web/install.ps1). These install alpha.6, without adding auto-updates.
+[Windows script](web/install.ps1). These currently install alpha.6, without input control or auto-updates. Use the
+alpha.7 release packages for keyboard and mouse control until the scripts are updated.
 
 The package installs dependencies, adds the app shortcut, and keeps the agent
 running after you close its window. An administrator prompt enables USB support;
@@ -77,9 +90,9 @@ configurable iroh relay, including a relay-only mode for blocked UDP networks.
 A forced external relay path has been tested; PortRelay does not run a shared
 production relay. See [network setup](docs/linux-alpha.md#networks).
 
-**Mac preview:** [download the ZIP](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-macos-preview.1), unzip, move PortRelay to Applications, then open it.
-Apple Silicon / macOS 14+. Only limited USB export is implemented; Mac receiving
-and Bluetooth are unavailable. [Mac setup and device scope](docs/macos-alpha.md).
+**Mac preview:** [download the ZIP](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-macos-preview.2), unzip, move PortRelay to Applications, then open it.
+Apple Silicon / macOS 14+. Control a Linux desktop with your keyboard and mouse,
+or try limited USB export. Mac USB receiving and Bluetooth are unavailable. [Mac setup and device scope](docs/macos-alpha.md).
 
 ## USB and Bluetooth boundaries
 

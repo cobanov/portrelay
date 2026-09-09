@@ -21,7 +21,7 @@ function tell(message, error = false) {
 }
 async function request(path, data) {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), data?.op === "connect" ? 60000 : 25000);
+  const timeout = setTimeout(() => controller.abort(), data?.op === "input_events" ? 2500 : data?.op === "connect" ? 60000 : 25000);
   try {
     const response = await fetch(path, {
       method: data ? "POST" : "GET", signal: controller.signal,
@@ -76,7 +76,7 @@ function renderSetup() {
   $("name-setup").hidden = approved && !renameOpen;
   document.querySelector(".computers").hidden = !Object.keys(state.peers).length;
   document.querySelector(".devices").hidden = !approved;
-  const step = !state.helper_ready ? 0 : !approved ? 1 : 2;
+  const step = !approved ? 1 : 2;
   ["step-usb", "step-pair", "step-device"].forEach((id, index) => {
     $(id).classList.toggle("done", index < step);
     $(id).classList.toggle("current", index === step);
@@ -89,7 +89,7 @@ function renderSetup() {
   $("enable-usb").disabled = !!state.setup?.running;
   $("enable-usb").textContent = state.setup?.running ? "Preparing USB support…" : "Enable USB sharing";
   const supported = ["linux", "windows", "macos"].includes(state.platform);
-  $("platform-badge").textContent = state.platform === "windows" ? "Windows alpha" : state.platform === "linux" ? "Linux alpha" : state.platform === "macos" ? "Mac export preview" : "Control preview";
+  $("platform-badge").textContent = state.platform === "windows" ? "Windows alpha" : state.platform === "linux" ? "Linux alpha" : state.platform === "macos" ? "Mac preview" : "Control preview";
   $("setup-help").href = `https://github.com/cobanov/portrelay/blob/main/docs/${state.platform === "macos" ? "macos" : state.platform === "windows" ? "windows" : "linux"}-alpha.md`;
   $("setup-title").textContent = state.platform === "macos" ? "Install the complete Mac app" : supported ? "Enable USB sharing" : "USB support is coming to macOS";
   $("setup-description").textContent = state.platform === "macos" ? "The Mac app includes its USB export worker. Build or reinstall the complete app to continue. No administrator setup is needed." : !supported
@@ -102,8 +102,8 @@ function renderSetup() {
   $("setup-error").textContent = state.setup?.error || "";
   $("remote-tab").textContent = state.capabilities?.usb_import === false ? "Other devices" : "Use a remote device";
   $("capability-note").hidden = state.platform !== "macos";
-  $("capability-note").textContent = "Mac preview: share eligible single-interface USB adapters with Linux or Windows. Receiving USB and sharing Bluetooth on Mac are still in development.";
-  $("pairing").hidden = !(pairingOpen || (!approved && state.helper_ready && !pairingDismissed));
+  $("capability-note").textContent = "Mac can control a Linux desktop. USB export remains limited; receiving USB and sharing Bluetooth are unavailable.";
+  $("pairing").hidden = !(pairingOpen || (!approved && !pairingDismissed));
 }
 function renderPeers() {
   const entries = Object.entries(state.peers);
@@ -121,6 +121,15 @@ function renderPeers() {
     details.append(button("Remove computer", async () => {
       if (confirm(`Remove ${peer.name} and close its device connections?`)) await action({ op: "revoke", peer: id });
     }, `remove-${id}`, true));
+    if (peer.approved && state.input?.receive_supported) {
+      const allowed = state.input.controllers.includes(id);
+      const control = button(allowed ? "Stop allowing control" : "Allow keyboard & mouse", async () => {
+        if (!allowed && !confirm(`Allow ${peer.name} to control this Linux desktop with its keyboard and mouse?\n\nThis applies while you are signed in and the desktop is unlocked. You can stop control here at any time.`)) return;
+        await action({ op: "input_allow", peer: id, allowed: !allowed });
+      }, `input-allow-${id}`, true);
+      control.disabled = !allowed && !state.input.ready;
+      card.append(node("p", allowed ? "Keyboard & mouse control allowed" : "Keyboard & mouse control off", "muted"), control);
+    }
     card.append(details); container.append(card);
   }
   if (!entries.length) empty(container, "Add your other computer to see its shared devices.");
@@ -237,9 +246,10 @@ function renderSessions() {
   for (const session of state.sessions) {
     const key = `${session.direction === "outgoing" ? state.id : session.peer}/${session.device}`;
     const metadata = session.metadata || deviceMetadata.get(key);
-    const name = metadata?.name || deviceNames.get(key) || "USB device";
+    const inputSession = session.direction.startsWith("input-");
+    const name = inputSession ? "Keyboard & mouse" : metadata?.name || deviceNames.get(key) || "USB device";
     const row = node("div", undefined, "session"), info = node("div");
-    info.append(node("strong", name), node("p", `${labels[session.state] || session.state} · ${session.direction === "outgoing" ? "Shared with" : "From"} ${peerName(session.peer)}`));
+    info.append(node("strong", name), node("p", `${labels[session.state] || session.state} · ${session.direction === "input-sending" ? "Controlling" : session.direction === "outgoing" ? "Shared with" : "From"} ${peerName(session.peer)}`));
     const b = button("Disconnect", async () => { if (confirmReturn(metadata)) await action({ op: "disconnect", session: session.id }); }, `disconnect-${session.id}`, true);
     b.disabled = ["restoring", "detaching"].includes(session.state);
     row.append(info, b); container.append(row);
@@ -251,7 +261,7 @@ function renderSessions() {
   }
   for (const session of errors) {
     const details = node("details", undefined, "notice");
-    details.append(node("summary", "A device connection needs attention"), node("p", session.error)); container.append(details);
+    details.append(node("summary", "A connection needs attention"), node("p", session.error)); container.append(details);
   }
 }
 async function refresh() {
@@ -266,7 +276,7 @@ async function refresh() {
   if (document.activeElement !== $("name-input") && !$("name-input").dataset.edited) $("name-input").value = state.name;
   $("identity").textContent = `Computer identity: ${state.id}`;
   $("helper-details").textContent = state.helper_ready ? "USB service ready." : state.helper_error || "USB service not ready.";
-  renderSetup(); renderPeers(); await renderDevices(revision);
+  renderSetup(); renderPeers(); renderInput(); await renderDevices(revision);
   if (revision !== refreshRevision) return;
   renderSessions();
   if (focused && (!document.activeElement?.id || document.activeElement.id === focused)) $(focused)?.focus({ preventScroll: true });
@@ -313,7 +323,7 @@ $("save-name").onclick = () => run(async () => {
 }, $("save-name"));
 $("refresh").onclick = () => run(async () => {}, $("refresh"));
 for (const next of ["local", "remote"]) $(next + "-tab").onclick = () => run(async () => setView(next));
-refresh().then(() => tell("Choose a device when both computers are ready.")).catch((error) => tell(error.message, true));
+refresh().then(() => tell("Select a computer to share devices or use keyboard and mouse control.")).catch((error) => tell(error.message, true));
 setInterval(() => {
   if (busy || backgroundRefreshing || document.visibilityState !== "visible") return;
   backgroundRefreshing = true;

@@ -8,6 +8,10 @@ apt-get update
 apt-get install --no-install-recommends -y "$package" python3
 [ "$(dpkg-query -W -f='${Architecture}' portrelay)" = "$(dpkg --print-architecture)" ]
 portrelay --version
+[ -x /usr/lib/portrelay/setup-input ]
+[ -f /usr/lib/systemd/system/portrelay-input.service ]
+[ ! -e /etc/portrelay/input-owner.conf ]
+portrelay input-allow --help
 ldd /usr/lib/portrelay/portrelay
 useradd -m -s /bin/sh portrelay-test
 work=$(mktemp -d)

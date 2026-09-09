@@ -22,6 +22,47 @@ pub struct Setup {
     progress: Arc<Mutex<Progress>>,
 }
 impl Setup {
+    pub fn input_available() -> bool {
+        cfg!(target_os = "linux")
+            && std::path::Path::new("/usr/lib/portrelay/setup-input").is_file()
+    }
+    pub async fn start_input(&self) -> Result<()> {
+        if !Self::input_available() {
+            bail!("Install the Linux package to enable receiving keyboard and mouse control");
+        }
+        let mut progress = self.progress.lock().await;
+        if progress.running {
+            bail!("Input setup is already running");
+        }
+        *progress = Progress {
+            running: true,
+            error: None,
+        };
+        let state = self.progress.clone();
+        tokio::spawn(async move {
+            let result = tokio::time::timeout(
+                std::time::Duration::from_secs(120),
+                tokio::process::Command::new("/usr/bin/pkexec")
+                    .args(["--disable-internal-agent", "/usr/lib/portrelay/setup-input"])
+                    .current_dir("/")
+                    .kill_on_drop(true)
+                    .output(),
+            )
+            .await;
+            let error = match result {
+                Ok(Ok(output)) if output.status.success() => None,
+                Ok(Ok(output)) if matches!(output.status.code(), Some(126 | 127)) => Some("System permission was cancelled. Retry from the Linux desktop, or run sudo /usr/lib/portrelay/setup-input in a terminal.".into()),
+                Ok(Ok(output)) => Some(String::from_utf8_lossy(&output.stderr).trim().chars().take(1200).collect()),
+                _ => Some("Input setup did not finish. Try again from the Linux desktop.".into()),
+            };
+            *state.lock().await = Progress {
+                running: false,
+                error,
+            };
+        });
+        Ok(())
+    }
+
     pub fn available() -> bool {
         #[cfg(windows)]
         return crate::windows::installed();

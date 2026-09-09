@@ -187,3 +187,10 @@ and a useful error when the network prevents both routes.
   privileged platform integration.
 
 Revisit this decision if the initial bridge or driver feasibility gates fail.
+
+## Focused keyboard and mouse control
+
+[ADR 0005](adr-0005-input-control.md) adds a separate input session over the same
+authenticated iroh connection. Its receiver grants and restricted Linux uinput
+helper are independent of USB. The browser captures only while the user
+explicitly controls the other desktop. See [input control](input-control.md).

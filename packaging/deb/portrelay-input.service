@@ -1,0 +1,25 @@
+[Unit]
+Description=PortRelay restricted keyboard and mouse helper
+After=systemd-logind.service systemd-udevd.service systemd-modules-load.service
+Wants=systemd-logind.service
+ConditionPathExists=/etc/portrelay/input-owner.conf
+
+[Service]
+EnvironmentFile=/etc/portrelay/input-owner.conf
+ExecStart=/usr/lib/portrelay/portrelay input-helper --uid ${PORTRELAY_INPUT_UID}
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=10
+RuntimeDirectory=portrelay-input
+RuntimeDirectoryMode=0711
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadWritePaths=/run/portrelay-input
+RestrictAddressFamilies=AF_UNIX
+DevicePolicy=closed
+DeviceAllow=/dev/uinput rw
+
+[Install]
+WantedBy=multi-user.target

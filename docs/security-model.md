@@ -91,3 +91,12 @@ resolved. Do not remove recovery records to make status appear healthy.
 The Windows validation record also tracks an unresolved native controller/PnP
 stall after repeated imports and a forced app shutdown. Empty application
 sessions or journals do not establish complete kernel resource reclamation.
+
+## Keyboard and mouse sessions
+
+Input permission is separate from peer approval and USB device grants. Only the
+configured user's unlocked active Linux desktop may receive control. A separate
+root helper accepts that UID on a private local socket, exposes no network
+listener and creates only virtual input devices. It bounds/validates batches
+and removes virtual devices on closure. The browser sends only while its
+explicit control surface is focused. See [ADR 0005](adr-0005-input-control.md).
