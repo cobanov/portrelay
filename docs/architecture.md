@@ -7,6 +7,9 @@ adjustment are recorded in [ADR 0002](adr-0002-linux-alpha.md). Physical hardwar
 validation remains pending. The implemented Windows 11 x64 backend is recorded
 in [ADR 0003](adr-0003-windows-alpha.md); the limited macOS export preview is recorded in [ADR 0004](adr-0004-macos-export.md). Mac import remains future work.
 
+Account-based setup now supersedes the invitation-first product model below; see
+[ADR 0006](adr-0006-accounts.md). Keyboard/mouse control is in [ADR 0005](adr-0005-input-control.md).
+
 The [research](research.md) supplies the upstream evidence. The design below is
 PortRelay's engineering decision, not a claim that these components already work
 together.

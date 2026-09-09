@@ -18,7 +18,27 @@ installer and onboarding; the device transport/helper backend is unchanged.
   successfully registered a Mac test identity. Browser-level testing caught and
   fixed Worker fetch redirect handling and the confirmation form's origin policy.
 - These tests establish account/control behavior, not physical USB compatibility.
-  Installed Mac/Spark account acceptance is recorded after final package installation.
+  Installed Mac/Spark account acceptance is recorded below.
+
+Build source `63fb67d` passed all 17 checks in
+[CI 34362000976](https://github.com/cobanov/portrelay/actions/runs/34362000976),
+including Windows/macOS/Linux, account lifecycle, ARM64/ARMv7 packages and fresh
+AMD64/ARM64 headless VM installation.
+
+### Installed Mac mini and Spark account acceptance
+
+- Both installed agents run alpha.8 from `63fb67d`. Mac is Developer ID signed,
+  notarized and stapled; Spark runs the ARM64 Ubuntu package and both services.
+- Actual GitHub `cobanov` sign-in registered **Mac mini** and **Spark**. Both
+  report the same account and automatically managed, approved peer identities.
+- Spark advertises 31 addresses due to Docker/VPN interfaces. Registration and
+  discovery preserve them; the bounded address limit is 64 with a 4 KiB profile.
+  A dedicated regression test covers this environment.
+- Mac-to-Spark authenticated input status reports ready, permitted, and idle.
+  Existing explicit receiving permission survived account migration. No active
+  session was left running, so the user can start **Control Spark** themselves.
+- Native Mac inventory and packaged CLI/pairing tests still pass. This is account
+  acceptance, not new evidence for physical USB or Bluetooth compatibility.
 
 ## Keyboard and mouse control (alpha.7 / Mac preview.2, 2026-09-09)
 

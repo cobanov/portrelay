@@ -100,3 +100,14 @@ root helper accepts that UID on a private local socket, exposes no network
 listener and creates only virtual input devices. It bounds/validates batches
 and removes virtual devices on closure. The browser sends only while its
 explicit control surface is focused. See [ADR 0005](adr-0005-input-control.md).
+
+## Account-managed trust (alpha.8)
+
+GitHub sign-in uses device-signed challenges, state/cookie binding, S256 PKCE, a
+CSRF-protected named-computer confirmation, and hashed per-device bearer tokens.
+The registry stores identity/address metadata, never USB or input payloads.
+Automatic trust covers computers in the same numeric GitHub account; device/input
+grants remain separate. Remote removal propagates on the next 15-second check.
+A monotonic 90-second lease closes managed connections during registry loss, and
+restart requires fresh membership. Manual approval cannot override account expiry.
+The registry is a trusted membership authority. See [ADR 0006](adr-0006-accounts.md).

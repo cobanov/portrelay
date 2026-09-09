@@ -1832,3 +1832,5 @@ h1 > span {
     justify-content: flex-start;
   }
 }
+
+.account-guide{text-align:center;margin:18px 0 0;font-size:14px;color:var(--muted)}.account-guide a{color:inherit;text-underline-offset:4px}

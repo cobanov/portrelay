@@ -51,7 +51,9 @@ concurrent claims are rejected; disconnect and owner recovery are verified.
 - [x] Add an embedded local control window using the same agent as the CLI.
 - [ ] Package a native desktop shell if needed; Tauri deferred in ADR 0002.
 - [x] Add invitation entry and paired-computer management.
-- [ ] Add automatic local peer discovery and address refresh.
+- [x] Add GitHub account sign-in, automatic membership and address refresh,
+      with per-computer removal and a headless login link (alpha.8).
+- [ ] Add multicast discovery for independent account-free LAN use.
 - [x] Build first-run setup, dependency checks, local device sharing, remote
       device connection, busy state, and owner reclaim flows.
 - [x] Add permission, unplugged, missing-driver, blocked-network, and restore

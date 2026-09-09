@@ -19,9 +19,9 @@ param([switch]$DownloadOnly)
         throw 'This alpha requires Windows 11. Windows 10 and Windows Server are not supported.'
     }
 
-    $version = '0.1.0-alpha.6'
+    $version = '0.1.0-alpha.8'
     $package = "portrelay-$version-windows-x64-setup.exe"
-    $checksum = '6137a9e2e17e5d79b20d2f692387370076585017b6aa4a19fa451cbc46be8bbf'
+    $checksum = '736ce196046b1d08b565156c6dedef39adb721c4de48e19c0955694b5564b521'
     $tempDirectory = Join-Path ([IO.Path]::GetTempPath()) ('portrelay-' + [Guid]::NewGuid().ToString('N'))
     $installer = Join-Path $tempDirectory $package
     $previousProtocol = [Net.ServicePointManager]::SecurityProtocol
@@ -43,7 +43,7 @@ param([switch]$DownloadOnly)
         if ($process.ExitCode -eq 3010) {
             Write-Host 'Installed. Restart Windows, then open PortRelay from Start.'
         } elseif ($process.ExitCode -eq 0) {
-            Write-Host 'Installed! Open PortRelay, choose Enable USB sharing, then Add computer.'
+            Write-Host 'Installed! Open PortRelay, choose Enable USB sharing, then Sign in with GitHub.'
         } else {
             throw "The installer did not finish (exit code $($process.ExitCode)). Retry or use the Windows setup guide."
         }

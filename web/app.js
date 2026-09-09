@@ -74,19 +74,19 @@ const localDevices = [
 ];
 const platforms = {
   linux: {
-    stage: "ALPHA.6 · EXPERIMENTAL",
+    stage: "ALPHA.8 · EXPERIMENTAL",
     title: "Linux, including Raspberry Pi.",
     description: "Ubuntu, Debian or Raspberry Pi OS. Use the app window or a simple SSH menu.",
   },
   windows: {
-    stage: "ALPHA.6 · EXPERIMENTAL",
+    stage: "ALPHA.8 · EXPERIMENTAL",
     title: "Windows 11, one installer.",
     description: "Share USB with Linux. Tested both ways with virtual serial devices.",
   },
   macos: {
-    stage: "MAC PREVIEW.1 · EXPERIMENTAL",
-    title: "A first step for Mac.",
-    description: "Device listing and limited USB sharing. Receiving USB and Bluetooth are not available yet.",
+    stage: "MAC PREVIEW.3 · EXPERIMENTAL",
+    title: "Your Mac mouse, on Linux.",
+    description: "Sign in with GitHub. Control a Linux desktop with your keyboard and mouse. Limited USB export is also included.",
   },
 };
 const examples = {
@@ -384,7 +384,7 @@ function renderFlow(device) {
           ? "Your USB drive."
           : "Your device.";
   const tail = local
-    ? " Share it with a paired computer."
+    ? " Share it with one of your computers."
     : device.icon === "bluetooth"
       ? " Pair devices near the adapter, remotely."
       : " Your laptop, anywhere.";

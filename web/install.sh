@@ -22,7 +22,7 @@ main() {
     done
 
     [ "$(uname -s)" = Linux ] || {
-        echo 'This installer requires Ubuntu 24.04, Debian 12/13, or Raspberry Pi OS Bookworm/Trixie. macOS USB is not available yet.' >&2
+        echo 'This installer requires Ubuntu 24.04, Debian 12/13, or Raspberry Pi OS Bookworm/Trixie. For macOS, download the signed Mac preview from portrelay.cobanov.dev.' >&2
         return 1
     }
     for tool in curl dpkg sha256sum apt-get; do
@@ -50,11 +50,11 @@ main() {
         *) echo 'Use Ubuntu 24.04, Debian 12/13, or Raspberry Pi OS Bookworm/Trixie.' >&2; return 1 ;;
     esac
     case "$distro:$arch" in
-        ubuntu:amd64) checksum=852361005787bddf61162615c5665b8d2eaa82b44e29b76839afb021df11d856 ;;
-        ubuntu:arm64) checksum=89c91a8d88c6ee487b85539b4be819c6dcccf07110cd7d01b010f68f173394d2 ;;
-        debian:amd64) checksum=5f045d28ff44544fb08a8531285a3a2ae8226bc896353aac4ad58571ad99af15 ;;
-        debian:arm64) checksum=a1a20b31a1bcafd70e4a5b81c2b9721a3059559a8c4ebf1d4c3110da6bb67490 ;;
-        debian:armhf) checksum=71160e1069b1e155bf66cbcee54425eae9be87e2a356c67940b48f4ae39cdeec ;;
+        ubuntu:amd64) checksum=c2a41898817c4c14705133a3b1030f002fca5dbbdbc6447015cf606d604979de ;;
+        ubuntu:arm64) checksum=e280bcbffa96b78c242c498e4c8068c0d2a95df4169067a9b727756e43fe4058 ;;
+        debian:amd64) checksum=21141ae394a12e1430fea0192c4046ad2bd555b2de82c3e5dbf9df9ac2375900 ;;
+        debian:arm64) checksum=9dfbe979c08bd40ff212d20de3ecbeb61285aaa1feec6b97d3b2189a872a253a ;;
+        debian:armhf) checksum=7fb3e3d0762768f1584c849350ef20d787bfd353317d7381681695d043283dd0 ;;
         *) echo "No PortRelay package is available for $ID $arch." >&2; return 1 ;;
     esac
 
@@ -71,7 +71,7 @@ main() {
         fi
     fi
 
-    version=0.1.0-alpha.6
+    version=0.1.0-alpha.8
     package=portrelay-$version-$distro-$arch.deb
     # Pin the package hash with its version. A replaced release asset fails closed.
     temp_dir=$(mktemp -d /tmp/portrelay.XXXXXXXXXX)
@@ -105,7 +105,7 @@ main() {
             sudo /usr/lib/portrelay/setup-headless "$setup_user"
         fi
     else
-        echo 'Installed! Open PortRelay from your applications, choose Enable USB sharing, then Add computer.'
+        echo 'Installed! Open PortRelay from your applications, choose Enable USB sharing, then Sign in with GitHub.'
         echo 'No desktop? Run: sudo /usr/lib/portrelay/setup-headless YOUR_USERNAME'
     fi
 }

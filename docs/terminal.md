@@ -1,10 +1,21 @@
 # Use PortRelay from a terminal
 
-Requires **alpha.6 or newer**, or a build of the current source. Run commands as
+Requires **alpha.8 or newer**, or a build of the current source. Run commands as
 the regular account that owns the installed application, without sudo.
 Linux, including Raspberry Pi OS Lite, can use this entire flow through SSH.
 Windows uses the same commands with its installed executable. The separate
 [Mac export preview](macos-alpha.md) also provides the menu; Mac receiving is unavailable.
+
+## Sign in once
+
+```sh
+portrelay login --no-open
+```
+
+Open the link on your phone or laptop, sign in with GitHub, and approve this
+computer's name. Sign in with the same account on your other computers. They
+appear automatically with `portrelay computers`, without invitations.
+`portrelay logout` removes this computer's account connections.
 
 ## Open the menu
 
@@ -25,9 +36,8 @@ Choose a numbered item and press Enter. Use **0**, **q**, or an empty answer to
 cancel a choice. The menu does not need a browser, mouse, or desktop session.
 Closing the menu or SSH connection leaves the installed headless agent running.
 
-1. **Add your computer.** On the device owner, choose **Create invitation**.
-   Copy the entire invitation to **Add computer** on the receiver. Back on the
-   owner, choose **Approve computer** and select the expected requester.
+1. **Choose your computer.** Sign in using the command above. The registered
+   computers appear automatically in the selection menu.
 2. **Share a device.** On the owner, choose **Share local device**. Select the
    device and the approved computer. Prepare any disk, input, network, or
    Bluetooth adapter as instructed, then explicitly accept its warnings.
@@ -37,7 +47,8 @@ Closing the menu or SSH connection leaves the installed headless agent running.
    the receiver first.
 
 The other computer can use the normal application window instead of this menu.
-Invitations expire after ten minutes and work once. Pairing, owner approval,
+For offline use, Create invitation / Add computer / Approve computer remain
+advanced alternatives. Invitations expire after ten minutes and work once. Pairing, owner approval,
 and per-device sharing are separate steps. A locally approved computer may
 still be offline or waiting for approval on the other side.
 
@@ -106,7 +117,7 @@ Use `--help` on a command for its arguments.
 `portrelay check` verifies the agent and USB helper; it does not prove that a
 physical peripheral works. The menu shows the current helper status and
 `portrelay sessions` includes recent connection errors. The authenticated
-control API stays on loopback. This feature does not add automatic peer
+control API stays on loopback. The terminal menu itself does not add automatic peer
 discovery, a public relay, or new physical-device evidence.
 
 ## Allow keyboard and mouse control on Linux (alpha.7)
