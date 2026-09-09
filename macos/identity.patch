@@ -82,3 +82,15 @@ index 88c2d05..9fd3a96 100644
          
          do {
              // Execute the USB transfer
+diff --git a/Sources/USBIPDCore/ServerConfig.swift b/Sources/USBIPDCore/ServerConfig.swift
+--- a/Sources/USBIPDCore/ServerConfig.swift
++++ b/Sources/USBIPDCore/ServerConfig.swift
+@@ -130,7 +130,7 @@
+         serverQoS: DispatchQoS.QoSClass = .userInitiated,
+         connectionQoS: DispatchQoS.QoSClass = .userInitiated,
+         maxPendingURBsPerDevice: Int = 32,
+-        usbRequestQoS: DispatchQoS.QoSClass = .userInitiated,
++        usbRequestQoS: DispatchQoS.QoSClass = .userInitiated
+     ) {
+         self.port = port
+         self.logLevel = logLevel
