@@ -76,6 +76,7 @@ jobs:
   linux-headless-install:
     needs: linux-package
     strategy:
+      fail-fast: false
       matrix:
         include:
           - runner: ubuntu-24.04
@@ -85,14 +86,39 @@ jobs:
             arch: aarch64
             deb_arch: arm64
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: portrelay-linux-${{ matrix.arch }}-alpha
           path: target/packages
-      - run: sudo env GITHUB_ACTIONS=true ./tests/headless-install.sh target/packages/*-ubuntu-${{ matrix.deb_arch }}.deb
+      - run: bash tests/headless-vm.sh target/packages/*-debian-${{ matrix.deb_arch }}.deb ${{ matrix.deb_arch }}
+  linux-package-userspace:
+    needs: [linux-package, linux-armv7-package]
+    runs-on: ubuntu-24.04-arm
+    strategy:
+      matrix:
+        distro: ['12', '13']
+        arch: [arm64, armhf]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: portrelay-linux-*-alpha
+          merge-multiple: true
+          path: target/packages
+      - name: Install, run, reinstall, and remove the actual package
+        run: |
+          platform=linux/arm64
+          if [ '${{ matrix.arch }}' = armhf ]; then platform=linux/arm/v7; fi
+          docker run --rm --platform "$platform" -e PORTRELAY_DISPOSABLE_CONTAINER=1 \
+            -v "$PWD/target/packages:/packages:ro" -v "$PWD/tests/linux-package-userspace.sh:/test.sh:ro" \
+            debian:${{ matrix.distro }} sh -c 'sh /test.sh /packages/*-debian-${{ matrix.arch }}.deb'
   windows-backend-check:
     runs-on: windows-2025
     steps:

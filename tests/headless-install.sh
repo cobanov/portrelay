@@ -6,6 +6,7 @@ set -eu
 [ "$#" -eq 1 ] || exit 1
 package=$(realpath "$1")
 account=portrelay-ci
+trap 'result=$?; if [ "$result" -ne 0 ]; then cat /var/lib/portrelay/setup.log 2>/dev/null || true; journalctl -u portrelay-helper -n 30 --no-pager || true; fi' EXIT
 if id "$account" >/dev/null 2>&1; then echo 'Test account already exists.' >&2; exit 1; fi
 apt-get update
 apt-get install --no-install-recommends -y "$package"
@@ -32,7 +33,12 @@ systemctl start "user@$uid.service"
 as_owner env XDG_RUNTIME_DIR="/run/user/$uid" DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$uid/bus" portrelay desktop --no-open
 as_owner portrelay check >/dev/null
 apt-get install --reinstall --no-install-recommends -y "$package"
-as_owner portrelay check >/dev/null
+attempts=0
+until as_owner portrelay check >/dev/null 2>&1; do
+    attempts=$((attempts + 1))
+    [ "$attempts" -lt 30 ] || exit 1
+    sleep 1
+done
 apt-get remove -y portrelay
 if user_systemctl is-active --quiet portrelay.service; then exit 1; fi
 if systemctl is-active --quiet portrelay-helper.service; then exit 1; fi

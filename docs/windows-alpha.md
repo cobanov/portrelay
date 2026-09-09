@@ -13,7 +13,7 @@ Open **PowerShell** as your normal Windows user and paste:
 irm https://portrelay.cobanov.dev/install.ps1 | iex
 ```
 
-This downloads the alpha.4 installer, verifies its pinned SHA-256, and opens the
+This downloads the alpha.5 installer, verifies its pinned SHA-256, and opens the
 same installation wizard as the download button. Approve the normal Windows
 administrator prompt and finish the wizard. Then open **PortRelay** and follow
 steps 2 and 3 below. The script does not enable USB or share devices for you.

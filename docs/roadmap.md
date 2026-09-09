@@ -143,3 +143,12 @@ uninstall results. Publish the failures and exclusions alongside successes.
 - [ ] Validate physical USB Bluetooth pairing and peripheral use.
 - [ ] Validate the new classes on native Windows, including recovery.
 - [ ] Resolve the recorded upstream Windows controller-removal stall.
+
+## Alpha.5 ARM installation
+
+- [x] Build ARM64 and ARMv7 packages with architecture and executable-version checks.
+- [x] Detect Raspberry Pi OS / Debian 12–13 and Ubuntu 24.04 in the bootstrap.
+- [x] Add explicit headless setup with a non-root agent and startup without login.
+- [x] Run native ARM64 and emulated ARMv7 application tests.
+- [ ] Record physical Raspberry Pi USB handoff, Bluetooth pairing, and recovery.
+- [ ] Replace advanced JSON terminal actions with a simpler interactive flow.

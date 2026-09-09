@@ -5,7 +5,7 @@
 Open-source USB sharing between Windows and Linux computers, with an encrypted connection
 and a small local control window. No account or subscription is required.
 
-> **v0.1.0-alpha.4: Windows + Linux.** Native USB serial traffic has passed
+> **v0.1.0-alpha.5: Windows + Linux, now with ARM packages.** Native USB serial traffic has passed
 > Windows-to-Linux and Linux-to-Windows tests using isolated virtual devices.
 > Windows 11 x64 uses signed upstream drivers with Secure Boot enabled.
 > Physical USB and Bluetooth compatibility still need testing. macOS USB
@@ -14,8 +14,8 @@ and a small local control window. No account or subscription is required.
 > test computer and read the [Windows limitations](docs/windows-alpha.md).
 
 **[Website](https://portrelay.cobanov.dev)** ·
-**[Download the alpha](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.4)** ·
-**[Windows setup](docs/windows-alpha.md)** · **[Linux setup](docs/linux-alpha.md)**
+**[Download the alpha](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.5)** ·
+**[Windows setup](docs/windows-alpha.md)** · **[Linux setup](docs/linux-alpha.md)** · **[Raspberry Pi / headless](docs/raspberry-pi.md)**
 
 ## Install on both computers
 
@@ -28,11 +28,23 @@ and a small local control window. No account or subscription is required.
 
 Prefer a terminal? Install the same alpha package with one command:
 
-**Ubuntu 24.04 / Debian 13 (Intel/AMD 64-bit):**
+**Ubuntu 24.04 / Debian 12–13 / Raspberry Pi OS (AMD64, ARM64, ARMv7):**
 
 ```sh
 curl -fsSL https://portrelay.cobanov.dev/install.sh | sh
 ```
+
+**Raspberry Pi OS Lite / SSH-only Linux:**
+
+```sh
+curl -fsSL https://portrelay.cobanov.dev/install.sh | sh -s -- --headless
+```
+
+This explicitly enables USB setup and starts the regular user's agent at boot,
+without a desktop or login. Devices stay private until shared. ARMv7 requires
+Pi 2 or newer, including Zero 2 W; Pi 1/original Zero ARMv6 are excluded.
+Physical Pi USB/Bluetooth compatibility is still unvalidated.
+[Requirements and terminal control](docs/raspberry-pi.md).
 
 **Windows 11 (Intel/AMD 64-bit), in PowerShell:**
 
@@ -44,7 +56,7 @@ The scripts verify the pinned release SHA-256 before installing. Linux selects
 its distribution package and installs dependencies; Windows opens the existing
 installer with the normal administrator prompt. Then open PortRelay to enable
 USB and pair computers. [Read the Linux script](web/install.sh) or
-[Windows script](web/install.ps1). These install alpha.4, without adding auto-updates.
+[Windows script](web/install.ps1). These install alpha.5, without adding auto-updates.
 
 The package installs dependencies, adds the app shortcut, and keeps the agent
 running after you close its window. An administrator prompt enables USB support;

@@ -2,21 +2,24 @@
 
 The Linux alpha shares USB devices with Windows or other Linux computers. Start with a
 test device: physical USB and Bluetooth compatibility is still unvalidated.
-The current packages are for Intel/AMD 64-bit Linux with systemd.
+Packages cover AMD64, ARM64 and ARMv7 Linux with systemd. See the
+[Raspberry Pi / ARM guide](raspberry-pi.md) for model and OS requirements.
 
 ## One-command install
 
-On **Ubuntu 24.04 or Debian 13, Intel/AMD 64-bit**, paste this in Terminal:
+On **Ubuntu 24.04, Debian 12/13, or Raspberry Pi OS Bookworm/Trixie**, paste this in Terminal:
 
 ```sh
 curl -fsSL https://portrelay.cobanov.dev/install.sh | sh
 ```
 
-The script selects your distribution, verifies the alpha.4 package against a
+The script selects your distribution, verifies the alpha.5 package against a
 pinned SHA-256, and uses `apt-get` to install it and its dependencies. Enter your
 administrator password if asked. Then open **PortRelay** from your applications
 and follow steps 2 and 3 below. It does not enable USB or share devices for you.
 Unsupported distributions and architectures stop before downloading a package.
+For Pi OS Lite or SSH-only devices, add `-s -- --headless` after `sh`;
+this explicitly configures USB and boot startup without opening a browser.
 
 [Read the script](../web/install.sh). To inspect it before running:
 
@@ -33,8 +36,8 @@ installing and removes the temporary download afterward.
 ## Three steps on each computer
 
 1. **Install the package.** Download for
-   [Ubuntu](https://github.com/cobanov/portrelay/releases/download/v0.1.0-alpha.4/portrelay-0.1.0-alpha.4-ubuntu-amd64.deb) or
-   [Debian](https://github.com/cobanov/portrelay/releases/download/v0.1.0-alpha.4/portrelay-0.1.0-alpha.4-debian-amd64.deb).
+   [Ubuntu](https://github.com/cobanov/portrelay/releases/download/v0.1.0-alpha.5/portrelay-0.1.0-alpha.5-ubuntu-amd64.deb) or
+   [Debian](https://github.com/cobanov/portrelay/releases/download/v0.1.0-alpha.5/portrelay-0.1.0-alpha.5-debian-amd64.deb).
    Open the file with your system's software installer and choose **Install**.
 2. **Open PortRelay.** Find it in your applications. Give this computer a name,
    then choose **Enable USB sharing** and approve the system password prompt.
@@ -53,7 +56,7 @@ One local user owns USB setup. The app opens in your browser and runs a backgrou
 service at login. Closing the window keeps connections running. Its local window
 shows actual device state; the public website is a separate concept demo.
 
-[Release notes & checksums](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.4)
+[Release notes & checksums](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.5)
 · [Tested capabilities and limitations](validation.md)
 
 <details>
@@ -62,9 +65,9 @@ shows actual device state; the public website is a separate concept demo.
 In the download folder, run the matching command:
 
 ```sh
-sudo apt install ./portrelay-0.1.0-alpha.4-ubuntu-amd64.deb
+sudo apt install ./portrelay-0.1.0-alpha.5-ubuntu-amd64.deb
 # Or, on Debian:
-sudo apt install ./portrelay-0.1.0-alpha.4-debian-amd64.deb
+sudo apt install ./portrelay-0.1.0-alpha.5-debian-amd64.deb
 ```
 
 Use `apt install`, which resolves dependencies, rather than `dpkg -i` alone.
@@ -72,7 +75,8 @@ A desktop browser and the desktop's normal polkit permission agent are needed
 for the graphical flow. Installation and authorization are tested headlessly on
 Debian 13 and Ubuntu 24.04; graphical menu launch and password-dialog rendering
 still need desktop observation. The binary baseline is glibc 2.36. Other distro
-releases, ARM64 packages, signing, and automatic updates remain unvalidated.
+releases, signing, and automatic updates remain unvalidated. ARM64 and ARMv7
+packages are available with their separate [validation record](validation.md).
 Checksums detect corruption; they are not publisher signatures.
 
 </details>
@@ -145,14 +149,15 @@ relays are not a promised production service or free bandwidth allocation.
 After installing the `.deb`, run as your normal user:
 
 ```sh
-portrelay desktop --no-open
-pkexec /usr/lib/portrelay/setup-usb
+sudo /usr/lib/portrelay/setup-headless "$USER"
 portrelay check
 ```
 
-`pkexec` can use a terminal authentication agent in this manual flow. To keep
-this user's service alive without a login, an administrator can explicitly enable
-systemd lingering for that user. The desktop installer does not enable lingering.
+This explicitly enables systemd lingering for your account, starts the agent,
+and enables the USB helper. It runs at boot even without an SSH login. No device
+is shared automatically. The bootstrap's `--headless` option does these steps
+after installing the package. The [Pi guide](raspberry-pi.md) also covers root-only
+SSH sessions and removing this account-wide lingering setting later.
 
 For source development, use Rust 1.97.0:
 
@@ -192,3 +197,51 @@ virtual serial tests in both directions. macOS device integration remains
 a separate future stage, with export and import evaluated independently.
 
 </details>
+
+## Terminal control
+
+Run CLI commands as the regular account that owns PortRelay. `portrelay status`
+returns the actual `peers`, `devices`, and `sessions`. Terminal actions currently
+use JSON; there is no interactive menu or separate `share` / `connect` command.
+The other computer can use the normal Windows/Linux application window.
+
+1. On the Pi/device owner, run `portrelay invite`. Paste its `invitation` value
+   into **Add computer** on the receiver. For another terminal, pass that value
+   on stdin to `portrelay pair` (finish pasted input with Ctrl-D).
+2. On the owner, inspect `portrelay status` and approve the expected requesting
+   peer. Replace `PEER_ID` with its actual ID:
+
+   ```sh
+   printf '%s\n' '{"op":"approve","peer":"PEER_ID"}' | portrelay api
+   ```
+
+3. Share a chosen local device with that approved peer:
+
+   ```sh
+   printf '%s\n' '{"op":"share","device":"DEVICE_ID","peer":"PEER_ID"}' | portrelay api
+   ```
+
+   Risk-bearing devices require an `acknowledge_risks` array containing the
+   device's reported risk values, after reading the [handoff requirements](device-sharing.md).
+   A missing acknowledgement is rejected; mounted disks and active network
+   interfaces stay blocked. Do not use blanket grants for every device.
+
+4. Click **Connect** on the receiver, or inspect the shared inventory and use
+   that response's exact device ID and generation:
+
+   ```sh
+   printf '%s\n' '{"op":"remote","peer":"OWNER_PEER_ID"}' | portrelay api
+   printf '%s\n' '{"op":"connect","peer":"OWNER_PEER_ID","device":"DEVICE_ID","generation":"GENERATION"}' | portrelay api
+   ```
+
+5. Use `portrelay status` to find the active session. Unmount borrowed storage
+   before disconnecting it. The owner can also stop sharing:
+
+   ```sh
+   printf '%s\n' '{"op":"disconnect","session":"SESSION_ID"}' | portrelay api
+   printf '%s\n' '{"op":"unshare","device":"DEVICE_ID"}' | portrelay api
+   ```
+
+Invitations expire after ten minutes and are single-use. Keep invitations and
+identity/API files private. The HTTP control interface remains authenticated and
+bound to loopback; headless mode does not expose it to the network.
