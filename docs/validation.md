@@ -23,6 +23,24 @@ USB/input transport, grants and platform support are unchanged.
   plain text, defaults to Cancel, and retains existing ejection/risk warnings.
 - The unchanged input-event tests and 22 portable Rust tests passed locally.
   These fixture checks do not lend physical devices or sign in to GitHub.
+- The installed Mac mini and Spark agents both report alpha.9 and the same
+  `cobanov` account after upgrade. Their identities and input permissions were
+  preserved. Authenticated Mac-to-Spark input status is ready, permitted and
+  idle; neither agent has an active session.
+- The final Mac bundle is built from `182fc84`, Developer ID signed, notarized
+  (`aab134a4-351b-4d9c-8079-afc59f4bc48d`) and stapled. Strict signature and
+  Gatekeeper checks passed. The dashboard's skip-navigation link preserves
+  local authentication across reloads in the installed app.
+- Native read-only Mac bundle acceptance found nine actual USB devices and
+  passed worker discovery, absent-device rejection and early import rejection.
+  No interface was opened. This release adds no physical compatibility claim.
+- Build source `182fc84` passed all 17 jobs in
+  [CI 34369315915](https://github.com/cobanov/portrelay/actions/runs/34369315915),
+  including Windows/macOS/Linux checks, account lifecycle, ARM64/ARMv7 packages,
+  and fresh AMD64/ARM64 headless VM installation.
+- Alpha.9 publishes 20 Linux/Windows files and Mac preview.4 publishes two Mac
+  files. Every uploaded GitHub asset digest matches its local SHA-256. The
+  public download links and pinned bootstrap hashes point to these packages.
 
 See the [dashboard guide](dashboard.md) for the current navigation.
 

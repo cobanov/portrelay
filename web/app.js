@@ -74,17 +74,17 @@ const localDevices = [
 ];
 const platforms = {
   linux: {
-    stage: "ALPHA.8 · EXPERIMENTAL",
+    stage: "ALPHA.9 · EXPERIMENTAL",
     title: "Linux, including Raspberry Pi.",
     description: "Ubuntu, Debian or Raspberry Pi OS. Use the app window or a simple SSH menu.",
   },
   windows: {
-    stage: "ALPHA.8 · EXPERIMENTAL",
+    stage: "ALPHA.9 · EXPERIMENTAL",
     title: "Windows 11, one installer.",
     description: "Share USB with Linux. Tested both ways with virtual serial devices.",
   },
   macos: {
-    stage: "MAC PREVIEW.3 · EXPERIMENTAL",
+    stage: "MAC PREVIEW.4 · EXPERIMENTAL",
     title: "Your Mac mouse, on Linux.",
     description: "Sign in with GitHub. Control a Linux desktop with your keyboard and mouse. Limited USB export is also included.",
   },

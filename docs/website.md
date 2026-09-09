@@ -1,10 +1,10 @@
 # Product website
 
 Production: **[portrelay.cobanov.dev](https://portrelay.cobanov.dev)**, hosted on
-Cloudflare Pages. The website offers Windows 11 x64, Ubuntu, and Debian downloads
-for **v0.1.0-alpha.3**, checksums, and platform-specific setup guides. Windows is
-the initial download selection; macOS shows development progress without a
-download. The hero links directly to installation and the validation record. Windows and
+Cloudflare Pages. The website offers Windows 11 x64 and Linux downloads for
+**v0.1.0-alpha.9**, plus the signed and notarized Apple Silicon **Mac preview.4**.
+Linux packages cover AMD64, ARM64 and ARMv7. Windows is the initial download
+selection. The hero links directly to installation and the validation record. Windows and
 Linux also show a copyable one-command installer and a link to its source.
 The Windows panel identifies the known controller-removal limitation. Interactive
 device examples remain a simulated concept, separate from the installed app.
@@ -31,7 +31,13 @@ below the example. No installer or support claim is fabricated.
 All state stays in browser memory and resets on reload. No device APIs, local
 agents, pairing secrets, or real network sessions are used. Busy devices remain
 unavailable, local sharing can be toggled, and the example local keyboard stays
-protected. Windows and Linux have developer alpha downloads; macOS USB remains pending.
+protected. Windows and Linux have developer alpha downloads. The Mac preview
+supports keyboard/mouse control to Linux and limited, unvalidated USB export;
+Mac USB receiving and Bluetooth are unavailable.
+
+The installed application uses a compact sidebar dashboard, documented in the
+[dashboard guide](dashboard.md). The public landing page retains its interactive
+concept and installation overview; its examples are not the live dashboard.
 
 The Bluetooth example lends a whole adapter; it does not imply general
 virtualization of individual Bluetooth peripherals. Device compatibility still
@@ -49,10 +55,12 @@ or physical-device acceptance.
 
 ## One-command installers
 
-`/install.sh` selects the Ubuntu 24.04 or Debian 13 amd64 package. `/install.ps1`
-opens the existing Windows 11 x64 installer. Both verify the release's pinned
+`/install.sh` selects the matching Ubuntu 24.04, Debian 12/13, or Raspberry Pi OS
+Bookworm/Trixie package for AMD64, ARM64 or ARMv7 where available. `--headless`
+configures terminal-only use. `/install.ps1` opens the Windows 11 x64 installer.
+Both verify the release's pinned
 SHA-256 before installing, preserve normal administrator prompts, and clean up
-temporary downloads. They install alpha.3, without auto-updates or automatic
+temporary downloads. They install alpha.9, without auto-updates or automatic
 USB sharing. The website serves their source as plain text with revalidation.
 
 When publishing a new application release, update the version and expected
@@ -67,7 +75,9 @@ see the precise fixture boundaries in [validation](validation.md).
 `npm run dev` serves `web/` on loopback. `npm run check` checks JavaScript syntax.
 `npm run build` verifies local links and asset references, then copies `web/`
 into `dist/`. There are no runtime JavaScript packages. Fonts are loaded from
-Google Fonts with system fallbacks. There is no signup service. Cloudflare's
+Google Fonts with system fallbacks. The static site links to GitHub account
+setup in the installed app; account registration is handled by the separate
+[account service](accounts.md). Cloudflare's
 current zone configuration injects its Web Analytics beacon into production HTML.
 Build output references CSS and JavaScript with content hashes in their filenames,
 so cached assets from an earlier visit cannot mix with the new HTML. HTML and

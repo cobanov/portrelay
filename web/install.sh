@@ -50,11 +50,11 @@ main() {
         *) echo 'Use Ubuntu 24.04, Debian 12/13, or Raspberry Pi OS Bookworm/Trixie.' >&2; return 1 ;;
     esac
     case "$distro:$arch" in
-        ubuntu:amd64) checksum=c2a41898817c4c14705133a3b1030f002fca5dbbdbc6447015cf606d604979de ;;
-        ubuntu:arm64) checksum=e280bcbffa96b78c242c498e4c8068c0d2a95df4169067a9b727756e43fe4058 ;;
-        debian:amd64) checksum=21141ae394a12e1430fea0192c4046ad2bd555b2de82c3e5dbf9df9ac2375900 ;;
-        debian:arm64) checksum=9dfbe979c08bd40ff212d20de3ecbeb61285aaa1feec6b97d3b2189a872a253a ;;
-        debian:armhf) checksum=7fb3e3d0762768f1584c849350ef20d787bfd353317d7381681695d043283dd0 ;;
+        ubuntu:amd64) checksum=7870bd4a523ab0bd2928b34f18548dade18a423c066a4edde56bc62274dad949 ;;
+        ubuntu:arm64) checksum=de7110dcca17fbe00d71438d9e5b306236dc5919c55aacc2c690752f75a38bf0 ;;
+        debian:amd64) checksum=deb216fec2e1803bf5b291713c4bef4d25396e32e74c4eb2460581f2b233e85e ;;
+        debian:arm64) checksum=20d8bf6b5c5fb4a77913f37b2de02ff62e199901e114aee58272ae2d70468ca5 ;;
+        debian:armhf) checksum=5bc507d404d6333f726b96a56ea6f7eb8fea07ee868b4a7550c74ed2fadafc22 ;;
         *) echo "No PortRelay package is available for $ID $arch." >&2; return 1 ;;
     esac
 
@@ -71,7 +71,7 @@ main() {
         fi
     fi
 
-    version=0.1.0-alpha.8
+    version=0.1.0-alpha.9
     package=portrelay-$version-$distro-$arch.deb
     # Pin the package hash with its version. A replaced release asset fails closed.
     temp_dir=$(mktemp -d /tmp/portrelay.XXXXXXXXXX)
@@ -105,7 +105,7 @@ main() {
             sudo /usr/lib/portrelay/setup-headless "$setup_user"
         fi
     else
-        echo 'Installed! Open PortRelay from your applications, choose Enable USB sharing, then Sign in with GitHub.'
+        echo 'Installed! Open PortRelay and sign in with GitHub. USB setup is in Settings.'
         echo 'No desktop? Run: sudo /usr/lib/portrelay/setup-headless YOUR_USERNAME'
     fi
 }
