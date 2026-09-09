@@ -116,7 +116,8 @@ These are separate deliverables; neither is implied by a cross-platform UI.
       boards using usbipd-mac, with SIP enabled.
 - [ ] Resolve the separate macOS import entitlement gate before promising remote
       USB attachment on a Mac. No release date is committed for this role.
-- [ ] Validate macOS BLE permissions, packaging, signing, and notarization.
+- [x] Package, Developer ID sign, and notarize the Apple Silicon export preview.
+- [ ] Validate macOS BLE permissions and implement the separate Bluetooth role.
 
 ## Release evidence
 

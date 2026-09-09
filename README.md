@@ -9,12 +9,14 @@ and a small local control window. No account or subscription is required.
 > Windows-to-Linux and Linux-to-Windows tests using isolated virtual devices.
 > Windows 11 x64 uses signed upstream drivers with Secure Boot enabled.
 > Physical USB and Bluetooth compatibility still need testing. A separate [Mac export development preview](docs/macos-alpha.md)
-> now exists in source; there is no notarized Mac download or Mac USB import. Read the [validation record](docs/validation.md).
+> is available as a signed, notarized Apple Silicon app. Mac USB receiving is not implemented;
+> physical Mac export still needs testing. Read the [validation record](docs/validation.md).
 > Windows has a known driver-removal stall after forced app shutdown; start on a
 > test computer and read the [Windows limitations](docs/windows-alpha.md).
 
 **[Website](https://portrelay.cobanov.dev)** ·
 **[Download the alpha](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.6)** ·
+**[Mac preview](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-macos-preview.1)** ·
 **[Windows setup](docs/windows-alpha.md)** · **[Linux setup](docs/linux-alpha.md)** · **[Raspberry Pi / headless](docs/raspberry-pi.md)**
 
 ## Install on both computers
@@ -75,6 +77,10 @@ configurable iroh relay, including a relay-only mode for blocked UDP networks.
 A forced external relay path has been tested; PortRelay does not run a shared
 production relay. See [network setup](docs/linux-alpha.md#networks).
 
+**Mac preview:** [download the ZIP](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-macos-preview.1), unzip, move PortRelay to Applications, then open it.
+Apple Silicon / macOS 14+. Only limited USB export is implemented; Mac receiving
+and Bluetooth are unavailable. [Mac setup and device scope](docs/macos-alpha.md).
+
 ## USB and Bluetooth boundaries
 
 Linux USB export and import use the existing USB/IP kernel drivers. Windows
@@ -127,7 +133,7 @@ headless operation, internet settings, diagnostics, upgrades, and uninstalling.
 Build the Windows installer with `./windows/build.ps1` in PowerShell on a
 Windows x64 build machine with Rust 1.97, .NET SDK 8 and 9.0.317, Python 3, Git,
 and Inno Setup 6. See [Windows source notices](windows/THIRD-PARTY-NOTICES.md).
-For the limited native Mac exporter and app bundle, see [Mac development setup](docs/macos-alpha.md). Mac receiving support remains unavailable.
+For the limited native Mac exporter and app bundle, see [Mac setup](docs/macos-alpha.md). Mac receiving support remains unavailable.
 
 The implementation uses Rust/Tokio, iroh 1.1.0 QUIC, an Axum loopback API, and
 embedded HTML/CSS/JavaScript. A native Tauri shell is deferred. See

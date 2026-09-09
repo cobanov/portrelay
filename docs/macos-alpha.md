@@ -1,7 +1,20 @@
 # macOS export development preview
 
-Mac support has started. This is a **source-build development preview**, separate
-from the published Windows/Linux alpha. There is no notarized Mac download yet.
+**[Download Mac preview.1](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-macos-preview.1)**
+for Apple Silicon (M1 or newer), macOS 14+. This is a signed, notarized
+**experimental export preview**, separate from the Windows/Linux alpha.
+
+## Install
+
+1. Download and unzip **PortRelay-macos-arm64-preview.zip**.
+2. Move **PortRelay.app** to **Applications** (or your user's Applications folder).
+3. Open **PortRelay**. Its local control window opens in your browser, and the
+   background agent starts automatically when you log in.
+
+No Terminal, Xcode, Rust, root helper or system extension is needed to install
+this download. The app uses Developer ID signing and an Apple notarization ticket.
+It does not yet have a menu-bar UI or automatic updates. Read the limited device
+scope below before choosing a test adapter.
 
 ## What is implemented
 
@@ -36,13 +49,12 @@ USB communicator; worker lifecycle tests use an explicit process fixture.
   isochronous export from a Mac. The Linux/Windows device policies are unchanged.
 - Seizing devices from macOS drivers, disabling SIP, or installing a kernel
   extension. None is part of the installation flow.
-- A verified Intel package or notarized public installer. The initial package
-  targets Apple Silicon and macOS 14 or newer; only macOS 26 has been checked on
-  the development Mac so far.
+- An Intel package. The preview targets Apple Silicon; distribution and test
+  evidence for specific macOS versions is in the [validation record](validation.md).
 
-## Build and open
+## Build from source (optional)
 
-On an Apple Silicon Mac with Xcode Command Line Tools, Swift 6, Rust 1.97, and
+On an Apple Silicon Mac with Xcode Command Line Tools, Swift 6, Rust 1.97 or newer, and
 Python 3.12 or newer:
 
 ```sh

@@ -54,7 +54,7 @@ flowchart LR
   calling local user through OS IPC permissions and peer credentials. Accept
   typed operations and validated device identifiers, never shell fragments.
 - **Backends:** Linux USB/IP first; Windows usbipd-win export and usbip-win2
-  import next. Limited macOS export is a separate candidate; macOS import has
+  import next. Limited macOS export is a separate development preview; macOS import has
   an entitlement gate. Probe installed versions and actual capabilities at runtime.
 - **Transport:** iroh for authenticated QUIC, direct routes, and relay fallback.
   Use a versioned control protocol and one reliable ordered stream per device
@@ -143,10 +143,10 @@ interoperability evidence.
 
 | Capability | Linux | Windows | macOS |
 | --- | --- | --- | --- |
-| Control agent | Implemented | Implemented, Windows 11 x64 | Builds; no packaged app yet |
-| USB export | Kernel USB/IP implemented | Private usbipd-win service implemented | Limited userspace export candidate |
+| Control agent | Implemented | Implemented, Windows 11 x64 | Signed Apple Silicon preview + user LaunchAgent |
+| USB export | Kernel USB/IP implemented | Private usbipd-win service implemented | Limited userspace worker; physical tests pending |
 | Native USB import | Kernel virtual controller implemented | Signed usbip-win2 controller implemented | Restricted entitlement gate |
-| Dedicated USB Bluetooth adapter loan | Physical validation pending | Physical validation pending | Depends on corresponding USB role |
+| Dedicated USB Bluetooth adapter loan | Physical validation pending | Physical validation pending | Unavailable in the first export preview |
 | Individual BLE GATT bridge | Later milestone | Later milestone | Later milestone |
 
 Linux-to-Linux comes first. Each additional operating-system direction needs

@@ -1,7 +1,7 @@
 # ADR 0004: Limited native macOS export before USB import
 
-Date: 2026-09-09. Status: implemented as a development preview; physical export
-compatibility and public notarized distribution remain unvalidated.
+Date: 2026-09-09. Status: implemented as a signed, notarized development preview;
+physical export compatibility remains unvalidated.
 
 Reuse the MIT USB/IP core from
 [usbipd-mac](https://github.com/beriberikix/usbipd-mac/tree/1c2ab4594653db5859d6773bdd010303a641e98e).
@@ -26,6 +26,7 @@ Upstream patches are deliberately narrow:
 - Expose a request-admission callback to order UNLINK after SUBMIT registration.
   PortRelay queues each endpoint in wire order, lets other endpoints progress,
   and cancels queued work before it reaches USB.
+- Remove a trailing function-parameter comma for Swift 6.0 compatibility.
 
 Limits: 1 MiB per transfer, 64 outstanding requests with 16 additional slots for
 cancellation, a 15-second operation timeout, no isochronous packets, and no more

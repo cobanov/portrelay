@@ -84,9 +84,9 @@ const platforms = {
     description: "Share USB with Linux. Tested both ways with virtual serial devices.",
   },
   macos: {
-    stage: "DEVELOPMENT PREVIEW",
-    title: "Mac sharing has started.",
-    description: "Native device listing and limited USB export are in development. Source build only; physical transfer testing and a notarized installer are next. Receiving USB and Bluetooth are not available yet.",
+    stage: "MAC PREVIEW.1 · EXPERIMENTAL",
+    title: "A first step for Mac.",
+    description: "Device listing and limited USB sharing. Receiving USB and Bluetooth are not available yet.",
   },
 };
 const examples = {
@@ -292,6 +292,8 @@ for (const button of document.querySelectorAll("[data-os]")) {
     byId("platform-description").textContent = platform.description;
     byId("linux-downloads").hidden = button.dataset.os !== "linux";
     byId("windows-downloads").hidden = button.dataset.os !== "windows";
+    byId("macos-downloads").hidden = button.dataset.os !== "macos";
+    byId("macos-limit").hidden = button.dataset.os !== "macos";
     byId("windows-limit").hidden = button.dataset.os !== "windows";
     const linux = button.dataset.os === "linux";
     byId("command-install").hidden = button.dataset.os === "macos";
@@ -301,7 +303,7 @@ for (const button of document.querySelectorAll("[data-os]")) {
       : "irm https://portrelay.cobanov.dev/install.ps1 | iex";
     byId("installer-source").href = linux ? "/install.sh" : "/install.ps1";
     byId("copy-command").textContent = "Copy command";
-    byId("installation-guide").firstChild.textContent = button.dataset.os === "macos" ? "Follow macOS progress " : button.dataset.os === "windows" ? "Windows setup guide " : "Linux setup guide ";
+    byId("installation-guide").firstChild.textContent = button.dataset.os === "macos" ? "Mac setup & supported devices " : button.dataset.os === "windows" ? "Windows setup guide " : "Linux setup guide ";
     byId("installation-guide").href = `https://github.com/cobanov/portrelay/blob/main/docs/${button.dataset.os === "macos" ? "macos-alpha.md" : button.dataset.os + "-alpha.md"}`;
   });
 }

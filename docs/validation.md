@@ -432,8 +432,31 @@ Local Apple Silicon / macOS 26 evidence:
 No eligible adapter was attached. **Physical Mac USB export is unvalidated**,
 including Mac-to-Linux and Mac-to-Windows transfer and recovery. USB receiving,
 Bluetooth, composite devices and driver handoff are unavailable on Mac. The
-public notarization and CI results will be recorded separately; a signature or
-a passing fixture does not establish device compatibility.
+signed distribution and CI evidence below do not establish device compatibility.
+
+## Mac preview distribution (2026-09-09)
+
+- Developer ID signing, Apple notarization, ticket stapling, strict bundle
+  verification and Gatekeeper acceptance passed on the development Mac.
+  The initial accepted submission was `eef61bfa-627f-40df-b53e-fae1e7d043ac`;
+  the Swift compatibility rebuild at `9a4153c` was also accepted as
+  `543b2a7e-4012-4014-854f-b8b5b1e6147b`.
+- The notarized app was installed in the user's Applications folder. Opening
+  its bundled launcher starts a user LaunchAgent. The installed process reports
+  a ready worker, export enabled, import disabled, and 11 real devices. No device
+  was shared by this installation check; first-run Finder dialogs were not
+  observed as a complete fresh-user installation flow.
+- Source CI uses macOS 14 / Xcode 16.2 (Swift 6.0) and Rust 1.97. The initial CI
+  failures exposed the runner's older default Swift and an upstream trailing
+  parameter comma. The pinned patch now accepts Swift 6.0. The local notarized
+  build uses macOS 26 / Swift 6.3.2 / Rust 1.98.1. These are separate builds;
+  a CI package is ad-hoc signed, not a public release artifact.
+- The Mac download panel was rendered at desktop and phone widths, including
+  1440, 390 and 320 px overflow checks. It explains the three installation steps,
+  limited export scope and unavailable USB receiving/Bluetooth roles.
+- The [Mac preview release](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-macos-preview.1)
+  records the final source revision, SHA-256, notarization submission and CI
+  results. The general Windows/Linux release remains alpha.6.
 
 ## Still unvalidated or unavailable
 
@@ -445,12 +468,12 @@ a passing fixture does not establish device compatibility.
   Alpha.4 permits conditional handoff and has Linux virtual-fixture results below.
   Hub groups share child devices; hub hardware is never exported. Audio/video-only
   classes remain disabled.
-- Windows-to-Windows and macOS export/import. ARM64/ARMv7 packages now have
+- Windows-to-Windows and physical macOS export; macOS import is unavailable. ARM64/ARMv7 packages now have
   separate installation evidence; physical Raspberry Pi USB remains unvalidated.
 - Physical hotplug, host suspend/resume, sustained workloads, packet-loss tests,
   power loss, and additional kernel recovery behavior.
 - Automatic discovery/reconnect/address updates, a hosted production relay,
-  signed installers, auto-updates, and a fully observed zero-terminal installation
+  signed Windows installers, auto-updates, and a fully observed zero-terminal installation
   experience. Debian/Ubuntu packages now automate dependencies and USB setup.
 
 ## Reproduce safely
