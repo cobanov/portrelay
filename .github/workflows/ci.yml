@@ -53,6 +53,9 @@ jobs:
   macos-preview:
     runs-on: macos-14
     timeout-minutes: 25
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_16.2.app/Contents/Developer
+      RUSTUP_TOOLCHAIN: 1.97.0
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
