@@ -408,6 +408,10 @@ async function invitation() {
   return currentInvitation;
 }
 $("enable-usb").onclick = () => run(() => action({ op: "setup_usb" }), $("enable-usb"));
+// Keep the URL fragment reserved for the local authentication handoff.
+document.querySelector(".skip-link").onclick = event => {
+  event.preventDefault(); $("workspace").focus();
+};
 $("add-computer").onclick = () => $("add-dialog").showModal();
 $("close-add").onclick = () => $("add-dialog").close();
 $("add-account").onclick = () => { $("add-dialog").close(); navigate("settings"); };
