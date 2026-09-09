@@ -67,7 +67,7 @@ Zero W use ARMv6 and are excluded.** Zero 2 W is a different model. Consult
 Raspberry Pi's [official image/model list](https://www.raspberrypi.com/software/operating-systems/)
 when choosing an OS. An architecture match is not a physical-device test result.
 
-[Download packages and checksums](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.6).
+[Download packages and checksums](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.9).
 The advanced tarballs are named `linux-aarch64` and `linux-armv7`; prefer the
 `.deb` installer unless you intend to manage dependencies and services manually.
 Other NAS/router distributions, Alpine, ARMv6, and Windows ARM64 are not targets.

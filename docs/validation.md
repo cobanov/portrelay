@@ -1,9 +1,30 @@
 # Alpha validation record
 
-Dates: 2026-09-08 and 2026-09-09. Current source version: `0.1.0-alpha.8`. Published assets are listed in the release notes.
+Dates: 2026-09-08 and 2026-09-09. Current source version: `0.1.0-alpha.9`. Published assets are listed in the release notes.
 
 The kernel device tests below were recorded for alpha.1. Alpha.2 changes the
 installer and onboarding; the device transport/helper backend is unchanged.
+
+## Compact dashboard (alpha.9 / Mac preview.4, 2026-09-09)
+
+The embedded app retains its light theme and now has separate Computers, USB,
+keyboard/mouse, Connections, and Settings screens. This is an interface change;
+USB/input transport, grants and platform support are unchanged.
+
+- Rendered browser checks at 320, 390, 768, and 1280 CSS pixels found no
+  horizontal overflow. Desktop and mobile screenshots were inspected.
+- The real app scripts with `tests/ui-preview.mjs` example data exercised
+  navigation, computer selection, USB tabs, unavailable Mac import, busy devices,
+  connection/disconnection, name saving, first-run setup, sign-in pending/cancel,
+  and compact computer-add instructions.
+- The in-app consent dialogs were exercised for denied/accepted disk handoff,
+  denied/accepted disk return, and denied/accepted input permissions. Account
+  sign-out cancellation left the fixture account connected. Dialog content is
+  plain text, defaults to Cancel, and retains existing ejection/risk warnings.
+- The unchanged input-event tests and 22 portable Rust tests passed locally.
+  These fixture checks do not lend physical devices or sign in to GitHub.
+
+See the [dashboard guide](dashboard.md) for the current navigation.
 
 ## Account registration (alpha.8 / Mac preview.3, 2026-09-09)
 

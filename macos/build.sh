@@ -21,7 +21,7 @@ binpath=subprocess.check_output(['swift','build','--package-path','macos','-c','
 shutil.copy2(Path(binpath)/'portrelay-macos-usb',contents/'MacOS/portrelay-macos-usb')
 info={'CFBundleName':'PortRelay','CFBundleDisplayName':'PortRelay','CFBundleIdentifier':'dev.cobanov.portrelay',
 'CFBundleExecutable':'portrelay-desktop','CFBundlePackageType':'APPL','CFBundleShortVersionString':version.split('-')[0],
-'CFBundleVersion':'3','LSMinimumSystemVersion':'14.0','NSHighResolutionCapable':True,
+'CFBundleVersion':'4','LSMinimumSystemVersion':'14.0','NSHighResolutionCapable':True,
 'LSApplicationCategoryType':'public.app-category.utilities',
 'NSLocalNetworkUsageDescription':'PortRelay connects to computers you pair with to share selected USB devices.',
 'NSHumanReadableCopyright':'PortRelay contributors. MIT license.'}

@@ -4,20 +4,21 @@ PortRelay can send keyboard, mouse buttons, movement and scrolling from its
 local app window to an **unlocked Linux desktop**. This is a separate feature
 from sharing a whole USB device. Your mouse stays attached to the sending Mac.
 
-Both computers need **alpha.7 or Mac preview.2** for input control;
-use **alpha.8 or Mac preview.3** for automatic account discovery. Use a desktop browser with
+Install **alpha.9 or Mac preview.4** for the current dashboard. Input control
+was introduced in alpha.7; account discovery was introduced in alpha.8. Use a desktop browser with
 Pointer Lock support, such as Chrome. Mac to ARM Linux has passed the kernel
 input acceptance test. Other sending platforms and Linux desktop combinations
 need their own interactive acceptance runs.
 
 ## Set up once
 
-1. Install PortRelay on both computers and open it. Add the other computer
-   with an invitation, then approve the pairing request.
-2. On Linux, choose **Enable receiving control**. Approve the administrator
+1. Install PortRelay on both computers and sign in with the same GitHub account.
+   They appear under **Computers** automatically.
+2. On Linux, open **Keyboard & mouse → Enable receiving control**. Approve the administrator
    prompt. This installs a restricted virtual keyboard and mouse service;
    USB/IP support is not needed for this feature.
-3. On the Linux computer's card for your Mac, choose **Allow keyboard & mouse**.
+3. On Linux, open **Computers → Manage** for your Mac and choose
+   **Allow keyboard & mouse**.
    Pairing alone does not grant control.
 
 If you manage the Linux computer through SSH, the equivalent is:
@@ -37,7 +38,8 @@ sharing and the terminal menu continue to work on headless systems.
 
 1. Keep the Linux computer's screen visible, on its monitor or through your
    existing video viewer.
-2. On the Mac, choose **Control [computer name]**. Keep the PortRelay tab in
+2. On Mac, open **Keyboard & mouse**, choose the Linux computer, then
+   **Control [computer name]**. Keep the PortRelay tab in
    front and allow mouse control if the browser asks.
 3. Move, click, scroll or type. Press **Esc** to return to the Mac.
 

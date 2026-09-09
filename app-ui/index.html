@@ -1,36 +1,568 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PortRelay</title><link rel="stylesheet" href="/style.css"><script src="/input-events.js" defer></script><script src="/app.js" defer></script><script src="/input.js" defer></script></head>
-<body><main>
-<header><a href="/" class="brand">⇄ <span>PortRelay</span></a><div class="header-actions"><span class="badge" id="platform-badge">Alpha</span><button id="add-computer" class="secondary">Add computer</button></div></header>
-<div id="message" role="status" aria-live="polite">Opening PortRelay…</div>
-<section class="intro"><div><p class="eyebrow">THIS COMPUTER</p><h1 id="computer-name">Your computer</h1><p id="network"></p></div><span id="ready-status" class="status-label"></span></section>
-<ol class="steps" aria-label="Setup progress"><li id="step-usb"><span>1</span>Open PortRelay</li><li id="step-pair"><span>2</span>Sign in</li><li id="step-device"><span>3</span>Choose what to use</li></ol>
-<p id="capability-note" class="notice" hidden></p>
-<section id="account" class="account-card">
-  <div><p class="eyebrow" id="account-label">YOUR ACCOUNT</p><h2 id="account-title">Your computers. One sign-in.</h2><p id="account-description">Sign in with the same GitHub account on each computer. They appear here automatically.</p><p id="account-error" class="error-text" role="status" hidden></p></div>
-  <div class="account-actions"><button id="sign-in">Sign in with GitHub</button><a id="continue-login" class="file-button" target="_blank" rel="noreferrer" hidden>Continue sign-in ↗</a><button id="sign-out" class="quiet" hidden>Sign out</button></div>
-</section>
-<p id="add-help" class="notice" hidden>Install PortRelay on your other computer and sign in with the same GitHub account. It will appear here automatically.</p>
-<section id="name-setup" class="name-setup"><label for="name-input">Computer name</label><div class="inline-actions"><input id="name-input" type="text" maxlength="80" autocomplete="off"><button id="save-name" class="secondary">Save name</button></div><p class="muted">This name appears on your other computers.</p></section>
-<section id="setup" class="setup-card" hidden><div><p class="eyebrow">ONE-TIME SETUP</p><h2 id="setup-title">Enable USB sharing</h2><p id="setup-description">Allow PortRelay to prepare USB support. Your system may ask for your password.</p><p id="setup-error" class="error-text" role="alert" hidden></p></div><button id="enable-usb">Enable USB sharing</button></section>
-<details id="advanced-pairing" class="settings"><summary>Advanced: pair without an account</summary><section id="pairing" class="pairing">
-  <div class="section-heading"><div><h2>Add your other computer</h2><p>Open PortRelay on both computers.</p></div></div>
-  <div class="pairing-choices" role="group" aria-label="Pairing method"><button id="create-mode" class="active">Create an invitation</button><button id="join-mode">I have an invitation</button></div>
-  <div id="create-panel"><p>Copy an invitation to the other computer, then approve its request here.</p><button id="copy-invitation">Create & copy invitation</button><button id="save-invitation" class="secondary">Save as a file</button><p id="invite-status" class="muted">Private, single-use, valid for 10 minutes.</p><details id="invitation-details"><summary>Show invitation</summary><textarea id="invitation-out" rows="3" readonly aria-label="Your pairing invitation"></textarea></details></div>
-  <div id="join-panel" hidden><label for="invitation-in">Paste the invitation from your other computer</label><textarea id="invitation-in" rows="3" placeholder="Paste invitation here"></textarea><div class="inline-actions"><button id="pair">Add computer</button><label class="file-button">Choose an invitation file<input id="invitation-file" type="file" accept=".portrelay,.txt" aria-label="Choose an invitation file"></label></div></div>
-</section></details>
-<section class="computers"><div class="section-heading"><h2>Your computers</h2></div><div id="peers" class="peer-grid"></div></section>
-<section id="input-control" class="input-card">
-  <div class="section-heading"><div><p class="eyebrow">KEYBOARD & MOUSE</p><h2>Control your other computer</h2></div><span id="input-badge" class="badge">Linux receiver</span></div>
-  <p id="input-description">Add a Linux computer, then use your keyboard and mouse to control it.</p>
-  <div class="inline-actions"><button id="control-start" disabled>Choose a computer first</button><button id="enable-input" class="secondary" hidden>Enable receiving control</button></div>
-  <p id="input-setup-status" class="muted" role="status"></p>
-  <p class="muted">Keep the other computer’s screen in view. Video and clipboard are not shared.</p>
-  <div id="control-pad" class="control-pad" tabindex="-1" hidden><span class="control-symbol" aria-hidden="true">↗</span><h2 id="control-title">Connecting…</h2><p id="control-hint">Press <kbd>Esc</kbd> to return here.</p><span class="muted">Mouse · keyboard · scroll</span></div>
-</section>
-<section class="devices"><div class="section-heading"><div class="tabs" role="group" aria-label="Device location"><button id="local-tab" class="active" aria-pressed="true">Share from here</button><button id="remote-tab" aria-pressed="false">Use a remote device</button></div><button id="refresh" class="quiet">Refresh</button></div><p id="device-instruction" class="section-description"></p><div id="device-list"></div><details id="protected-devices" hidden><summary id="protected-summary"></summary><div id="protected-list"></div></details></section>
-<section id="connections-section" hidden><div class="section-heading"><h2>Connections</h2><span class="muted">One computer per device</span></div><div id="sessions"></div></section>
-<details class="settings"><summary>Settings & status</summary><div class="settings-body"><button id="change-name" class="secondary">Change computer name</button><h3>Available in this alpha</h3><ul><li>Linux and Windows USB sharing with encrypted connections.</li><li>GitHub sign-in, automatic computer discovery, and account device removal.</li><li>Optional offline pairing, device permissions, and owner disconnect.</li><li>Keyboard and mouse control from this window to an unlocked Linux desktop, with separate permission.</li><li>Input devices, idle disks and disabled USB network adapters, with handoff warnings.</li><li>Hub device groups and a Bluetooth adapter pairing guide.</li><li>Internet connections with a configured relay.</li></ul><p>Physical USB and Bluetooth compatibility still need testing. The Mac development preview can export eligible single-interface devices. Mac USB import and Bluetooth remain unavailable.</p><details><summary>Connection details</summary><p id="identity" class="fingerprint"></p><p id="helper-details" class="fingerprint"></p></details><a id="setup-help" href="https://github.com/cobanov/portrelay/blob/main/docs/linux-alpha.md" target="_blank" rel="noreferrer">Setup & help ↗</a></div></details>
-<footer><span id="version"></span><span>Devices stay private until you share.</span><a href="https://github.com/cobanov/portrelay" target="_blank" rel="noreferrer">Open source ↗</a></footer>
-</main></body></html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>PortRelay</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/input-events.js" defer></script>
+    <script src="/app.js" defer></script>
+    <script src="/input.js" defer></script>
+  </head>
+  <body>
+    <svg
+      class="icon-definitions"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <defs>
+        <symbol id="i-computers" viewBox="0 0 24 24">
+          <rect x="3" y="4" width="18" height="12" rx="2" />
+          <path d="M8 20h8m-4-4v4" />
+        </symbol>
+        <symbol id="i-usb" viewBox="0 0 24 24">
+          <path d="M12 20V4m-3 3 3-3 3 3M12 16l-6-4V8m6 5 6-4V6" />
+          <circle cx="12" cy="20" r="1" />
+          <circle cx="6" cy="6" r="2" />
+          <path d="M16 3h4v3h-4z" />
+        </symbol>
+        <symbol id="i-input" viewBox="0 0 24 24">
+          <rect x="3" y="6" width="18" height="12" rx="2" />
+          <path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M10 14h8" />
+        </symbol>
+        <symbol id="i-connections" viewBox="0 0 24 24">
+          <path
+            d="m9 7 3-3 3 3M12 4v11M5 17l3 3 3-3M8 20V9m8 8h5m-2-2 2 2-2 2"
+          />
+        </symbol>
+        <symbol id="i-settings" viewBox="0 0 24 24">
+          <path d="M4 7h16M4 17h16" />
+          <circle cx="9" cy="7" r="3" />
+          <circle cx="15" cy="17" r="3" />
+        </symbol>
+        <symbol id="i-arrow" viewBox="0 0 24 24">
+          <path d="M5 12h14m-5-5 5 5-5 5" />
+        </symbol>
+        <symbol id="i-plus" viewBox="0 0 24 24">
+          <path d="M12 5v14M5 12h14" />
+        </symbol>
+        <symbol id="i-refresh" viewBox="0 0 24 24">
+          <path
+            d="M20 7v5h-5M4 17v-5h5M6 7a7 7 0 0 1 12-1l2 3M4 15l2 3a7 7 0 0 0 12-1"
+          />
+        </symbol>
+        <symbol id="i-menu" viewBox="0 0 24 24">
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </symbol>
+        <symbol id="i-close" viewBox="0 0 24 24">
+          <path d="m6 6 12 12M18 6 6 18" />
+        </symbol>
+        <symbol id="i-shield" viewBox="0 0 24 24">
+          <path d="m12 3 8 3v6c0 4-8 9-8 9s-8-5-8-9V6z" />
+          <path d="m8 12 3 3 5-6" />
+        </symbol>
+      </defs>
+    </svg>
+    <a class="skip-link" href="#workspace">Skip to content</a>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+        <div class="sidebar-brand">
+          <a href="/" class="brand" aria-label="PortRelay home"
+            ><span class="brand-mark">⇄</span>PortRelay</a
+          ><button
+            class="icon-button mobile-only"
+            id="close-menu"
+            aria-label="Close menu"
+          >
+            <svg><use href="#i-close" /></svg>
+          </button>
+        </div>
+        <p class="nav-label">WORKSPACE</p>
+        <nav class="main-nav" aria-label="Workspace">
+          <button
+            data-screen="computers"
+            class="nav-item active"
+            aria-current="page"
+          >
+            <svg><use href="#i-computers" /></svg><span>Computers</span
+            ><span class="nav-count" id="computer-count">0</span>
+          </button>
+          <button data-screen="devices" class="nav-item">
+            <svg><use href="#i-usb" /></svg><span>USB devices</span>
+          </button>
+          <button data-screen="input" class="nav-item">
+            <svg><use href="#i-input" /></svg><span>Keyboard & mouse</span>
+          </button>
+          <button data-screen="connections" class="nav-item">
+            <svg><use href="#i-connections" /></svg><span>Connections</span
+            ><span class="nav-count" id="session-count" hidden>0</span>
+          </button>
+        </nav>
+        <div class="sidebar-bottom">
+          <nav aria-label="Preferences">
+            <button data-screen="settings" class="nav-item">
+              <svg><use href="#i-settings" /></svg><span>Settings</span
+              ><span
+                id="setup-dot"
+                class="attention-dot"
+                aria-label="Setup available"
+                hidden
+              ></span>
+            </button>
+          </nav>
+          <div class="local-computer">
+            <span class="online-dot" aria-hidden="true"></span>
+            <div>
+              <strong id="computer-name">Your computer</strong
+              ><span id="platform-badge">Opening…</span>
+            </div>
+          </div>
+          <button class="account-switch" data-go="settings">
+            <span class="avatar" id="account-avatar">P</span
+            ><span
+              ><strong id="sidebar-account">Your account</strong
+              ><small id="sidebar-account-status"
+                >Sign in to connect</small
+              ></span
+            ><svg><use href="#i-settings" /></svg>
+          </button>
+        </div>
+      </aside>
+      <button
+        id="menu-backdrop"
+        class="menu-backdrop"
+        aria-label="Close menu"
+        hidden
+      ></button>
+      <main id="workspace" tabindex="-1">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button
+              id="open-menu"
+              class="icon-button mobile-only"
+              aria-controls="sidebar"
+              aria-expanded="false"
+              aria-label="Open menu"
+            >
+              <svg><use href="#i-menu" /></svg></button
+            ><span class="breadcrumb"
+              >Workspace <span>/</span>
+              <strong id="breadcrumb-page">Computers</strong></span
+            >
+          </div>
+          <div class="network-status">
+            <span class="online-dot" aria-hidden="true"></span
+            ><span id="network">Connecting…</span>
+          </div>
+        </header>
+        <div class="workspace-body">
+          <div class="page-heading">
+            <div>
+              <h1 id="page-title" tabindex="-1">Computers</h1>
+              <p id="page-description">All your computers, in one place.</p>
+            </div>
+            <div class="header-actions">
+              <button
+                id="refresh"
+                class="icon-button secondary"
+                aria-label="Refresh status"
+                title="Refresh status"
+              >
+                <svg><use href="#i-refresh" /></svg></button
+              ><button id="add-computer">
+                <svg><use href="#i-plus" /></svg>Add computer
+              </button>
+            </div>
+          </div>
+          <div id="message" role="status" aria-live="polite">
+            Opening PortRelay…
+          </div>
+          <section
+            id="account"
+            class="account-card"
+            aria-labelledby="account-title"
+            hidden
+          >
+            <div class="account-copy">
+              <p class="eyebrow" id="account-label">YOUR ACCOUNT</p>
+              <h2 id="account-title">Your computers. One sign-in.</h2>
+              <p id="account-description">
+                Sign in with the same GitHub account on each computer. They
+                appear here automatically.
+              </p>
+              <p id="account-error" class="error-text" role="status" hidden></p>
+            </div>
+            <div class="account-actions">
+              <button id="sign-in">Sign in with GitHub</button
+              ><a
+                id="continue-login"
+                class="file-button"
+                target="_blank"
+                rel="noreferrer"
+                hidden
+                >Continue sign-in ↗</a
+              ><button id="sign-out" class="secondary" hidden>Sign out</button>
+            </div>
+          </section>
+          <section data-panel="computers" aria-label="Computers">
+            <div class="metrics">
+              <div class="metric">
+                <span>Computers</span><strong id="metric-computers">0</strong
+                ><small id="metric-online">Waiting for your account</small>
+              </div>
+              <div class="metric">
+                <span>Shared from here</span
+                ><strong id="metric-shared">0</strong
+                ><small>Devices you have made available</small>
+              </div>
+              <div class="metric">
+                <span>Active connections</span
+                ><strong id="metric-connections">0</strong
+                ><small id="metric-activity">Nothing in use right now</small>
+              </div>
+            </div>
+            <div class="panel computers">
+              <div class="panel-heading">
+                <h2>Your computers</h2>
+                <span class="muted" id="computers-caption"
+                  >Private to your account</span
+                >
+              </div>
+              <div id="peers" class="peer-grid"></div>
+            </div>
+            <div class="quick-tip">
+              <svg><use href="#i-shield" /></svg>
+              <p>
+                Choose a computer to use its devices or control its keyboard and
+                mouse. Sharing is always your choice.
+              </p>
+            </div>
+          </section>
+          <div id="peer-context" class="peer-context" hidden>
+            <label for="peer-picker">Computer</label
+            ><select id="peer-picker">
+              <option value="">Choose a computer</option></select
+            ><button class="quiet" data-go="computers">
+              Manage computers <span aria-hidden="true">↗</span>
+            </button>
+          </div>
+          <section
+            data-panel="devices"
+            class="devices"
+            aria-label="USB devices"
+            hidden
+          >
+            <p id="capability-note" class="notice" hidden></p>
+            <p id="usb-setup-notice" class="notice" hidden>
+              USB support needs a one-time setup.
+              <button class="text-button" data-go="settings">
+                Open settings
+              </button>
+            </p>
+            <div class="panel">
+              <div class="panel-heading device-toolbar">
+                <div class="tabs" role="group" aria-label="Device location">
+                  <button id="local-tab" class="active" aria-pressed="true">
+                    Share from here</button
+                  ><button id="remote-tab" aria-pressed="false">
+                    Use a remote device
+                  </button>
+                </div>
+              </div>
+              <p id="device-instruction" class="section-description"></p>
+              <div id="device-list"></div>
+              <details id="protected-devices" hidden>
+                <summary id="protected-summary"></summary>
+                <div id="protected-list"></div>
+              </details>
+            </div>
+          </section>
+          <section data-panel="input" aria-label="Keyboard and mouse" hidden>
+            <section id="input-control" class="panel input-card">
+              <div class="panel-heading">
+                <h2>Control another computer</h2>
+                <span id="input-badge" class="badge">Linux receiver</span>
+              </div>
+              <div class="panel-body">
+                <div class="control-intro">
+                  <span class="feature-icon"
+                    ><svg><use href="#i-input" /></svg
+                  ></span>
+                  <div>
+                    <h3>Your keyboard. Your mouse.</h3>
+                    <p id="input-description">
+                      Add a Linux computer, then use your keyboard and mouse to
+                      control it.
+                    </p>
+                  </div>
+                </div>
+                <div class="inline-actions">
+                  <button id="control-start" disabled>
+                    Choose a computer first</button
+                  ><button id="enable-input" class="secondary" hidden>
+                    Enable receiving control
+                  </button>
+                </div>
+                <p id="input-setup-status" class="muted" role="status"></p>
+                <div class="input-notes">
+                  <span><kbd>Esc</kbd> to return here</span
+                  ><span>Keep the other screen in view</span
+                  ><span>No video or clipboard</span>
+                </div>
+              </div>
+            </section>
+            <div class="panel compact-help">
+              <h3>Receiving control on Linux</h3>
+              <p>
+                Enable receiving on that computer, then allow your computer
+                under
+                <button class="text-button" data-go="computers">
+                  Computers → Manage</button
+                >.
+              </p>
+            </div>
+          </section>
+          <section data-panel="connections" aria-label="Connections" hidden>
+            <div id="connections-section" class="panel">
+              <div class="panel-heading">
+                <h2>Active connections</h2>
+                <span class="muted">One computer per device</span>
+              </div>
+              <div id="sessions"></div>
+            </div>
+          </section>
+          <section data-panel="settings" aria-label="Settings" hidden>
+            <ol class="steps" aria-label="Setup progress">
+              <li id="step-usb"><span>1</span>Open PortRelay</li>
+              <li id="step-pair"><span>2</span>Sign in</li>
+              <li id="step-device"><span>3</span>Choose what to use</li>
+            </ol>
+            <div class="settings-grid">
+              <section id="name-setup" class="panel">
+                <div class="panel-heading"><h2>This computer</h2></div>
+                <div class="panel-body">
+                  <label for="name-input">Computer name</label>
+                  <div class="inline-actions name-actions">
+                    <input
+                      id="name-input"
+                      type="text"
+                      maxlength="80"
+                      autocomplete="off"
+                    /><button id="save-name" class="secondary">Save</button>
+                  </div>
+                  <p class="muted">Shown on your other computers.</p>
+                </div>
+              </section>
+              <section class="panel">
+                <div class="panel-heading">
+                  <h2>USB support</h2>
+                  <span id="ready-status" class="status-label"></span>
+                </div>
+                <div class="panel-body">
+                  <p id="helper-details"></p>
+                  <section id="setup" class="setup-card" hidden>
+                    <h3 id="setup-title">Enable USB sharing</h3>
+                    <p id="setup-description">
+                      Allow PortRelay to prepare USB support. Your system may
+                      ask for your password.
+                    </p>
+                    <p
+                      id="setup-error"
+                      class="error-text"
+                      role="alert"
+                      hidden
+                    ></p>
+                    <button id="enable-usb">Enable USB sharing</button>
+                  </section>
+                  <a
+                    id="setup-help"
+                    href="https://github.com/cobanov/portrelay/blob/main/docs/linux-alpha.md"
+                    target="_blank"
+                    rel="noreferrer"
+                    >Setup guide ↗</a
+                  >
+                </div>
+              </section>
+            </div>
+            <details id="advanced-pairing" class="panel settings">
+              <summary>
+                Pair without an account <span class="muted">Advanced</span>
+              </summary>
+              <section id="pairing" class="pairing">
+                <h3>Add your other computer</h3>
+                <p>Open PortRelay on both computers.</p>
+                <div
+                  class="pairing-choices"
+                  role="group"
+                  aria-label="Pairing method"
+                >
+                  <button id="create-mode" class="active">
+                    Create an invitation</button
+                  ><button id="join-mode">I have an invitation</button>
+                </div>
+                <div id="create-panel">
+                  <p>
+                    Send an invitation to the other computer, then approve its
+                    request here.
+                  </p>
+                  <div class="inline-actions">
+                    <button id="copy-invitation">
+                      Create & copy invitation</button
+                    ><button id="save-invitation" class="secondary">
+                      Save as a file
+                    </button>
+                  </div>
+                  <p id="invite-status" class="muted">
+                    Private, single-use, valid for 10 minutes.
+                  </p>
+                  <details id="invitation-details">
+                    <summary>Show invitation</summary>
+                    <textarea
+                      id="invitation-out"
+                      rows="3"
+                      readonly
+                      aria-label="Your pairing invitation"
+                    ></textarea>
+                  </details>
+                </div>
+                <div id="join-panel" hidden>
+                  <label for="invitation-in"
+                    >Paste the invitation from your other computer</label
+                  ><textarea
+                    id="invitation-in"
+                    rows="3"
+                    placeholder="Paste invitation here"
+                  ></textarea>
+                  <div class="inline-actions">
+                    <button id="pair">Add computer</button
+                    ><label class="file-button"
+                      >Choose an invitation file<input
+                        id="invitation-file"
+                        type="file"
+                        accept=".portrelay,.txt"
+                        aria-label="Choose an invitation file"
+                    /></label>
+                  </div>
+                </div>
+              </section>
+            </details>
+            <details class="panel settings">
+              <summary>Capabilities & connection details</summary>
+              <div class="settings-body">
+                <ul>
+                  <li>
+                    Encrypted USB sharing on Linux and Windows; physical
+                    compatibility is still being tested.
+                  </li>
+                  <li>
+                    Focused keyboard and mouse control to an unlocked Linux
+                    desktop, with separate permission.
+                  </li>
+                  <li>
+                    Limited Mac USB export. Mac USB receiving and Bluetooth are
+                    unavailable.
+                  </li>
+                  <li>
+                    GitHub account discovery, optional offline pairing, and
+                    per-device permissions.
+                  </li>
+                  <li>
+                    Whole USB Bluetooth adapter handoff is experimental.
+                    Individual Bluetooth profiles are unavailable.
+                  </li>
+                </ul>
+                <p id="identity" class="fingerprint"></p>
+                <a
+                  href="https://github.com/cobanov/portrelay/blob/main/docs/validation.md"
+                  target="_blank"
+                  rel="noreferrer"
+                  >Validation & known limits ↗</a
+                >
+              </div>
+            </details>
+          </section>
+          <footer>
+            <span id="version"></span
+            ><a
+              href="https://github.com/cobanov/portrelay"
+              target="_blank"
+              rel="noreferrer"
+              >Open source ↗</a
+            >
+          </footer>
+        </div>
+      </main>
+    </div>
+    <dialog id="add-dialog" aria-labelledby="add-title">
+      <div class="dialog-heading">
+        <h2 id="add-title">Add a computer</h2>
+        <button id="close-add" class="icon-button" aria-label="Close">
+          <svg><use href="#i-close" /></svg>
+        </button>
+      </div>
+      <p id="add-help">
+        Sign in once on each computer. PortRelay takes care of finding them.
+      </p>
+      <ol class="install-steps">
+        <li>
+          <span>1</span>
+          <div>
+            <strong>Install PortRelay</strong>
+            <p>Open the app on your other computer.</p>
+          </div>
+        </li>
+        <li>
+          <span>2</span>
+          <div>
+            <strong>Sign in with GitHub</strong>
+            <p id="add-account-hint">Use the same account on both computers.</p>
+          </div>
+        </li>
+        <li>
+          <span>3</span>
+          <div>
+            <strong>Choose your computer</strong>
+            <p>It appears here automatically. Select what to use.</p>
+          </div>
+        </li>
+      </ol>
+      <div class="dialog-actions">
+        <a
+          class="button-link"
+          href="https://portrelay.cobanov.dev/#get-app"
+          target="_blank"
+          rel="noreferrer"
+          >Get PortRelay ↗</a
+        ><button id="add-account" class="secondary">Account settings</button>
+      </div>
+      <details>
+        <summary>Installing over SSH?</summary>
+        <p>Install the Linux package, then run:</p>
+        <code class="command">portrelay login --no-open</code>
+        <p class="muted">
+          Open the sign-in link on any computer with a browser.
+        </p>
+      </details>
+    </dialog>
+    <dialog
+      id="confirm-dialog"
+      aria-labelledby="confirm-title"
+      aria-describedby="confirm-message"
+    >
+      <div class="dialog-heading">
+        <h2 id="confirm-title">Confirm action</h2>
+      </div>
+      <p id="confirm-message" class="confirmation-text"></p>
+      <div class="dialog-actions confirm-actions">
+        <button id="confirm-cancel" class="secondary" autofocus>Cancel</button
+        ><button id="confirm-accept">Continue</button>
+      </div>
+    </dialog>
+    <div id="control-pad" class="control-pad" tabindex="-1" hidden>
+      <span class="control-symbol" aria-hidden="true">↗</span>
+      <h2 id="control-title">Connecting…</h2>
+      <p id="control-hint">Press <kbd>Esc</kbd> to return here.</p>
+      <span class="muted">Mouse · keyboard · scroll</span>
+    </div>
+  </body>
+</html>

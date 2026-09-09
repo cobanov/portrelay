@@ -21,7 +21,7 @@ On **Ubuntu 24.04, Debian 12/13, or Raspberry Pi OS Bookworm/Trixie**, paste thi
 curl -fsSL https://portrelay.cobanov.dev/install.sh | sh
 ```
 
-The script selects your distribution, verifies the alpha.6 package against a
+The script selects your distribution, verifies the alpha.9 package against a
 pinned SHA-256, and uses `apt-get` to install it and its dependencies. Enter your
 administrator password if asked. Then open **PortRelay** from your applications
 and follow steps 2 and 3 below. It does not enable USB or share devices for you.
@@ -44,27 +44,26 @@ installing and removes the temporary download afterward.
 ## Three steps on each computer
 
 1. **Install the package.** Download the `.deb` for your distribution and
-   architecture from the [release page](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.6).
+   architecture from the [release page](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.9).
    Raspberry Pi OS uses the Debian ARM64 or ARMv7 (`armhf`) package.
    Open the file with your system's software installer and choose **Install**.
 2. **Open PortRelay.** Find it in your applications. Give this computer a name,
-   then choose **Enable USB sharing** and approve the system password prompt.
+   then open **Settings → Enable USB sharing** and approve the system password prompt.
    PortRelay prepares USB support for you. Ubuntu may download matching kernel
    tools, so keep the computer online during this step.
-3. **Add your other computer.** Choose **Create & copy invitation** on one,
-   then **I have an invitation** on the other. Paste it and choose **Add computer**.
-   Approve the request on the first computer. You can also save and open an
-   invitation file. Invitations are private, single-use, and expire in ten minutes.
+3. **Sign in on both computers.** Use the same GitHub account. They appear in
+   **Computers** automatically. **Add computer** shows the short installation
+   guide. Offline invitation pairing remains under **Settings → Pair without an account**.
 
 Then select the other computer and choose **Share device** beside a local USB
-device. On the receiving computer, open **Use a remote device** and choose
+device. On the receiving computer, open **USB devices → Use a remote device** and choose
 **Connect**. **Disconnect** returns the device to its owner.
 
 One local user owns USB setup. The app opens in your browser and runs a background
 service at login. Closing the window keeps connections running. Its local window
 shows actual device state; the public website is a separate concept demo.
 
-[Release notes & checksums](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.6)
+[Release notes & checksums](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.9)
 · [Tested capabilities and limitations](validation.md)
 
 <details>
@@ -75,9 +74,9 @@ the architecture reported by `dpkg --print-architecture`):
 
 ```sh
 arch=$(dpkg --print-architecture)
-sudo apt install ./portrelay-0.1.0-alpha.6-ubuntu-"$arch".deb
+sudo apt install ./portrelay-0.1.0-alpha.9-ubuntu-"$arch".deb
 # Or, on Debian / Raspberry Pi OS:
-sudo apt install ./portrelay-0.1.0-alpha.6-debian-"$arch".deb
+sudo apt install ./portrelay-0.1.0-alpha.9-debian-"$arch".deb
 ```
 
 Use `apt install`, which resolves dependencies, rather than `dpkg -i` alone.
@@ -127,7 +126,8 @@ have not been validated or implemented as separate profiles.
 On the same LAN, no public service or account is needed. PortRelay uses encrypted
 UDP 24816; a restrictive firewall may need to allow this between your computers.
 Raw USB/IP port 3240 is never opened. Pairing and approval are always required.
-There is no automatic discovery or address refresh yet.
+GitHub account devices discover one another and refresh addresses automatically.
+Account-free pairing uses explicit invitations.
 
 Internet operation currently needs an iroh-compatible relay that you operate or
 are authorized to use. It is not an automatic, hosted internet service yet.
@@ -179,14 +179,14 @@ cargo test --locked --workspace
 The manual tarball and `packaging/install-linux.sh` remain available for developer
 use and require preinstalled distribution USB/IP tools. They use the legacy
 `portrelay-agent` system service; `.deb` installs use the `portrelay` user service.
-Use one installation method. macOS builds the control agent but has no USB backend.
+Use one installation method. macOS has a limited USB export preview; USB receiving is unavailable.
 
 </details>
 
 <details>
 <summary>Diagnostics and uninstalling</summary>
 
-- **Settings & status** shows capabilities and connection details.
+- **Settings → Capabilities & connection details** shows the current limits and identity.
 - `portrelay status` reports devices, peers, setup, helper health, and sessions.
 - `portrelay check` succeeds only when the agent and USB helper are ready.
 - `portrelay open` reopens the authenticated local window.

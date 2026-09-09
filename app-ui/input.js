@@ -6,7 +6,7 @@ function renderInput() {
   $("input-description").textContent = selectedPeer ? `Use this keyboard and mouse on ${peerName(selectedPeer)}. Allow control in PortRelay on that Linux desktop first.` : "Add a Linux computer, then use your keyboard and mouse to control it.";
   $("enable-input").hidden = !state.input?.receive_supported || state.input.ready || !state.input.setup_available;
   $("enable-input").disabled = !!state.input?.setup?.running;
-  $("input-setup-status").textContent = state.input?.setup?.running ? "Approve the system permission window…" : state.input?.setup?.error || (state.input?.receive_supported ? state.input.ready ? "This desktop can receive control. Choose which computer to allow above." : "Receiving needs one-time setup and an unlocked desktop. Terminal: sudo /usr/lib/portrelay/setup-input" : "Send control to Linux. Receiving on Mac and Windows is still in development.");
+  $("input-setup-status").textContent = state.input?.setup?.running ? "Approve the system permission window…" : state.input?.setup?.error || (state.input?.receive_supported ? state.input.ready ? "This desktop can receive control. Allow a computer under Computers → Manage." : "Receiving needs one-time setup and an unlocked desktop. Terminal: sudo /usr/lib/portrelay/setup-input" : "Send control to Linux. Receiving on Mac and Windows is still in development.");
   const active = state.sessions.find(s => s.direction === "input-receiving");
   $("input-badge").textContent = active ? `Controlled by ${peerName(active.peer)}` : "Linux receiver";
 }

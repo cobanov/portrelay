@@ -21,7 +21,7 @@ Open **PowerShell** as your normal Windows user and paste:
 irm https://portrelay.cobanov.dev/install.ps1 | iex
 ```
 
-This downloads the alpha.6 installer, verifies its pinned SHA-256, and opens the
+This downloads the alpha.9 installer, verifies its pinned SHA-256, and opens the
 same installation wizard as the download button. Approve the normal Windows
 administrator prompt and finish the wizard. Then open **PortRelay** and follow
 steps 2 and 3 below. The script does not enable USB or share devices for you.
@@ -35,10 +35,11 @@ Re-running opens the same pinned installer; this does not add automatic updates.
 
 1. Download the Windows `.exe` installer from the
    [release page](https://github.com/cobanov/portrelay/releases) and open it.
-2. Open **PortRelay** from Start. Choose **Enable USB sharing** and approve
-   the Windows administrator prompt. Then choose **Add computer** on each end.
-3. Copy the invitation to the other computer and approve its request. Choose
-   **Share device** on the device's computer, then **Connect** on the other one.
+2. Open **PortRelay** from Start and sign in with the same GitHub account on
+   both computers. In **Settings**, choose **Enable USB sharing** and approve
+   the Windows administrator prompt.
+3. Open **USB devices** and select the other computer. Choose **Share device**
+   on the device's computer, then **Connect** on the other one.
 
 **Disconnect** returns the device. Closing the browser window keeps PortRelay
 running; it starts again when you sign in to Windows. Settings, trusted computers,
@@ -78,9 +79,8 @@ services, Bluetooth audio, and built-in controller migration are separate
 capabilities and are not provided by this alpha.
 
 Start with both computers on the same reachable network. The app authorizes
-and encrypts connections; raw USB/IP is never opened to the network. Automatic
-discovery, automatic reconnect, and managed internet connectivity are still
-pending. Advanced users can configure a custom iroh relay using the same
+and encrypts connections; raw USB/IP is never opened to the network. Account discovery and address refresh are automatic after GitHub sign-in.
+Automatic device reconnect and managed internet connectivity remain pending. Advanced users can configure a custom iroh relay using the same
 `run --relay URL` / `--relay-only` options described in the
 [network guide](linux-alpha.md#networks). A hosted PortRelay relay is not included.
 
@@ -111,7 +111,7 @@ existing usbipd-win, VirtualBox USB monitor, or separately installed USBip clien
   Unresolved device recovery blocks new connections and uninstall until it is
   reconciled. Do not manually delete recovery records to bypass that check.
 
-Advanced diagnostics are in **Settings & status → Connection details**. The
+Advanced diagnostics are in **Settings → Capabilities & connection details**. The
 privileged setup log is `%ProgramData%\PortRelay\setup.log`; the service records
 driver errors in the Windows Application event log under `usbipd-win`.
 Do not post invitations, `api.json`, or private identity files in an issue.

@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "build": "node scripts/build.mjs",
-    "check": "node --check web/app.js && node --check scripts/build.mjs && node --check scripts/serve.mjs",
+    "check": "node --check app-ui/app.js && node --check app-ui/input.js && node --check web/app.js && node --check scripts/build.mjs && node --check scripts/serve.mjs",
     "deploy": "npx --yes wrangler@4.105.0 pages deploy dist --project-name portrelay --branch main"
   }
 }
