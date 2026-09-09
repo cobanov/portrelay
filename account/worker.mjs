@@ -23,7 +23,7 @@ function page(title,body,status=200) {
 function secured(response) {
   const headers=new Headers(response.headers);
   for(const [key,value] of Object.entries({
-    'cache-control':'no-store','referrer-policy':'strict-origin','x-content-type-options':'nosniff','x-frame-options':'DENY',
+    'cache-control':'no-store, no-transform','referrer-policy':'strict-origin','x-content-type-options':'nosniff','x-frame-options':'DENY',
     'content-security-policy':"default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'",
     'permissions-policy':'camera=(), microphone=(), geolocation=()',
   })) headers.set(key,value);

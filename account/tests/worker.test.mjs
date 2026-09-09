@@ -66,7 +66,7 @@ test('real SQL: signed enrollment, OAuth state/PKCE, local token activation and 
     assert.equal((await f.confirm(auth,'https://attacker.example')).status,403);
     assert.equal((await f.confirm({...auth,csrf:'bad'})).status,403);
     const response=await f.confirm(auth);assert.equal(response.status,200);
-    assert.equal(response.headers.get('cache-control'),'no-store');
+    assert.equal(response.headers.get('cache-control'),'no-store, no-transform');
     assert.equal((await f.confirm(auth)).status,410);
     const state=await (await f.sync(d)).json();assert.equal(state.account.id,'github:42');assert.equal(state.devices.length,1);
     const row=f.DB.sqlite.prepare('SELECT * FROM devices').get();assert.equal(row.token_hash,await hash(d.token));
