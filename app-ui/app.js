@@ -82,17 +82,17 @@ function renderSetup() {
     $(id).classList.toggle("current", index === step);
     if (index === step) $(id).setAttribute("aria-current", "step"); else $(id).removeAttribute("aria-current");
   });
-  $("ready-status").textContent = state.helper_ready ? "USB ready" : "Setup needed";
+  $("ready-status").textContent = state.helper_ready ? state.platform === "macos" ? "USB export preview" : "USB ready" : "Setup needed";
   $("ready-status").classList.toggle("ready", state.helper_ready);
   $("setup").hidden = state.helper_ready;
   $("enable-usb").hidden = !state.setup_available;
   $("enable-usb").disabled = !!state.setup?.running;
   $("enable-usb").textContent = state.setup?.running ? "Preparing USB support…" : "Enable USB sharing";
-  const supported = ["linux", "windows"].includes(state.platform);
-  $("platform-badge").textContent = state.platform === "windows" ? "Windows alpha" : state.platform === "linux" ? "Linux alpha" : "Control preview";
-  $("setup-help").href = `https://github.com/cobanov/portrelay/blob/main/docs/${state.platform === "windows" ? "windows" : "linux"}-alpha.md`;
-  $("setup-title").textContent = supported ? "Enable USB sharing" : "USB support is coming to macOS";
-  $("setup-description").textContent = !supported
+  const supported = ["linux", "windows", "macos"].includes(state.platform);
+  $("platform-badge").textContent = state.platform === "windows" ? "Windows alpha" : state.platform === "linux" ? "Linux alpha" : state.platform === "macos" ? "Mac export preview" : "Control preview";
+  $("setup-help").href = `https://github.com/cobanov/portrelay/blob/main/docs/${state.platform === "macos" ? "macos" : state.platform === "windows" ? "windows" : "linux"}-alpha.md`;
+  $("setup-title").textContent = state.platform === "macos" ? "Install the complete Mac app" : supported ? "Enable USB sharing" : "USB support is coming to macOS";
+  $("setup-description").textContent = state.platform === "macos" ? "The Mac app includes its USB export worker. Build or reinstall the complete app to continue. No administrator setup is needed." : !supported
     ? "Sharing or connecting USB devices currently needs Linux or Windows. macOS device support is still in development."
     : state.setup?.running && state.platform === "windows" ? "Approve the Windows permission prompt. If it is hidden, select the flashing shield in the taskbar."
     : state.setup_available ? "Allow PortRelay to prepare USB support. Your system may ask for administrator permission."
@@ -100,6 +100,9 @@ function renderSetup() {
     : "Install the Ubuntu or Debian package to complete setup from this window. Manual installations can use the setup guide.";
   $("setup-error").hidden = !state.setup?.error;
   $("setup-error").textContent = state.setup?.error || "";
+  $("remote-tab").textContent = state.capabilities?.usb_import === false ? "Other devices" : "Use a remote device";
+  $("capability-note").hidden = state.platform !== "macos";
+  $("capability-note").textContent = "Mac preview: share eligible single-interface USB adapters with Linux or Windows. Receiving USB and sharing Bluetooth on Mac are still in development.";
   $("pairing").hidden = !(pairingOpen || (!approved && state.helper_ready && !pairingDismissed));
 }
 function renderPeers() {
@@ -167,7 +170,9 @@ function deviceRow(device, protectedDevice = false) {
       tell(active ? "Returning the device to its owner…" : `Connecting ${device.name}…`);
       await action(active ? { op: "disconnect", session: active.id } : { op: "connect", peer: selectedPeer, device: device.id, generation: device.generation });
     }, `connect-${device.id}`, !!active);
-    b.disabled = (!active && device.busy) || !state.helper_ready || (active && active.state !== "connected"); row.append(b);
+    b.disabled = (!active && (device.busy || state.capabilities?.usb_import === false)) || !state.helper_ready || (active && active.state !== "connected");
+    if (!active && state.capabilities?.usb_import === false) { b.title = state.capabilities.import_reason; details.append(node("p", "Receiving USB is not available on Mac yet.", "muted")); }
+    row.append(b);
   }
   return row;
 }
@@ -194,7 +199,7 @@ async function renderDevices(revision) {
   $("protected-devices").hidden = true;
   $("device-instruction").textContent = view === "local"
     ? selectedPeer ? `Choose what ${peerName(selectedPeer)} can use. Devices stay here until it connects.` : "Add your other computer, then choose a device to share."
-    : selectedPeer ? `Devices shared by ${peerName(selectedPeer)}. Select Connect to use one here.` : "Select a computer above to see its devices.";
+    : state.capabilities?.usb_import === false ? "You can view shared devices here. Receiving USB on a Mac is not available yet." : selectedPeer ? `Devices shared by ${peerName(selectedPeer)}. Select Connect to use one here.` : "Select a computer above to see its devices.";
   let devices = state.devices;
   if (view === "remote") {
     if (!selectedPeer) { empty(container, "No computer selected."); return; }

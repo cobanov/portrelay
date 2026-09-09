@@ -109,6 +109,9 @@ These are separate deliverables; neither is implied by a cross-platform UI.
 - [ ] Decide which explicit profile adapters can provide useful integration
       with existing applications without claiming universal virtualization.
 - [ ] Evaluate Bumble/HCI for Linux and controller test infrastructure.
+- [x] Integrate a pinned Mac USB/IP core, read-only inventory, instance-bound
+      worker, role-aware UI/CLI, and app packaging (development preview only).
+- [x] Prepare the Apple host-controller entitlement request for account-owner review.
 - [ ] Prove limited macOS export with claimable serial adapters and development
       boards using usbipd-mac, with SIP enabled.
 - [ ] Resolve the separate macOS import entitlement gate before promising remote

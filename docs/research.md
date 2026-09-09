@@ -98,3 +98,26 @@ of its installer or transitive dependencies.
   obtain the necessary permissions? If not, keep those features unavailable.
 - What relay deployment and sustainable bandwidth policy can make the default
   internet experience simple without requiring a paid proprietary service?
+
+## macOS implementation follow-up (2026-09-09)
+
+The limited exporter now reuses MIT-licensed
+[usbipd-mac at 1c2ab459](https://github.com/beriberikix/usbipd-mac/tree/1c2ab4594653db5859d6773bdd010303a641e98e)
+as a pinned library, without running its TCP daemon. Source inspection found
+first-VID/PID device selection and an interface-0 communicator assumption.
+PortRelay patches exact registry-instance binding and request admission, and
+restricts eligibility accordingly. Upstream compatibility claims are not
+PortRelay hardware evidence. The [libusb macOS FAQ](https://github.com/libusb/libusb/wiki/FAQ)
+also distinguishes unclaimed interfaces accessible without root from interfaces
+held by kernel drivers.
+
+Apple DTS gives a [Feedback Assistant route for the managed host-controller
+entitlement](https://developer.apple.com/forums/thread/802495). Membership and
+Developer ID signing do not establish permission for native USB import. The
+account holder's reviewable request is in [this draft](macos-apple-entitlement.md).
+No code from the experimental, apparently unlicensed `carlossless/usbip-macos`
+repository is reused.
+
+Developer ID distribution follows Apple's [notarization workflow](https://developer.apple.com/documentation/security/customizing-the-notarization-workflow).
+Signing/notarization and physical USB compatibility are separate acceptance
+checks. See [ADR 0004](adr-0004-macos-export.md) for the implementation decision.

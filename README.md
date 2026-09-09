@@ -8,8 +8,8 @@ and a small local control window. No account or subscription is required.
 > **v0.1.0-alpha.6: Windows + Linux + ARM, now with a terminal menu.** Native USB serial traffic has passed
 > Windows-to-Linux and Linux-to-Windows tests using isolated virtual devices.
 > Windows 11 x64 uses signed upstream drivers with Secure Boot enabled.
-> Physical USB and Bluetooth compatibility still need testing. macOS USB
-> support is not implemented. Read the [validation record](docs/validation.md).
+> Physical USB and Bluetooth compatibility still need testing. A separate [Mac export development preview](docs/macos-alpha.md)
+> now exists in source; there is no notarized Mac download or Mac USB import. Read the [validation record](docs/validation.md).
 > Windows has a known driver-removal stall after forced app shutdown; start on a
 > test computer and read the [Windows limitations](docs/windows-alpha.md).
 
@@ -127,7 +127,7 @@ headless operation, internet settings, diagnostics, upgrades, and uninstalling.
 Build the Windows installer with `./windows/build.ps1` in PowerShell on a
 Windows x64 build machine with Rust 1.97, .NET SDK 8 and 9.0.317, Python 3, Git,
 and Inno Setup 6. See [Windows source notices](windows/THIRD-PARTY-NOTICES.md).
-macOS can build the control agent, but it cannot export or attach USB devices.
+For the limited native Mac exporter and app bundle, see [Mac development setup](docs/macos-alpha.md). Mac receiving support remains unavailable.
 
 The implementation uses Rust/Tokio, iroh 1.1.0 QUIC, an Axum loopback API, and
 embedded HTML/CSS/JavaScript. A native Tauri shell is deferred. See

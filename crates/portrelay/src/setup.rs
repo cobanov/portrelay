@@ -1,5 +1,5 @@
 //! Optional Debian/Ubuntu desktop integration. No device streaming code lives here.
-#[cfg(not(windows))]
+#[cfg(not(any(windows, target_os = "macos")))]
 use anyhow::Context;
 use anyhow::{Result, bail};
 use serde::Serialize;
@@ -86,7 +86,9 @@ impl Setup {
 pub async fn start_desktop_service() -> Result<()> {
     #[cfg(windows)]
     return crate::windows::start_desktop().await;
-    #[cfg(not(windows))]
+    #[cfg(target_os = "macos")]
+    return crate::macos::start_desktop().await;
+    #[cfg(not(any(windows, target_os = "macos")))]
     {
         if !cfg!(target_os = "linux")
             || !Path::new("/usr/lib/systemd/user/portrelay.service").is_file()
@@ -112,7 +114,7 @@ pub async fn start_desktop_service() -> Result<()> {
         user_systemctl(&["enable", "--now", "portrelay.service"]).await
     }
 }
-#[cfg(not(windows))]
+#[cfg(not(any(windows, target_os = "macos")))]
 async fn user_systemctl(args: &[&str]) -> Result<()> {
     let output = tokio::time::timeout(
         Duration::from_secs(20),

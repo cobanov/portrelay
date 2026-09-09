@@ -1,0 +1,84 @@
+diff --git a/Sources/Common/USBDeviceTypes.swift b/Sources/Common/USBDeviceTypes.swift
+index c097b30..69241f6 100644
+--- a/Sources/Common/USBDeviceTypes.swift
++++ b/Sources/Common/USBDeviceTypes.swift
+@@ -29,6 +29,7 @@ public protocol USBDeviceInfo {
+ 
+ /// Represents a USB device
+ public struct USBDevice: USBDeviceInfo, Sendable {
++    public let registryEntryID: UInt64?
+     public let busID: String
+     public let deviceID: String
+     public let vendorID: UInt16
+@@ -52,8 +53,10 @@ public struct USBDevice: USBDeviceInfo, Sendable {
+         speed: USBSpeed,
+         manufacturerString: String?,
+         productString: String?,
+-        serialNumberString: String?
++        serialNumberString: String?,
++        registryEntryID: UInt64? = nil
+     ) {
++        self.registryEntryID = registryEntryID
+         self.busID = busID
+         self.deviceID = deviceID
+         self.vendorID = vendorID
+diff --git a/Sources/USBIPDCore/Device/IOKitUSBInterface.swift b/Sources/USBIPDCore/Device/IOKitUSBInterface.swift
+index 4eec30a..6072ff8 100644
+--- a/Sources/USBIPDCore/Device/IOKitUSBInterface.swift
++++ b/Sources/USBIPDCore/Device/IOKitUSBInterface.swift
+@@ -345,15 +345,24 @@ public final class IOKitUSBInterface: @unchecked Sendable {
+             _ = ioKit.objectRelease(iterator)
+         }
+         
+-        // Find the specific device by bus ID if multiple matches
+-        let serviceRef = ioKit.iteratorNext(iterator)
+-        guard serviceRef != 0 else {
+-            logger.error("No USB device found matching vendor ID \(device.vendorID), product ID \(device.productID)")
+-            throw IOKitError.serviceNotFound("No matching USB device found")
++        // PortRelay binds IOKit access to the exact selected registry instance.
++        // VID/PID alone may select a different identical adapter or a replacement.
++        while true {
++            let serviceRef = ioKit.iteratorNext(iterator)
++            guard serviceRef != 0 else { break }
++            if let expected = device.registryEntryID {
++                var actual: UInt64 = 0
++                if IORegistryEntryGetRegistryEntryID(serviceRef, &actual) == KERN_SUCCESS,
++                   actual == expected {
++                    return serviceRef
++                }
++                _ = ioKit.objectRelease(serviceRef)
++            } else {
++                // Preserve upstream behavior for its callers. PortRelay always sets it.
++                return serviceRef
++            }
+         }
+-        
+-        logger.debug("Found IOKit service for USB device: \(device.busID)")
+-        return serviceRef
++        throw IOKitError.serviceNotFound("Selected USB device instance is no longer present")
+     }
+     
+     private func createDevicePluginInterface() throws -> USBDeviceHandle? {
+diff --git a/Sources/USBIPDCore/Protocol/USBSubmitProcessor.swift b/Sources/USBIPDCore/Protocol/USBSubmitProcessor.swift
+index 88c2d05..9fd3a96 100644
+--- a/Sources/USBIPDCore/Protocol/USBSubmitProcessor.swift
++++ b/Sources/USBIPDCore/Protocol/USBSubmitProcessor.swift
+@@ -100,7 +100,9 @@ public class USBSubmitProcessor {
+     }
+     
+     /// Process a USB SUBMIT request and return response data
+-    public func processSubmitRequest(_ data: Data) async throws -> Data {
++    public func processSubmitRequest(_ data: Data, registered: (@Sendable () -> Void)? = nil) async throws -> Data {
++        // PortRelay waits for admission before forwarding a cancellation.
++        defer { registered?() }
+         logger.debug("Processing USB SUBMIT request", context: ["dataSize": data.count])
+         
+         // Decode the SUBMIT request
+@@ -185,6 +187,7 @@ public class USBSubmitProcessor {
+         
+         // Track the URB
+         try await addActiveURB(urb, device: device)
++        registered?()
+         
+         do {
+             // Execute the USB transfer

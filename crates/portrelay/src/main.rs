@@ -46,7 +46,7 @@ enum Commands {
         /// Use only the configured relay (for networks that block direct UDP).
         #[arg(long, requires = "relay")]
         relay_only: bool,
-        #[arg(long,default_value=backend::SOCKET)]
+        #[arg(long, default_value_os_t = backend::default_helper())]
         helper: PathBuf,
         #[arg(long)]
         no_open: bool,
@@ -118,7 +118,7 @@ async fn main() -> Result<()> {
         port: 0,
         relay: None,
         relay_only: false,
-        helper: backend::SOCKET.into(),
+        helper: backend::default_helper(),
         no_open: false,
     });
     #[cfg(windows)]

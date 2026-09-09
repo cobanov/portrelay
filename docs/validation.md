@@ -402,7 +402,38 @@ checks passed for the new packages.
 This release adds a terminal menu and short commands. It does not add a new USB
 backend, change native driver cleanup, or establish physical USB/Bluetooth
 compatibility. macOS here is CLI/control-plane testing only; USB import/export
-is still unavailable. See the [terminal guide](terminal.md).
+was still unavailable in alpha.6. See the [terminal guide](terminal.md) and the separate Mac development preview below.
+
+## macOS export development preview (2026-09-09)
+
+The Mac source now includes native read-only inventory, a per-device IOKit
+export worker, authenticated transport integration, distinct export/import
+capabilities in API/UI/CLI, and a normal-user .app/LaunchAgent build.
+[ADR 0004](adr-0004-macos-export.md) records the pinned upstream and constraints.
+
+Local Apple Silicon / macOS 26 evidence:
+
+- Seven Swift tests pass for identity/generation, conservative eligibility,
+  request framing/bounds, truncated input, independent endpoint progress and
+  queued cancellation. The transfer test uses a fake USB communicator.
+- Nineteen Rust tests pass, including process-fixture stream echo, exclusive
+  ownership, rejected-open rollback, EOF release, unexpected worker exit, and
+  Mac import rejection before contacting a peer or allocating a session.
+- Existing terminal acceptance passes: real-agent pairing/approval/revocation,
+  pseudoterminal menu interactions and explicit HTTP device fixtures.
+- Mac capability text and the disabled receiving control were checked in the
+  rendered local app at phone and desktop widths; no horizontal overflow was
+  observed. Device cards in this UI check were explicitly labeled fixtures.
+- Developer ID app signing and strict nested-code verification passed. Native
+  bundle acceptance read 11 actual USB devices, rejected an absent device,
+  discovered its sibling worker, reported correct role capabilities, and shut
+  down cleanly. No interface was opened during these hardware inventory checks.
+
+No eligible adapter was attached. **Physical Mac USB export is unvalidated**,
+including Mac-to-Linux and Mac-to-Windows transfer and recovery. USB receiving,
+Bluetooth, composite devices and driver handoff are unavailable on Mac. The
+public notarization and CI results will be recorded separately; a signature or
+a passing fixture does not establish device compatibility.
 
 ## Still unvalidated or unavailable
 

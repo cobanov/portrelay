@@ -27,3 +27,7 @@ __pycache__/
 *.pyc
 windows/**/bin/
 windows/**/obj/
+
+# Native macOS build cache
+/macos/.build/
+/macos/.swiftpm/

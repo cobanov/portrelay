@@ -2,13 +2,25 @@ use crate::protocol::Device;
 use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
 use std::path::Path;
-#[cfg(unix)]
+#[cfg(all(unix, not(target_os = "macos")))]
 use tokio::net::UnixStream;
 
 #[cfg(not(windows))]
 pub const SOCKET: &str = "/run/portrelay/helper.sock";
 #[cfg(windows)]
 pub const SOCKET: &str = r"\\.\pipe\PortRelay.Helper.v1";
+pub fn default_helper() -> std::path::PathBuf {
+    #[cfg(target_os = "macos")]
+    return crate::macos::worker_path();
+    #[cfg(not(target_os = "macos"))]
+    SOCKET.into()
+}
+pub fn import_unavailable_reason() -> Option<&'static str> {
+    #[cfg(target_os = "macos")]
+    return Some(crate::macos::IMPORT_REASON);
+    #[cfg(not(target_os = "macos"))]
+    None
+}
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "op", rename_all = "snake_case")]
 pub enum HelperRequest {
@@ -31,7 +43,11 @@ pub fn available(path: &Path) -> bool {
         let _ = path;
         crate::windows::installed()
     }
-    #[cfg(not(windows))]
+    #[cfg(target_os = "macos")]
+    {
+        path.is_file()
+    }
+    #[cfg(not(any(windows, target_os = "macos")))]
     {
         cfg!(target_os = "linux") && path.exists()
     }
@@ -41,10 +57,30 @@ pub async fn devices(path: &Path) -> Vec<Device> {
     {
         crate::windows::devices(path).await.unwrap_or_default()
     }
-    #[cfg(not(windows))]
+    #[cfg(target_os = "macos")]
+    {
+        crate::macos::devices(path).await.unwrap_or_default()
+    }
+    #[cfg(not(any(windows, target_os = "macos")))]
     {
         let _ = path;
         crate::inventory::inventory()
+    }
+}
+pub async fn inspect(path: &Path) -> (Result<()>, Vec<Device>) {
+    #[cfg(target_os = "macos")]
+    {
+        if let Err(error) = health(path).await {
+            return (Err(error), vec![]);
+        }
+        match crate::macos::devices(path).await {
+            Ok(devices) => (Ok(()), devices),
+            Err(error) => (Err(error), vec![]),
+        }
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        (health(path).await, devices(path).await)
     }
 }
 pub async fn health(path: &Path) -> Result<()> {
@@ -65,9 +101,11 @@ pub async fn health(path: &Path) -> Result<()> {
         bail!("USB support currently requires Linux");
     }
 }
+#[cfg(target_os = "macos")]
+pub use crate::macos::open;
 #[cfg(windows)]
 pub use crate::windows::open;
-#[cfg(unix)]
+#[cfg(all(unix, not(target_os = "macos")))]
 pub async fn open(path: &Path, request: &HelperRequest) -> Result<(UnixStream, HelperReply)> {
     let mut stream = UnixStream::connect(path).await.map_err(|e| {
         anyhow::anyhow!("Device helper is unavailable: {e}. Install the Linux helper first.")

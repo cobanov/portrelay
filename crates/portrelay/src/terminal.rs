@@ -81,8 +81,15 @@ impl Risk {
         }
     }
 }
+#[derive(Default, Deserialize)]
+struct Capabilities {
+    usb_import: Option<bool>,
+    import_reason: Option<String>,
+}
 #[derive(Deserialize)]
 struct State {
+    #[serde(default)]
+    capabilities: Capabilities,
     name: String,
     version: String,
     helper_ready: bool,
@@ -591,6 +598,18 @@ async fn execute(client: &Client, command: Commands) -> Result<()> {
             }
         }
         Commands::Connect { computer, device } => {
+            if state.capabilities.usb_import == Some(false) {
+                bail!(
+                    "{}",
+                    clean(
+                        state
+                            .capabilities
+                            .import_reason
+                            .as_deref()
+                            .unwrap_or("Receiving USB is unavailable on this platform")
+                    )
+                );
+            }
             let peers = peer_choices(&state, true);
             let peer = select("approved computer", &peers, computer.as_deref(), true)?;
             let devices = client.remote(&peers[peer].id).await?;
@@ -708,7 +727,9 @@ async fn menu(client: &Client) -> Result<()> {
             "\nPortRelay {} | {} | USB {}",
             clean(&state.version),
             clean(&state.name),
-            if state.helper_ready {
+            if state.helper_ready && state.capabilities.usb_import == Some(false) {
+                "export preview (receiving unavailable)"
+            } else if state.helper_ready {
                 "ready"
             } else {
                 "not ready"

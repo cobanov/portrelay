@@ -3,7 +3,8 @@
 Requires **alpha.6 or newer**, or a build of the current source. Run commands as
 the regular account that owns the installed application, without sudo.
 Linux, including Raspberry Pi OS Lite, can use this entire flow through SSH.
-Windows uses the same commands with its installed executable.
+Windows uses the same commands with its installed executable. The separate
+[Mac export preview](macos-alpha.md) also provides the menu; Mac receiving is unavailable.
 
 ## Open the menu
 
@@ -106,4 +107,4 @@ Use `--help` on a command for its arguments.
 physical peripheral works. The menu shows the current helper status and
 `portrelay sessions` includes recent connection errors. The authenticated
 control API stays on loopback. This feature does not add automatic peer
-discovery, a public relay, macOS USB support, or new physical-device evidence.
+discovery, a public relay, or new physical-device evidence.

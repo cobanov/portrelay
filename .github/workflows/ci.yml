@@ -50,6 +50,29 @@ jobs:
             target/packages/*.deb
             target/packages/*.sha256
           retention-days: 30
+  macos-preview:
+    runs-on: macos-14
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: rustup toolchain install 1.97.0 --profile minimal
+      - uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+      - run: python3 macos/prepare.py
+      - run: swift test --package-path macos
+      - run: ./macos/build.sh
+      - run: python3 tests/macos-worker.py target/macos/package/PortRelay.app
+      - uses: actions/upload-artifact@v4
+        with:
+          name: portrelay-macos-arm64-development-preview
+          path: |
+            target/macos/PortRelay-macos-arm64-preview.zip
+            target/macos/PortRelay-macos-arm64-preview.zip.sha256
+          retention-days: 30
   linux-armv7-package:
     runs-on: ubuntu-24.04-arm
     container: rust:1.97-bookworm

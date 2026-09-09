@@ -84,9 +84,9 @@ const platforms = {
     description: "Share USB with Linux. Tested both ways with virtual serial devices.",
   },
   macos: {
-    stage: "UNDER INVESTIGATION",
-    title: "Exploring macOS.",
-    description: "Sharing select devices from a Mac comes first. Using remote USB on a Mac has a separate Apple permission gate. Neither is available yet.",
+    stage: "DEVELOPMENT PREVIEW",
+    title: "Mac sharing has started.",
+    description: "Native device listing and limited USB export are in development. Source build only; physical transfer testing and a notarized installer are next. Receiving USB and Bluetooth are not available yet.",
   },
 };
 const examples = {
@@ -302,7 +302,7 @@ for (const button of document.querySelectorAll("[data-os]")) {
     byId("installer-source").href = linux ? "/install.sh" : "/install.ps1";
     byId("copy-command").textContent = "Copy command";
     byId("installation-guide").firstChild.textContent = button.dataset.os === "macos" ? "Follow macOS progress " : button.dataset.os === "windows" ? "Windows setup guide " : "Linux setup guide ";
-    byId("installation-guide").href = `https://github.com/cobanov/portrelay/blob/main/docs/${button.dataset.os === "macos" ? "roadmap.md" : button.dataset.os + "-alpha.md"}`;
+    byId("installation-guide").href = `https://github.com/cobanov/portrelay/blob/main/docs/${button.dataset.os === "macos" ? "macos-alpha.md" : button.dataset.os + "-alpha.md"}`;
   });
 }
 

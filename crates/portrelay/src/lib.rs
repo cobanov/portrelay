@@ -9,3 +9,6 @@ pub mod storage;
 pub mod terminal;
 #[cfg(windows)]
 pub mod windows;
+
+#[cfg(target_os = "macos")]
+pub mod macos;

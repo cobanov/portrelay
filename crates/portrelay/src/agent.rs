@@ -191,11 +191,10 @@ impl Agent {
             .collect()
     }
     pub async fn snapshot(&self) -> serde_json::Value {
-        let health = backend::health(&self.helper).await;
+        let (health, devices) = backend::inspect(&self.helper).await;
         let setup = self.setup.snapshot().await;
-        let devices = backend::devices(&self.helper).await;
         let inner = self.inner.lock().await;
-        serde_json::json!({"version":env!("CARGO_PKG_VERSION"),"id":self.endpoint.id().to_string(),"name":inner.config.name,"network":self.network_mode,"address":self.address(),"platform":std::env::consts::OS,"setup_available":crate::setup::Setup::available(),"setup":setup,"helper_ready":health.is_ok(),"helper_error":health.err().map(|e|e.to_string()),"devices":Self::devices(&inner, devices),"peers":inner.config.peers,"grants":inner.config.grants,"sessions":inner.sessions.values().map(|s|s.info.clone()).collect::<Vec<_>>(),"history":inner.history})
+        serde_json::json!({"version":env!("CARGO_PKG_VERSION"),"id":self.endpoint.id().to_string(),"name":inner.config.name,"network":self.network_mode,"address":self.address(),"platform":std::env::consts::OS,"capabilities":{"usb_export":cfg!(any(target_os="linux",target_os="macos",windows)),"usb_import":cfg!(any(target_os="linux",windows)),"import_reason":backend::import_unavailable_reason()},"setup_available":crate::setup::Setup::available(),"setup":setup,"helper_ready":health.is_ok(),"helper_error":health.err().map(|e|e.to_string()),"devices":Self::devices(&inner, devices),"peers":inner.config.peers,"grants":inner.config.grants,"sessions":inner.sessions.values().map(|s|s.info.clone()).collect::<Vec<_>>(),"history":inner.history})
     }
     pub async fn action(self: &Arc<Self>, action: Action) -> Result<serde_json::Value> {
         match action {
@@ -765,6 +764,9 @@ impl Agent {
         device: String,
         generation: String,
     ) -> Result<serde_json::Value> {
+        if let Some(reason) = backend::import_unavailable_reason() {
+            bail!(reason);
+        }
         if !backend::available(&self.helper) {
             bail!(
                 "Enable USB support to connect real devices. This platform may only manage peers."
@@ -1181,6 +1183,29 @@ mod tests {
         assert!(!body.contains("secret_key"));
         assert!(!body.contains(&agent.token));
         server.abort();
+        agent.shutdown().await;
+    }
+    #[cfg(target_os = "macos")]
+    #[tokio::test]
+    async fn mac_import_is_rejected_before_a_peer_or_device_lease_is_contacted() {
+        let dir = tempfile::tempdir().unwrap();
+        let agent = make(dir.path(), "Mac").await;
+        let result = agent
+            .action(Action::Connect {
+                peer: "not-a-peer".into(),
+                device: "1-1".into(),
+                generation: "old".into(),
+            })
+            .await;
+        assert!(
+            result
+                .err()
+                .unwrap()
+                .to_string()
+                .contains("host-controller entitlement")
+        );
+        assert!(agent.inner.lock().await.sessions.is_empty());
+        assert_eq!(agent.snapshot().await["capabilities"]["usb_import"], false);
         agent.shutdown().await;
     }
     #[cfg(target_os = "linux")]

@@ -1,5 +1,32 @@
 #![cfg_attr(windows, windows_subsystem = "windows")]
 fn main() {
+    #[cfg(target_os = "macos")]
+    {
+        let result = std::env::current_exe().and_then(|exe| {
+            std::process::Command::new(exe.with_file_name("portrelay"))
+                .arg("desktop")
+                .output()
+        });
+        let error = match result {
+            Ok(output) if output.status.success() => return,
+            Ok(output) => String::from_utf8_lossy(&output.stderr).into_owned(),
+            Err(error) => error.to_string(),
+        };
+        // Pass error text as an argument, never interpolate it into AppleScript.
+        let _ = std::process::Command::new("/usr/bin/osascript")
+            .args([
+                "-e",
+                "on run argv",
+                "-e",
+                "display alert \"PortRelay could not start\" message (item 1 of argv) as critical",
+                "-e",
+                "end run",
+                "--",
+                &error,
+            ])
+            .status();
+        std::process::exit(1);
+    }
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
