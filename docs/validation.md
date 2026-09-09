@@ -1,6 +1,6 @@
 # Alpha validation record
 
-Dates: 2026-09-08 and 2026-09-09. Current version: `0.1.0-alpha.4`.
+Dates: 2026-09-08 and 2026-09-09. Current version: `0.1.0-alpha.5`.
 
 The kernel device tests below were recorded for alpha.1. Alpha.2 changes the
 installer and onboarding; the device transport/helper backend is unchanged.
@@ -316,6 +316,58 @@ existing physical disk, input device, or network adapter. Ubuntu's tested source
 kernel did not contain `dummy_hcd`; fixture generation used Debian's standard
 kernel. This is a fixture requirement, not a restriction on physical USB export.
 
+## ARM packaging and headless installation (alpha.5, 2026-09-09)
+
+[Build and package CI 34329813712](https://github.com/cobanov/portrelay/actions/runs/34329813712)
+passed all 15 jobs at `285fe25`. Released binaries/packages are the exact assets
+from this run; all 20 uploaded release-file digests matched locally verified files.
+
+Alpha.5 adds Linux ARM64 and ARMv7 packages alongside AMD64. Rust device transport
+and USB policy code are unchanged from alpha.4. The packaging verifies the ELF
+class/machine, ARM hard-float ABI, and executable version before naming an archive
+or writing the Debian Architecture field. An ARM64 executable mislabeled AMD64
+was rejected. All Linux builds retain the Debian Bookworm / glibc 2.36 baseline.
+
+- Native ARM64 and QEMU-user ARMv7 each passed all 15 Linux Rust tests. The
+  encrypted application and protocol tests use their real binaries; these tests
+  do not attach physical USB hardware.
+- Clean Debian 12 and 13 userspaces on **both** ARM64 and ARMv7 installed the
+  actual `.deb`, resolved its dependencies, started the non-root agent, read
+  authenticated state, created an invitation, and completed termination,
+  reinstall, remove and purge. ARMv7 execution was emulated. Containers have no
+  USB helper/kernel support, so these are userspace/package results only.
+- Separate full Debian 13 VMs on AMD64 (`6.12.107+deb13-amd64`) and ARM64
+  (`6.12.107+deb13-arm64`) passed headless USB setup, repeated setup, non-root
+  process ownership, a healthy real USB helper, restarting the user manager
+  without a login, package reinstall, removal, and purge. Root ownership was
+  rejected. These tests load real kernel USB/IP modules but do not lend a device.
+  The VMs and generated SSH keys were removed by the test harness.
+- A clean Ubuntu 24.04 ARM64 userspace also passed the package/agent lifecycle
+  checks. This does not validate its Pi-specific kernel modules.
+- The bootstrap's detection fixtures cover Debian/Pi OS Bookworm and Trixie,
+  Ubuntu 24.04, and a 32-bit OS on a 64-bit kernel. Real SHA-256 verification
+  rejects corrupt downloads. Piped headless orchestration is also checked for
+  normal/root callers and rejects missing/root/invalid owners before download. Unsupported distro/CPU combinations, including
+  ARMv6, stop before download. These fixtures are not a booted Pi OS image.
+- Headless setup explicitly enables the chosen regular account's systemd
+  lingering and user service, then performs the same privileged USB setup.
+  Root ownership is rejected. Devices remain private, and the control API stays
+  authenticated on loopback. Account-wide lingering is intentionally preserved
+  on uninstall; its manual removal is documented in the Pi guide.
+
+The first headless CI run used the hosted Ubuntu runner's kernel, which lacked
+USB/IP modules even after its distribution module package was installed. Setup
+correctly refused to report USB ready. The test now boots isolated Debian guests
+with the standard distribution kernel instead of changing the runner's kernel
+or faking module availability. No physical device is selected by installer tests.
+
+Reproduce with `tests/linux-package-userspace.sh`, `tests/headless-vm.sh`,
+`tests/headless-install.sh`, and `tests/bootstrap-linux.py`. The VM/container tests
+require their explicit disposable-environment flags. Raspberry Pi model-specific
+USB handoff, real Pi OS boot, physical peripherals, suspend/resume, and Bluetooth
+pairing still require hardware acceptance. Pi built-in Bluetooth forwarding is
+not implemented. See [Raspberry Pi setup](raspberry-pi.md).
+
 ## Still unvalidated or unavailable
 
 - Physical USB serial, printers, dedicated Bluetooth adapters, and peripheral
@@ -326,7 +378,8 @@ kernel. This is a fixture requirement, not a restriction on physical USB export.
   Alpha.4 permits conditional handoff and has Linux virtual-fixture results below.
   Hub groups share child devices; hub hardware is never exported. Audio/video-only
   classes remain disabled.
-- Windows-to-Windows, macOS export/import, and packaged ARM64 builds.
+- Windows-to-Windows and macOS export/import. ARM64/ARMv7 packages now have
+  separate installation evidence; physical Raspberry Pi USB remains unvalidated.
 - Physical hotplug, host suspend/resume, sustained workloads, packet-loss tests,
   power loss, and additional kernel recovery behavior.
 - Automatic discovery/reconnect/address updates, a hosted production relay,

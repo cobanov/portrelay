@@ -10,8 +10,11 @@ permissions:
   contents: read
 jobs:
   ubuntu:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    strategy:
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - name: Install published package through the piped bootstrap
@@ -26,14 +29,30 @@ jobs:
         run: |
           python3 tests/bootstrap-linux.py
   debian:
-    runs-on: ubuntu-24.04
-    container: debian:13
+    strategy:
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+        distro: ['12', '13']
+    runs-on: ${{ matrix.runner }}
+    container: debian:${{ matrix.distro }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - run: apt-get update && apt-get install -y curl ca-certificates python3
       - run: sh web/install.sh --download-only
       - run: python3 tests/bootstrap-linux.py
+  armv7:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm
+      - name: Verify the published ARMv7 download in a 32-bit userspace
+        run: |
+          docker run --rm --platform linux/arm/v7 -v "$PWD/web/install.sh:/install.sh:ro" debian:13 \
+            sh -c 'apt-get update && apt-get install -y curl ca-certificates && sh /install.sh --download-only'
   windows:
     runs-on: windows-2025
     timeout-minutes: 10

@@ -35,9 +35,9 @@ installing and removes the temporary download afterward.
 
 ## Three steps on each computer
 
-1. **Install the package.** Download for
-   [Ubuntu](https://github.com/cobanov/portrelay/releases/download/v0.1.0-alpha.5/portrelay-0.1.0-alpha.5-ubuntu-amd64.deb) or
-   [Debian](https://github.com/cobanov/portrelay/releases/download/v0.1.0-alpha.5/portrelay-0.1.0-alpha.5-debian-amd64.deb).
+1. **Install the package.** Download the `.deb` for your distribution and
+   architecture from the [release page](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.5).
+   Raspberry Pi OS uses the Debian ARM64 or ARMv7 (`armhf`) package.
    Open the file with your system's software installer and choose **Install**.
 2. **Open PortRelay.** Find it in your applications. Give this computer a name,
    then choose **Enable USB sharing** and approve the system password prompt.
@@ -62,12 +62,14 @@ shows actual device state; the public website is a separate concept demo.
 <details>
 <summary>If your system does not open the package</summary>
 
-In the download folder, run the matching command:
+In the download folder, run the matching command (the filename must match
+the architecture reported by `dpkg --print-architecture`):
 
 ```sh
-sudo apt install ./portrelay-0.1.0-alpha.5-ubuntu-amd64.deb
-# Or, on Debian:
-sudo apt install ./portrelay-0.1.0-alpha.5-debian-amd64.deb
+arch=$(dpkg --print-architecture)
+sudo apt install ./portrelay-0.1.0-alpha.5-ubuntu-"$arch".deb
+# Or, on Debian / Raspberry Pi OS:
+sudo apt install ./portrelay-0.1.0-alpha.5-debian-"$arch".deb
 ```
 
 Use `apt install`, which resolves dependencies, rather than `dpkg -i` alone.
