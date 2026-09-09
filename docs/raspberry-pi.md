@@ -1,6 +1,6 @@
 # Raspberry Pi and ARM Linux
 
-PortRelay alpha.5 provides ARM64 and ARMv7 packages, including a setup mode for
+PortRelay alpha.6 provides ARM64 and ARMv7 packages, including a setup mode for
 Raspberry Pi OS Lite and machines used only through SSH. Physical Raspberry Pi
 USB/Bluetooth compatibility remains unvalidated; see the [test record](validation.md).
 
@@ -18,18 +18,18 @@ enables the USB helper, and starts the agent without a browser. This explicitly
 enables systemd lingering for your account so it also starts at boot and stays
 running after you disconnect SSH. No device is shared automatically.
 
-Check readiness and create an invitation:
+Check readiness and open the selection menu:
 
 ```sh
 portrelay check
-portrelay status
-portrelay invite
+portrelay menu
 ```
 
-Use these commands as the same normal user, not with sudo. Copy the invitation
-value into PortRelay on the other computer. Pairing still needs owner approval;
-device grants are separate. The advanced [terminal control guide](linux-alpha.md#terminal-control)
-covers approval, sharing, and connection. There is no interactive terminal wizard yet.
+Use these commands as the same normal user, not with sudo. Choose **Create
+invitation** on the owner and **Add computer** on the receiver, then approve the
+request on the owner. Choose **Share local device** on the owner and **Connect
+remote device** on the receiver. The [terminal guide](terminal.md) also covers
+short commands and scripts. The other computer can use its normal app window.
 
 If you log in directly as root, choose an **existing non-root account**:
 
@@ -59,7 +59,7 @@ Zero W use ARMv6 and are excluded.** Zero 2 W is a different model. Consult
 Raspberry Pi's [official image/model list](https://www.raspberrypi.com/software/operating-systems/)
 when choosing an OS. An architecture match is not a physical-device test result.
 
-[Download packages and checksums](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.5).
+[Download packages and checksums](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.6).
 The advanced tarballs are named `linux-aarch64` and `linux-armv7`; prefer the
 `.deb` installer unless you intend to manage dependencies and services manually.
 Other NAS/router distributions, Alpine, ARMv6, and Windows ARM64 are not targets.

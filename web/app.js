@@ -74,12 +74,12 @@ const localDevices = [
 ];
 const platforms = {
   linux: {
-    stage: "ALPHA.5 · EXPERIMENTAL",
+    stage: "ALPHA.6 · EXPERIMENTAL",
     title: "Linux, including Raspberry Pi.",
-    description: "Ubuntu 24.04, Debian 12/13 and Raspberry Pi OS. The command picks your package.",
+    description: "Ubuntu, Debian or Raspberry Pi OS. Use the app window or a simple SSH menu.",
   },
   windows: {
-    stage: "ALPHA.5 · EXPERIMENTAL",
+    stage: "ALPHA.6 · EXPERIMENTAL",
     title: "Windows 11, one installer.",
     description: "Share USB with Linux. Tested both ways with virtual serial devices.",
   },

@@ -19,9 +19,9 @@ param([switch]$DownloadOnly)
         throw 'This alpha requires Windows 11. Windows 10 and Windows Server are not supported.'
     }
 
-    $version = '0.1.0-alpha.5'
+    $version = '0.1.0-alpha.6'
     $package = "portrelay-$version-windows-x64-setup.exe"
-    $checksum = '44887af58af924579e9192f5cf6464850171147279c97ed10250585f8ab22564'
+    $checksum = '6137a9e2e17e5d79b20d2f692387370076585017b6aa4a19fa451cbc46be8bbf'
     $tempDirectory = Join-Path ([IO.Path]::GetTempPath()) ('portrelay-' + [Guid]::NewGuid().ToString('N'))
     $installer = Join-Path $tempDirectory $package
     $previousProtocol = [Net.ServicePointManager]::SecurityProtocol

@@ -1,6 +1,6 @@
 # Alpha validation record
 
-Dates: 2026-09-08 and 2026-09-09. Current version: `0.1.0-alpha.5`.
+Dates: 2026-09-08 and 2026-09-09. Current version: `0.1.0-alpha.6`.
 
 The kernel device tests below were recorded for alpha.1. Alpha.2 changes the
 installer and onboarding; the device transport/helper backend is unchanged.
@@ -367,6 +367,42 @@ require their explicit disposable-environment flags. Raspberry Pi model-specific
 USB handoff, real Pi OS boot, physical peripherals, suspend/resume, and Bluetooth
 pairing still require hardware acceptance. Pi built-in Bluetooth forwarding is
 not implemented. See [Raspberry Pi setup](raspberry-pi.md).
+
+## Terminal controls (alpha.6, 2026-09-09)
+
+[Build and package CI 34334586811](https://github.com/cobanov/portrelay/actions/runs/34334586811)
+passed all 15 jobs at `3441efb`. The alpha.6 release uses these exact Linux,
+ARM64, ARMv7 and Windows artifacts; all 20 uploaded file digests matched GitHub's
+SHA-256 values. The existing clean userspace and full headless VM installation
+checks passed for the new packages.
+
+- `tests/terminal-cli.py` passed on native Linux AMD64/ARM64, Windows, and macOS.
+  Two actual PortRelay processes used real authenticated local APIs and encrypted
+  peer connections for invitation, single-use rejection, approval, remote listing,
+  rename and revocation. No USB device was shared by this part of the test.
+- Explicit HTTP fixtures exercise the actual CLI executable for named and ID
+  selection, ambiguous names/prefixes, generation forwarding, device warnings,
+  blocked/busy devices, ejection confirmation, and terminal-control sanitization.
+  These fixtures are device-control UI evidence, not physical attachment evidence.
+- Real pseudoterminals on Linux/macOS exercised invalid menu choices, cancellation,
+  refused and accepted disk warnings, sharing, disconnection and EOF exit.
+  Windows ran the direct command tests; a Windows terminal window was not visually
+  inspected. The source also has Rust selection, bounded-input and display tests.
+- The released ARMv7 `.deb` was additionally installed into a disposable emulated
+  Debian 12 userspace. As a regular user, its packaged executable passed the same
+  real-agent, HTTP-fixture and pseudoterminal acceptance flow.
+- A grant regression test verifies that stale device selection cannot create or
+  modify a grant, and that fresh selection still requires storage consent. The
+  terminal and local app window now send the selected generation; legacy JSON
+  actions without that optional field remain accepted for compatibility.
+- Bootstrap distro/architecture, real-checksum rejection, cleanup, and piped
+  headless/root-owner fixtures passed with the alpha.6 script. Formatting,
+  Clippy, app JavaScript syntax and static website build checks passed.
+
+This release adds a terminal menu and short commands. It does not add a new USB
+backend, change native driver cleanup, or establish physical USB/Bluetooth
+compatibility. macOS here is CLI/control-plane testing only; USB import/export
+is still unavailable. See the [terminal guide](terminal.md).
 
 ## Still unvalidated or unavailable
 

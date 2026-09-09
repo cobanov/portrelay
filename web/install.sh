@@ -50,11 +50,11 @@ main() {
         *) echo 'Use Ubuntu 24.04, Debian 12/13, or Raspberry Pi OS Bookworm/Trixie.' >&2; return 1 ;;
     esac
     case "$distro:$arch" in
-        ubuntu:amd64) checksum=dfe274886e87cc95fed8d648b3c7dcb9a7944049b3d4c226c0dcfb3c7e151da2 ;;
-        ubuntu:arm64) checksum=59f318233bdbafb7bde23f508c789e2166514247a40095daaa113c950eb6bbf9 ;;
-        debian:amd64) checksum=656f08fdfac9a0b3585e352f4da3dbbc3cb7ac61b30675fe133cd9f34a458118 ;;
-        debian:arm64) checksum=0ce2e7b675ad13398a5589dc5a2d24df663c8d07c9c5561e40955c945923750e ;;
-        debian:armhf) checksum=513521d3f3f9837ab0ecfce5a034b3846bb2717cb28002bd25a4cb96ab0ebd24 ;;
+        ubuntu:amd64) checksum=852361005787bddf61162615c5665b8d2eaa82b44e29b76839afb021df11d856 ;;
+        ubuntu:arm64) checksum=89c91a8d88c6ee487b85539b4be819c6dcccf07110cd7d01b010f68f173394d2 ;;
+        debian:amd64) checksum=5f045d28ff44544fb08a8531285a3a2ae8226bc896353aac4ad58571ad99af15 ;;
+        debian:arm64) checksum=a1a20b31a1bcafd70e4a5b81c2b9721a3059559a8c4ebf1d4c3110da6bb67490 ;;
+        debian:armhf) checksum=71160e1069b1e155bf66cbcee54425eae9be87e2a356c67940b48f4ae39cdeec ;;
         *) echo "No PortRelay package is available for $ID $arch." >&2; return 1 ;;
     esac
 
@@ -71,7 +71,7 @@ main() {
         fi
     fi
 
-    version=0.1.0-alpha.5
+    version=0.1.0-alpha.6
     package=portrelay-$version-$distro-$arch.deb
     # Pin the package hash with its version. A replaced release asset fails closed.
     temp_dir=$(mktemp -d /tmp/portrelay.XXXXXXXXXX)

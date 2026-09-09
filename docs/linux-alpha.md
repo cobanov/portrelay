@@ -13,7 +13,7 @@ On **Ubuntu 24.04, Debian 12/13, or Raspberry Pi OS Bookworm/Trixie**, paste thi
 curl -fsSL https://portrelay.cobanov.dev/install.sh | sh
 ```
 
-The script selects your distribution, verifies the alpha.5 package against a
+The script selects your distribution, verifies the alpha.6 package against a
 pinned SHA-256, and uses `apt-get` to install it and its dependencies. Enter your
 administrator password if asked. Then open **PortRelay** from your applications
 and follow steps 2 and 3 below. It does not enable USB or share devices for you.
@@ -36,7 +36,7 @@ installing and removes the temporary download afterward.
 ## Three steps on each computer
 
 1. **Install the package.** Download the `.deb` for your distribution and
-   architecture from the [release page](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.5).
+   architecture from the [release page](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.6).
    Raspberry Pi OS uses the Debian ARM64 or ARMv7 (`armhf`) package.
    Open the file with your system's software installer and choose **Install**.
 2. **Open PortRelay.** Find it in your applications. Give this computer a name,
@@ -56,7 +56,7 @@ One local user owns USB setup. The app opens in your browser and runs a backgrou
 service at login. Closing the window keeps connections running. Its local window
 shows actual device state; the public website is a separate concept demo.
 
-[Release notes & checksums](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.5)
+[Release notes & checksums](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.6)
 · [Tested capabilities and limitations](validation.md)
 
 <details>
@@ -67,9 +67,9 @@ the architecture reported by `dpkg --print-architecture`):
 
 ```sh
 arch=$(dpkg --print-architecture)
-sudo apt install ./portrelay-0.1.0-alpha.5-ubuntu-"$arch".deb
+sudo apt install ./portrelay-0.1.0-alpha.6-ubuntu-"$arch".deb
 # Or, on Debian / Raspberry Pi OS:
-sudo apt install ./portrelay-0.1.0-alpha.5-debian-"$arch".deb
+sudo apt install ./portrelay-0.1.0-alpha.6-debian-"$arch".deb
 ```
 
 Use `apt install`, which resolves dependencies, rather than `dpkg -i` alone.
