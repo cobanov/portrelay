@@ -110,7 +110,7 @@ impl Client {
         let status = response.status();
         let mut bytes = Vec::new();
         while let Some(chunk) = response.chunk().await? {
-            if bytes.len() + chunk.len() > 262144 {
+            if bytes.len() + chunk.len() > 524288 {
                 bail!("Account response is too large");
             }
             bytes.extend_from_slice(&chunk);
@@ -195,7 +195,7 @@ impl Client {
                 || device.name.len() > 80
                 || device.name.chars().any(char::is_control)
                 || !["linux", "macos", "windows"].contains(&device.platform.as_str())
-                || device.address.addrs.len() > 16
+                || device.address.addrs.len() > 64
             {
                 bail!("Invalid registered computer");
             }

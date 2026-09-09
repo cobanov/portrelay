@@ -43,7 +43,7 @@ async function body(request) {
 function profile(value) {
   require(typeof value.name==='string' && encoder.encode(value.name.trim()).length>0 && encoder.encode(value.name).length<=80 && !/[\u0000-\u001f\u007f]/.test(value.name),400,'Invalid computer name');
   require(['macos','linux','windows'].includes(value.platform),400,'Unsupported platform');
-  require(value.address && value.address.id===value.device_id && JSON.stringify(value.address).length<=4096 && Array.isArray(value.address.addrs) && value.address.addrs.length<=16,400,'Invalid computer address');
+  require(value.address && value.address.id===value.device_id && JSON.stringify(value.address).length<=4096 && Array.isArray(value.address.addrs) && value.address.addrs.length<=64,400,'Invalid computer address');
 }
 async function token(request) {
   const value=request.headers.get('authorization')?.match(/^Bearer ([0-9a-f]{64})$/)?.[1];

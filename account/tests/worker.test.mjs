@@ -24,7 +24,7 @@ async function fixture() {
     const id=hex(await crypto.subtle.exportKey('raw',keys.publicKey));
     const token=hex(crypto.getRandomValues(new Uint8Array(32)));
     const challenge=await (await request('/api/challenge','POST')).json();
-    const payload=JSON.stringify({version:1,purpose:'portrelay-account-enrollment',origin,device_id:id,token_hash:await hash(token),challenge:challenge.id,nonce:challenge.nonce,name,platform:'linux',address:{id,addrs:[]}});
+    const payload=JSON.stringify({version:1,purpose:'portrelay-account-enrollment',origin,device_id:id,token_hash:await hash(token),challenge:challenge.id,nonce:challenge.nonce,name,platform:'linux',address:{id,addrs:existing?.addrs||[]}});
     const signature=hex(await crypto.subtle.sign('Ed25519',keys.privateKey,new TextEncoder().encode(payload)));
     const response=await request('/api/register','POST',{payload,signature});
     assert.equal(response.status,200,await response.clone().text());
@@ -119,5 +119,19 @@ test('cancelled enrollment cannot be confirmed and confirmation body is bounded'
   assert.equal((await f.request('/api/login','DELETE',undefined,d.headers)).status,200);
   assert.equal((await f.confirm(auth)).status,410);
   assert.equal((await f.request('/api/login','GET',undefined,d.headers)).status,401);
+ }finally{f.DB.close();}
+});
+
+test('Docker/VPN hosts can register 31 addresses without losing endpoints',async()=>{
+ const f=await fixture();try{
+  const addrs=Array.from({length:31},(_,i)=>({Ip:`172.18.${i}.1:24816`}));
+  const d=await f.register('Many-interface Spark',{addrs});
+  const auth=await f.oauth(d);assert.equal((await f.confirm(auth)).status,200);
+  const stored=JSON.parse(f.DB.sqlite.prepare('SELECT address FROM devices WHERE id=?').get(d.id).address);
+  assert.deepEqual(stored.addrs,addrs);
+  const response=await f.request('/api/sync','POST',{name:'Many-interface Spark',platform:'linux',address:stored},d.headers);
+  assert.equal(response.status,200);assert.equal((await response.json()).devices[0].address.addrs.length,31);
+  stored.addrs=Array.from({length:65},(_,i)=>({Ip:`172.18.${i}.1:24816`}));
+  assert.equal((await f.request('/api/sync','POST',{name:'Spark',platform:'linux',address:stored},d.headers)).status,400);
  }finally{f.DB.close();}
 });
