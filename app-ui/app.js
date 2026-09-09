@@ -135,7 +135,7 @@ function confirmHandoff(devices) {
   return !warnings.length || confirm(`${devices.map((d) => d.name).join("\n")}\n\n${warnings.join("\n\n")}\n\nAllow this handoff?`);
 }
 async function shareDevice(device, peer) {
-  return action({ op: "share", device: device.id, peer, acknowledge_risks: risksFor(device), acknowledge_bluetooth: risksFor(device).includes("bluetooth") });
+  return action({ op: "share", device: device.id, generation: device.generation, peer, acknowledge_risks: risksFor(device), acknowledge_bluetooth: risksFor(device).includes("bluetooth") });
 }
 function confirmReturn(device) {
   return !device || !risksFor(device).includes("storage") || confirm("Eject or unmount every volume on the receiving computer first. Disconnecting while files are in use can lose data. Have you finished and safely ejected this disk?");

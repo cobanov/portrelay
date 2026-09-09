@@ -5,8 +5,14 @@ use portrelay::{
     agent::{Action, Agent},
     api, backend,
     storage::{self, ApiAccess},
+    terminal,
 };
-use std::{fs, io::Read, path::PathBuf, process::Command};
+use std::{
+    fs,
+    io::{IsTerminal, Read},
+    path::PathBuf,
+    process::Command,
+};
 
 #[derive(Parser)]
 #[command(
@@ -57,11 +63,17 @@ enum Commands {
     /// Exit successfully only when the agent and USB helper are ready.
     Check,
     /// Create a single-use invitation valid for ten minutes.
-    Invite,
-    /// Read an invitation from stdin and request pairing.
+    Invite {
+        /// Print only the invitation, ready to copy or pipe.
+        #[arg(long)]
+        plain: bool,
+    },
+    /// Paste an invitation and press Enter, or pipe it from stdin.
     Pair,
     /// Read a typed local API action as JSON from stdin.
     Api,
+    #[command(flatten)]
+    Terminal(terminal::Commands),
     /// Run the Linux privileged device helper (normally installed as a service).
     Helper {
         #[arg(long)]
@@ -215,6 +227,23 @@ async fn main() -> Result<()> {
                 open_ui(&dir)?;
             }
         }
+        Commands::Terminal(command) => terminal::run(access(&dir)?, command).await?,
+        Commands::Invite { plain: true } => {
+            println!("{}", terminal::Client::new(access(&dir)?)?.invite().await?);
+        }
+        Commands::Pair => {
+            let invitation = terminal::read_invitation()?;
+            let value = terminal::Client::new(access(&dir)?)?
+                .pair(invitation)
+                .await?;
+            if std::io::stdout().is_terminal() {
+                println!(
+                    "Pairing requested. Approve this computer on the other computer using portrelay menu."
+                );
+            } else {
+                println!("{}", serde_json::to_string_pretty(&value)?);
+            }
+        }
         other => {
             let checking = matches!(&other, Commands::Check);
             let access = access(&dir)?;
@@ -227,13 +256,8 @@ async fn main() -> Result<()> {
                 Commands::Status | Commands::Check => client.get(format!("{base}/api/state")),
                 _ => {
                     let action = match other {
-                        Commands::Invite => {
+                        Commands::Invite { .. } => {
                             serde_json::to_value(serde_json::json!({"op":"invite"}))?
-                        }
-                        Commands::Pair => {
-                            let mut input = String::new();
-                            std::io::stdin().take(8193).read_to_string(&mut input)?;
-                            serde_json::json!({"op":"pair","invitation":input.trim()})
                         }
                         Commands::Api => {
                             let mut input = String::new();

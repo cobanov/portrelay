@@ -20,6 +20,8 @@ jobs:
           cache-on-failure: true
       - run: cargo +1.97.0 fmt --all --check
       - run: cargo +1.97.0 test --locked --workspace
+      - run: cargo +1.97.0 build --locked --bin portrelay
+      - run: python tests/terminal-cli.py target/debug/portrelay
       - run: cargo +1.97.0 clippy --locked --workspace --all-targets -- -D warnings
       - run: node --check app-ui/app.js && npm run check && npm run build
   linux-package:

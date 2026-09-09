@@ -6,5 +6,6 @@ pub mod protocol;
 pub mod settings;
 pub mod setup;
 pub mod storage;
+pub mod terminal;
 #[cfg(windows)]
 pub mod windows;

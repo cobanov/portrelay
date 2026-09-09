@@ -151,4 +151,4 @@ uninstall results. Publish the failures and exclusions alongside successes.
 - [x] Add explicit headless setup with a non-root agent and startup without login.
 - [x] Run native ARM64 and emulated ARMv7 application tests.
 - [ ] Record physical Raspberry Pi USB handoff, Bluetooth pairing, and recovery.
-- [ ] Replace advanced JSON terminal actions with a simpler interactive flow.
+- [x] Replace advanced JSON terminal actions with a simpler interactive flow (alpha.6 menu and short commands).

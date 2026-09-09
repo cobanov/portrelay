@@ -19,4 +19,4 @@ runuser -u "$setup_user" -- env XDG_RUNTIME_DIR="/run/user/$setup_uid" DBUS_SESS
     /usr/lib/portrelay/portrelay desktop --no-open
 PKEXEC_UID=$setup_uid /usr/lib/portrelay/setup-usb
 echo "PortRelay is ready for $setup_user and starts at boot, even without a login."
-echo 'Run portrelay status or portrelay invite as that user. Devices remain private until shared.'
+echo 'Run portrelay menu as that user to add computers and share devices. Devices remain private until shared.'

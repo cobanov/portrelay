@@ -23,7 +23,7 @@ use tokio::{
 };
 use tokio_util::sync::CancellationToken;
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct SessionInfo {
     pub id: String,
     pub device: String,
@@ -80,6 +80,8 @@ pub enum Action {
     },
     Share {
         device: String,
+        #[serde(default)]
+        generation: Option<String>,
         peer: String,
         #[serde(default)]
         acknowledge_bluetooth: bool,
@@ -328,6 +330,7 @@ impl Agent {
             }
             Action::Share {
                 device,
+                generation,
                 peer,
                 acknowledge_bluetooth,
                 acknowledge_risks,
@@ -340,41 +343,14 @@ impl Agent {
                     .into_iter()
                     .find(|d| d.id == device)
                     .context("Device was unplugged")?;
-                if let Some(reason) = &d.blocked {
-                    bail!("{reason}");
-                }
-                if d.kind == "bluetooth"
-                    && !acknowledge_bluetooth
-                    && !acknowledge_risks.iter().any(|r| r == "bluetooth")
-                {
-                    bail!(
-                        "Confirm the Bluetooth adapter handoff warning before sharing this device"
-                    );
-                }
-                for risk in &d.risks {
-                    if !acknowledge_risks.contains(risk)
-                        && !(risk == "bluetooth" && acknowledge_bluetooth)
-                    {
-                        bail!("Confirm the {risk} handoff warning before sharing this device");
-                    }
-                }
-                let mut inner = self.inner.lock().await;
-                if !inner.config.peers.get(&peer).is_some_and(|p| p.approved) {
-                    bail!("Approve the computer first");
-                }
-                let grant = inner.config.grants.entry(device).or_insert(Grant {
-                    generation: d.generation.clone(),
-                    peers: vec![],
-                });
-                if grant.generation != d.generation {
-                    grant.generation = d.generation;
-                    grant.peers.clear();
-                }
-                if !grant.peers.contains(&peer) {
-                    grant.peers.push(peer);
-                }
-                self.persist(&inner)?;
-                Ok(serde_json::json!({"message":"Device shared with the selected computer"}))
+                self.grant_selected_device(
+                    d,
+                    peer,
+                    generation,
+                    acknowledge_bluetooth,
+                    acknowledge_risks,
+                )
+                .await
             }
             Action::Unshare { device } => {
                 let mut inner = self.inner.lock().await;
@@ -413,6 +389,54 @@ impl Agent {
                 Ok(serde_json::json!({"message":"Disconnecting and restoring the device"}))
             }
         }
+    }
+    // d must come from the fresh inventory, never from a client-supplied descriptor.
+    async fn grant_selected_device(
+        &self,
+        d: Device,
+        peer: String,
+        generation: Option<String>,
+        acknowledge_bluetooth: bool,
+        acknowledge_risks: Vec<String>,
+    ) -> Result<serde_json::Value> {
+        if generation
+            .as_ref()
+            .is_some_and(|generation| generation != &d.generation)
+        {
+            bail!("Device changed since selection. Refresh the device list and select it again");
+        }
+        if let Some(reason) = &d.blocked {
+            bail!("{reason}");
+        }
+        if d.kind == "bluetooth"
+            && !acknowledge_bluetooth
+            && !acknowledge_risks.iter().any(|r| r == "bluetooth")
+        {
+            bail!("Confirm the Bluetooth adapter handoff warning before sharing this device");
+        }
+        for risk in &d.risks {
+            if !acknowledge_risks.contains(risk) && !(risk == "bluetooth" && acknowledge_bluetooth)
+            {
+                bail!("Confirm the {risk} handoff warning before sharing this device");
+            }
+        }
+        let mut inner = self.inner.lock().await;
+        if !inner.config.peers.get(&peer).is_some_and(|p| p.approved) {
+            bail!("Approve the computer first");
+        }
+        let grant = inner.config.grants.entry(d.id.clone()).or_insert(Grant {
+            generation: d.generation.clone(),
+            peers: vec![],
+        });
+        if grant.generation != d.generation {
+            grant.generation = d.generation;
+            grant.peers.clear();
+        }
+        if !grant.peers.contains(&peer) {
+            grant.peers.push(peer);
+        }
+        self.persist(&inner)?;
+        Ok(serde_json::json!({"message":"Device shared with the selected computer"}))
     }
     async fn peer(&self, id: &str) -> Result<EndpointAddr> {
         let inner = self.inner.lock().await;
@@ -1012,6 +1036,88 @@ mod tests {
         assert!(cancel.is_cancelled());
         assert!(owner.reserve_export(&id, "1-1", "first").await.is_err());
         owner.finish(&session, None).await;
+        client.shutdown().await;
+        owner.shutdown().await;
+    }
+    #[tokio::test]
+    async fn selecting_a_replaced_device_cannot_create_or_change_a_grant() {
+        let a = tempfile::tempdir().unwrap();
+        let b = tempfile::tempdir().unwrap();
+        let owner = make(a.path(), "Owner").await;
+        let client = make(b.path(), "Client").await;
+        pair(&owner, &client).await;
+        let peer = client.endpoint.id().to_string();
+        owner
+            .action(Action::Approve { peer: peer.clone() })
+            .await
+            .unwrap();
+        let device = Device {
+            id: "1-2".into(),
+            generation: "replacement".into(),
+            name: "Fixture disk".into(),
+            vendor: "1234".into(),
+            product: "5678".into(),
+            kind: "storage".into(),
+            speed: 3,
+            devid: 65538,
+            blocked: None,
+            risks: vec!["storage".into()],
+            parent_hub: None,
+        };
+        // The selected device was swapped while the owner read the warning.
+        let error = owner
+            .grant_selected_device(
+                device.clone(),
+                peer.clone(),
+                Some("old-device".into()),
+                false,
+                vec!["storage".into()],
+            )
+            .await
+            .unwrap_err();
+        assert!(error.to_string().contains("Device changed since selection"));
+        assert!(owner.inner.lock().await.config.grants.is_empty());
+        // A fresh selection still needs consent; acknowledgement is not blanket authorization.
+        assert!(
+            owner
+                .grant_selected_device(
+                    device.clone(),
+                    peer.clone(),
+                    Some(device.generation.clone()),
+                    false,
+                    vec![]
+                )
+                .await
+                .is_err()
+        );
+        assert!(owner.inner.lock().await.config.grants.is_empty());
+        owner
+            .grant_selected_device(
+                device.clone(),
+                peer.clone(),
+                Some(device.generation.clone()),
+                false,
+                vec!["storage".into()],
+            )
+            .await
+            .unwrap();
+        let before = serde_json::to_value(&owner.inner.lock().await.config.grants).unwrap();
+        assert!(
+            owner
+                .grant_selected_device(
+                    device.clone(),
+                    peer,
+                    Some("old-device".into()),
+                    false,
+                    vec!["storage".into()]
+                )
+                .await
+                .is_err()
+        );
+        assert_eq!(
+            serde_json::to_value(&owner.inner.lock().await.config.grants).unwrap(),
+            before
+        );
         client.shutdown().await;
         owner.shutdown().await;
     }

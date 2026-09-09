@@ -202,48 +202,11 @@ a separate future stage, with export and import evaluated independently.
 
 ## Terminal control
 
-Run CLI commands as the regular account that owns PortRelay. `portrelay status`
-returns the actual `peers`, `devices`, and `sessions`. Terminal actions currently
-use JSON; there is no interactive menu or separate `share` / `connect` command.
-The other computer can use the normal Windows/Linux application window.
+With alpha.6 or newer, run `portrelay menu` as the regular account that owns the
+application. Select computers and devices by number, including approval,
+sharing, connection, and disconnection. No JSON is needed. The other computer
+can use the normal Windows/Linux window or its own terminal menu.
 
-1. On the Pi/device owner, run `portrelay invite`. Paste its `invitation` value
-   into **Add computer** on the receiver. For another terminal, pass that value
-   on stdin to `portrelay pair` (finish pasted input with Ctrl-D).
-2. On the owner, inspect `portrelay status` and approve the expected requesting
-   peer. Replace `PEER_ID` with its actual ID:
-
-   ```sh
-   printf '%s\n' '{"op":"approve","peer":"PEER_ID"}' | portrelay api
-   ```
-
-3. Share a chosen local device with that approved peer:
-
-   ```sh
-   printf '%s\n' '{"op":"share","device":"DEVICE_ID","peer":"PEER_ID"}' | portrelay api
-   ```
-
-   Risk-bearing devices require an `acknowledge_risks` array containing the
-   device's reported risk values, after reading the [handoff requirements](device-sharing.md).
-   A missing acknowledgement is rejected; mounted disks and active network
-   interfaces stay blocked. Do not use blanket grants for every device.
-
-4. Click **Connect** on the receiver, or inspect the shared inventory and use
-   that response's exact device ID and generation:
-
-   ```sh
-   printf '%s\n' '{"op":"remote","peer":"OWNER_PEER_ID"}' | portrelay api
-   printf '%s\n' '{"op":"connect","peer":"OWNER_PEER_ID","device":"DEVICE_ID","generation":"GENERATION"}' | portrelay api
-   ```
-
-5. Use `portrelay status` to find the active session. Unmount borrowed storage
-   before disconnecting it. The owner can also stop sharing:
-
-   ```sh
-   printf '%s\n' '{"op":"disconnect","session":"SESSION_ID"}' | portrelay api
-   printf '%s\n' '{"op":"unshare","device":"DEVICE_ID"}' | portrelay api
-   ```
-
-Invitations expire after ten minutes and are single-use. Keep invitations and
-identity/API files private. The HTTP control interface remains authenticated and
-bound to loopback; headless mode does not expose it to the network.
+See the [terminal guide](terminal.md) for the three-step flow, short commands,
+and scripting. The existing `portrelay status` and `portrelay api` JSON commands
+remain available. The HTTP control interface stays authenticated on loopback.
