@@ -4,7 +4,8 @@ PortRelay can send keyboard, mouse buttons, movement and scrolling from its
 local app window to an **unlocked Linux desktop**. This is a separate feature
 from sharing a whole USB device. Your mouse stays attached to the sending Mac.
 
-Both computers need **alpha.7 or Mac preview.2**. Use a desktop browser with
+Both computers need **alpha.7 or Mac preview.2** for input control;
+use **alpha.8 or Mac preview.3** for automatic account discovery. Use a desktop browser with
 Pointer Lock support, such as Chrome. Mac to ARM Linux has passed the kernel
 input acceptance test. Other sending platforms and Linux desktop combinations
 need their own interactive acceptance runs.

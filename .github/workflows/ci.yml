@@ -25,6 +25,18 @@ jobs:
       - run: cargo +1.97.0 clippy --locked --workspace --all-targets -- -D warnings
       - run: node tests/input-events.cjs
       - run: node --check app-ui/input.js && node --check app-ui/app.js && npm run check && npm run build
+  accounts:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: rustup toolchain install 1.97.0 --profile minimal
+      - uses: Swatinem/rust-cache@v2
+      - run: npm test --prefix account
+      - run: cargo +1.97.0 build --locked
+      - run: python3 tests/account-flow.py target/debug/portrelay
   linux-package:
     strategy:
       matrix:

@@ -73,10 +73,10 @@ function setPairMode(create) {
 }
 function renderSetup() {
   const approved = Object.values(state.peers).some((p) => p.approved);
-  $("name-setup").hidden = approved && !renameOpen;
+  $("name-setup").hidden = (approved || state.account?.identity) && !renameOpen;
   document.querySelector(".computers").hidden = !Object.keys(state.peers).length;
   document.querySelector(".devices").hidden = !approved;
-  const step = !approved ? 1 : 2;
+  const step = state.account?.status === "connected" || approved ? 2 : 1;
   ["step-usb", "step-pair", "step-device"].forEach((id, index) => {
     $(id).classList.toggle("done", index < step);
     $(id).classList.toggle("current", index === step);
@@ -103,7 +103,7 @@ function renderSetup() {
   $("remote-tab").textContent = state.capabilities?.usb_import === false ? "Other devices" : "Use a remote device";
   $("capability-note").hidden = state.platform !== "macos";
   $("capability-note").textContent = "Mac can control a Linux desktop. USB export remains limited; receiving USB and sharing Bluetooth are unavailable.";
-  $("pairing").hidden = !(pairingOpen || (!approved && !pairingDismissed));
+
 }
 function renderPeers() {
   const entries = Object.entries(state.peers);
@@ -113,9 +113,9 @@ function renderPeers() {
   container.replaceChildren();
   for (const [id, peer] of entries) {
     const card = node("div", undefined, `peer-card${id === selectedPeer ? " selected" : ""}`);
-    card.append(node("h3", peer.name), node("p", peer.approved ? "Added computer" : "Wants to connect to you", "muted"));
-    if (!peer.approved) card.append(button("Approve computer", () => action({ op: "approve", peer: id }), `approve-${id}`));
-    else card.append(button(id === selectedPeer ? "Selected" : "Select computer", async () => { selectedPeer = id; }, `select-${id}`, true));
+    card.append(node("h3", peer.name), node("p", peer.account_id ? (peer.approved ? (peer.online ? "Your account · Online" : "Your account · Offline") : "Account connection paused") : peer.approved ? "Paired directly" : "Wants to connect to you", "muted"));
+    if (!peer.approved && !peer.account_id) card.append(button("Approve computer", () => action({ op: "approve", peer: id }), `approve-${id}`));
+    else if (peer.approved) card.append(button(id === selectedPeer ? "Selected" : "Select computer", async () => { selectedPeer = id; }, `select-${id}`, true));
     const details = node("details"); details.id = `manage-${id}`; details.open = openDetails.has(details.id);
     details.append(node("summary", "Manage computer"), node("p", id, "fingerprint"));
     details.append(button("Remove computer", async () => {
@@ -276,7 +276,7 @@ async function refresh() {
   if (document.activeElement !== $("name-input") && !$("name-input").dataset.edited) $("name-input").value = state.name;
   $("identity").textContent = `Computer identity: ${state.id}`;
   $("helper-details").textContent = state.helper_ready ? "USB service ready." : state.helper_error || "USB service not ready.";
-  renderSetup(); renderPeers(); renderInput(); await renderDevices(revision);
+  renderAccount(); renderSetup(); renderPeers(); renderInput(); await renderDevices(revision);
   if (revision !== refreshRevision) return;
   renderSessions();
   if (focused && (!document.activeElement?.id || document.activeElement.id === focused)) $(focused)?.focus({ preventScroll: true });
@@ -290,8 +290,7 @@ async function invitation() {
   return currentInvitation;
 }
 $("enable-usb").onclick = () => run(() => action({ op: "setup_usb" }), $("enable-usb"));
-$("add-computer").onclick = () => { pairingOpen = true; $("pairing").hidden = false; $("pairing").scrollIntoView({ block: "nearest" }); };
-$("close-pairing").onclick = () => { pairingOpen = false; pairingDismissed = true; $("pairing").hidden = true; };
+$("add-computer").onclick = () => { $("add-help").hidden = false; $("account").scrollIntoView({block:"nearest"}); };
 $("create-mode").onclick = () => setPairMode(true);
 $("join-mode").onclick = () => setPairMode(false);
 $("copy-invitation").onclick = () => run(async () => {
@@ -323,9 +322,36 @@ $("save-name").onclick = () => run(async () => {
 }, $("save-name"));
 $("refresh").onclick = () => run(async () => {}, $("refresh"));
 for (const next of ["local", "remote"]) $(next + "-tab").onclick = () => run(async () => setView(next));
-refresh().then(() => tell("Select a computer to share devices or use keyboard and mouse control.")).catch((error) => tell(error.message, true));
+refresh().then(() => tell(state.account?.identity ? "Select one of your computers to get started." : "Sign in to find your computers automatically.")).catch((error) => tell(error.message, true));
 setInterval(() => {
   if (busy || backgroundRefreshing || document.visibilityState !== "visible") return;
   backgroundRefreshing = true;
   refresh().catch((error) => { if (!busy) tell(error.message, true); }).finally(() => { backgroundRefreshing = false; });
 }, 3000);
+
+function renderAccount() {
+  const account = state.account || {status:"signed_out"};
+  const connected = !!account.identity, pending = account.status === "pending";
+  $("account-title").textContent = connected ? `Signed in as ${account.identity.name}` : pending ? "Finish sign-in in your browser" : "Your computers. One sign-in.";
+  $("account-description").textContent = connected ? account.status === "offline" ? "Account service unavailable. Device access pauses until membership can be checked." : "Install PortRelay and sign in with this GitHub account on your other computers." : pending ? "Approve this computer on the GitHub sign-in page. This window updates automatically." : "Sign in with the same GitHub account on each computer. They appear here automatically.";
+  $("sign-in").hidden = connected || pending;
+  $("sign-out").hidden = !connected && !pending;
+  $("sign-out").textContent = pending ? "Cancel sign-in" : "Sign out";
+  $("continue-login").hidden = !pending;
+  if (pending) $("continue-login").href = account.authorization_url;
+  $("account-error").hidden = !account.error;
+  $("account-error").textContent = account.error || "";
+}
+$("sign-in").onclick = () => {
+  if (busy) return;
+  const popup = window.open("about:blank", "_blank");
+  if (popup) popup.opener = null;
+  run(async () => {
+    try {const result = await action({op:"account_login"}); if (popup) popup.location.replace(result.authorization_url);}
+    catch (error) {popup?.close(); throw error;}
+  }, $("sign-in"));
+};
+$("sign-out").onclick = () => run(async () => {
+  if (state.account?.identity && !confirm("Sign out this computer? Its account connections and sharing permissions will close. Eject any borrowed disks first.")) return;
+  await action({op:"account_logout"});
+}, $("sign-out"));

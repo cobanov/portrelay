@@ -17,6 +17,13 @@ use std::{
 pub enum Commands {
     /// Choose computers and devices in an interactive menu (also works over SSH).
     Menu,
+    /// Sign in with GitHub and register this computer. Works over SSH.
+    Login {
+        #[arg(long)]
+        no_open: bool,
+    },
+    /// Sign this computer out and close its account connections.
+    Logout,
     /// Allow an approved computer to control this Linux desktop (separate from USB).
     InputAllow { computer: String },
     /// Stop keyboard/mouse control and remove the computer's permission.
@@ -540,6 +547,34 @@ async fn execute(client: &Client, command: Commands) -> Result<()> {
     let state = client.state().await?;
     match command {
         Commands::Menu => unreachable!(),
+        Commands::Login { no_open } => {
+            let reply = client.action(json!({"op":"account_login"})).await?;
+            let url = reply["authorization_url"]
+                .as_str()
+                .context("Missing sign-in URL")?;
+            println!(
+                "Open this link on any computer and sign in with GitHub:\n{}\n\nThen run portrelay computers. No invitation is needed.",
+                clean(url)
+            );
+            if !no_open {
+                let program = if cfg!(target_os = "macos") {
+                    "open"
+                } else if cfg!(windows) {
+                    "explorer"
+                } else {
+                    "xdg-open"
+                };
+                let _ = std::process::Command::new(program).arg(url).spawn();
+            }
+        }
+        Commands::Logout => {
+            let reply = client.action(json!({"op":"account_logout"})).await?;
+            println!(
+                "{}",
+                clean(reply["message"].as_str().unwrap_or("Signed out"))
+            );
+        }
+
         Commands::InputAllow { ref computer } | Commands::InputDeny { ref computer } => {
             let allowed = matches!(command, Commands::InputAllow { .. });
             let choices = peer_choices(&state, true);
@@ -730,7 +765,7 @@ async fn execute(client: &Client, command: Commands) -> Result<()> {
         }
         Commands::Rename { name } => {
             client.action(json!({"op":"rename","name":name})).await?;
-            println!("Computer name saved. New invitations use this name.");
+            println!("Computer name saved. Your computers use this name.");
         }
     }
     Ok(())
@@ -762,12 +797,12 @@ async fn menu(client: &Client) -> Result<()> {
             state.sessions.len()
         );
         println!(
-            "1. Local devices\n2. Create invitation\n3. Add computer (paste invitation)\n4. Approve computer\n5. Share local device\n6. Connect remote device\n7. Connections\n8. Disconnect device\n9. Stop sharing device\n10. Computers\n11. Remove computer\n0. Exit"
+            "1. Local devices\n2. Create invitation\n3. Add computer (paste invitation)\n4. Approve computer\n5. Share local device\n6. Connect remote device\n7. Connections\n8. Disconnect device\n9. Stop sharing device\n10. Computers\n11. Remove computer\n12. Sign in with GitHub\n13. Sign out\n0. Exit"
         );
         let Some(input) = prompt("Choose: ", 32)? else {
             break;
         };
-        let choice = match number(&input, 11) {
+        let choice = match number(&input, 13) {
             Ok(Some(n)) => n + 1,
             Ok(None) => break,
             Err(e) => {
@@ -788,6 +823,8 @@ async fn menu(client: &Client) -> Result<()> {
                 9 => Commands::Unshare { device: None, ejected: false },
                 10 => Commands::Computers,
                 11 => Commands::Revoke { computer: None, ejected: false },
+                12 => Commands::Login { no_open: true },
+                13 => Commands::Logout,
                 _ => unreachable!(),
             }).await,
         };

@@ -1,5 +1,13 @@
 # Windows alpha
 
+## Sign in and find your computers
+
+Open PortRelay and choose **Sign in with GitHub** on each computer. They appear
+under **Your computers** automatically. With SSH only, use
+`portrelay login --no-open` and open the link on your laptop.
+[Account setup and removal](accounts.md). The manual pairing commands below are
+an optional offline alternative.
+
 For **Windows 11 on an Intel or AMD 64-bit computer**. ARM64 Windows, Windows 10,
 and Windows Server are not validated by this package. The other computer can
 run the Windows alpha or the [Linux alpha](linux-alpha.md); see the exact tested

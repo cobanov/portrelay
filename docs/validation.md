@@ -1,9 +1,24 @@
 # Alpha validation record
 
-Dates: 2026-09-08 and 2026-09-09. Current source version: `0.1.0-alpha.7`. Published assets are listed in the release notes.
+Dates: 2026-09-08 and 2026-09-09. Current source version: `0.1.0-alpha.8`. Published assets are listed in the release notes.
 
 The kernel device tests below were recorded for alpha.1. Alpha.2 changes the
 installer and onboarding; the device transport/helper backend is unchanged.
+
+## Account registration (alpha.8 / Mac preview.3, 2026-09-09)
+
+- Real SQLite/WebCrypto tests pass signed identity proof, challenge/OAuth replay
+  rejection, PKCE/cookies, confirmation CSRF/body limits, account isolation,
+  cross-account device ownership, cancellation and token revocation.
+- Real Rust agents with a loopback GitHub-response fixture pass automatic discovery
+  without invitations, rename propagation, removal on both peers, restart trust
+  revalidation, 90-second offline expiry, rejection of manual approval for account
+  peers, and local logout during outage. Device/input grants stay empty by default.
+- Actual Chrome, actual GitHub `cobanov`, the deployed Cloudflare Worker and D1
+  successfully registered a Mac test identity. Browser-level testing caught and
+  fixed Worker fetch redirect handling and the confirmation form's origin policy.
+- These tests establish account/control behavior, not physical USB compatibility.
+  Installed Mac/Spark account acceptance is recorded after final package installation.
 
 ## Keyboard and mouse control (alpha.7 / Mac preview.2, 2026-09-09)
 

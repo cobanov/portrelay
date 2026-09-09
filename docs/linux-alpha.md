@@ -1,5 +1,13 @@
 # Set up PortRelay
 
+## Sign in and find your computers
+
+Open PortRelay and choose **Sign in with GitHub** on each computer. They appear
+under **Your computers** automatically. With SSH only, use
+`portrelay login --no-open` and open the link on your laptop.
+[Account setup and removal](accounts.md). The manual pairing commands below are
+an optional offline alternative.
+
 The Linux alpha shares USB devices with Windows or other Linux computers. Start with a
 test device: physical USB and Bluetooth compatibility is still unvalidated.
 Packages cover AMD64, ARM64 and ARMv7 Linux with systemd. See the

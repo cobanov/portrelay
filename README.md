@@ -4,9 +4,9 @@
 
 Open-source USB sharing between Windows and Linux computers, with an encrypted connection
 and a small local control window. Mac users can also send keyboard and mouse
-control to an unlocked Linux desktop. No account or subscription is required.
+control to an unlocked Linux desktop. Sign in with GitHub to find your computers automatically, or pair offline. No subscription is required.
 
-> **v0.1.0-alpha.7: keyboard and mouse control to Linux.** Native USB serial traffic has passed
+> **v0.1.0-alpha.8: GitHub sign-in and automatic computer registration.** Native USB serial traffic has passed
 > Windows-to-Linux and Linux-to-Windows tests using isolated virtual devices.
 > Windows 11 x64 uses signed upstream drivers with Secure Boot enabled.
 > Physical USB and Bluetooth compatibility still need testing. A separate [Mac export development preview](docs/macos-alpha.md)
@@ -16,13 +16,19 @@ control to an unlocked Linux desktop. No account or subscription is required.
 > test computer and read the [Windows limitations](docs/windows-alpha.md).
 
 **[Website](https://portrelay.cobanov.dev)** ·
-**[Download the alpha](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.7)** ·
-**[Mac preview](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-macos-preview.2)** ·
+**[Download the alpha](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-alpha.8)** ·
+**[Mac preview](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-macos-preview.3)** ·
 **[Windows setup](docs/windows-alpha.md)** · **[Linux setup](docs/linux-alpha.md)** · **[Raspberry Pi / headless](docs/raspberry-pi.md)**
+
+## Your computers, one account
+
+Choose **Sign in with GitHub** on each computer. They appear automatically.
+For SSH-only computers, run `portrelay login --no-open` and open the link on your
+laptop. [Account setup, removal and privacy](docs/accounts.md).
 
 ## Use your Mac mouse on Linux
 
-1. Install **Mac preview.2** and **Linux alpha.7**, then pair the computers.
+1. Install **Mac preview.3** and **Linux alpha.8**, then sign in with the same GitHub account.
 2. On Linux, choose **Enable receiving control**, then **Allow keyboard & mouse**
    for your Mac.
 3. On Mac, choose **Control [computer]**. **Esc** returns control to the Mac.
@@ -36,7 +42,7 @@ clipboard. It works independently of USB/IP and does not detach the Mac's mouse.
 1. Download and open the **Windows**, **Ubuntu**, or **Debian** installer on
    each computer.
 2. Open **PortRelay** from your applications. Choose **Enable USB sharing**,
-   then add your other computer with an invitation and approve it.
+   then sign in with the same GitHub account on both computers.
 3. Choose **Share device** on one computer and **Connect** on the other.
    **Disconnect** returns the device to its owner.
 
@@ -52,6 +58,7 @@ curl -fsSL https://portrelay.cobanov.dev/install.sh | sh
 
 ```sh
 curl -fsSL https://portrelay.cobanov.dev/install.sh | sh -s -- --headless
+portrelay login --no-open
 portrelay menu
 ```
 
@@ -90,7 +97,7 @@ configurable iroh relay, including a relay-only mode for blocked UDP networks.
 A forced external relay path has been tested; PortRelay does not run a shared
 production relay. See [network setup](docs/linux-alpha.md#networks).
 
-**Mac preview:** [download the ZIP](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-macos-preview.2), unzip, move PortRelay to Applications, then open it.
+**Mac preview:** [download the ZIP](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-macos-preview.3), unzip, move PortRelay to Applications, then open it.
 Apple Silicon / macOS 14+. Control a Linux desktop with your keyboard and mouse,
 or try limited USB export. Mac USB receiving and Bluetooth are unavailable. [Mac setup and device scope](docs/macos-alpha.md).
 

@@ -1,5 +1,13 @@
 # Raspberry Pi and ARM Linux
 
+## Sign in and find your computers
+
+Open PortRelay and choose **Sign in with GitHub** on each computer. They appear
+under **Your computers** automatically. With SSH only, use
+`portrelay login --no-open` and open the link on your laptop.
+[Account setup and removal](accounts.md). The manual pairing commands below are
+an optional offline alternative.
+
 PortRelay alpha.6 provides ARM64 and ARMv7 packages, including a setup mode for
 Raspberry Pi OS Lite and machines used only through SSH. Physical Raspberry Pi
 USB/Bluetooth compatibility remains unvalidated; see the [test record](validation.md).

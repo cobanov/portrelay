@@ -1,6 +1,6 @@
 # macOS development preview
 
-**[Download Mac preview.2](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-macos-preview.2)**
+**[Download Mac preview.3](https://github.com/cobanov/portrelay/releases/tag/v0.1.0-macos-preview.3)**
 for Apple Silicon (M1 or newer), macOS 14+. This is a signed, notarized
 **experimental input and export preview**, separate from the Windows/Linux alpha.
 
@@ -18,7 +18,7 @@ scope below before choosing a test adapter.
 
 ## Control a Linux desktop
 
-Pair the Mac with Linux alpha.7. On Linux, choose **Enable receiving control**,
+Sign in with the same GitHub account on Mac and Linux alpha.8. On Linux, choose **Enable receiving control**,
 then **Allow keyboard & mouse** for the Mac. On Mac, click **Control [computer]**.
 Keep the window in front. **Esc** returns control to the Mac. No global Input
 Monitoring or Accessibility permission is needed for this focused mode.

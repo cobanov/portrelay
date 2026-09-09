@@ -1,0 +1,20 @@
+name = "portrelay-account"
+main = "worker.mjs"
+compatibility_date = "2026-09-01"
+workers_dev = false
+routes = [{ pattern = "portrelay-account.cobanov.dev", custom_domain = true }]
+
+[vars]
+PUBLIC_URL = "https://portrelay-account.cobanov.dev"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "portrelay-accounts"
+database_id = "46596f22-75ad-4b30-a902-35cc4aad5170"
+migrations_dir = "migrations"
+
+[triggers]
+crons = ["37 3 * * *"]
+
+[observability]
+enabled = false

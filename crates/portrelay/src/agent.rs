@@ -46,6 +46,7 @@ struct PendingInvite {
 }
 struct Inner {
     config: Config,
+    account_runtime: crate::account::Runtime,
     invitations: Vec<PendingInvite>,
     pair_attempts: VecDeque<std::time::Instant>,
     sessions: BTreeMap<String, Session>,
@@ -62,10 +63,13 @@ pub struct Agent {
     limits: Arc<Semaphore>,
     setup: crate::setup::Setup,
     input_setup: crate::setup::Setup,
+    account_operation: Mutex<()>,
 }
 #[derive(Deserialize)]
 #[serde(tag = "op", rename_all = "snake_case")]
 pub enum Action {
+    AccountLogin,
+    AccountLogout,
     InputAllow {
         peer: String,
         allowed: bool,
@@ -130,7 +134,12 @@ impl Agent {
         relay: Option<String>,
         relay_only: bool,
     ) -> Result<Arc<Self>> {
-        let config = Config::load(&dir, name)?;
+        let mut config = Config::load(&dir, name)?;
+        for peer in config.peers.values_mut() {
+            if peer.account_id.is_some() {
+                peer.approved = false;
+            }
+        }
         let transport = QuicTransportConfig::builder()
             .max_concurrent_bidi_streams(1u32.into())
             .max_concurrent_uni_streams(0u32.into())
@@ -173,6 +182,7 @@ impl Agent {
             dir,
             inner: Mutex::new(Inner {
                 config,
+                account_runtime: crate::account::Runtime::default(),
                 invitations: vec![],
                 pair_attempts: VecDeque::new(),
                 sessions: BTreeMap::new(),
@@ -181,11 +191,14 @@ impl Agent {
             limits: Arc::new(Semaphore::new(32)),
             setup: crate::setup::Setup::default(),
             input_setup: crate::setup::Setup::default(),
+            account_operation: Mutex::new(()),
         });
         let a = agent.clone();
         tokio::spawn(async move {
             a.accept().await;
         });
+        tokio::spawn(agent.clone().accounts());
+        tokio::spawn(agent.clone().account_watchdog());
         Ok(agent)
     }
     fn persist(&self, inner: &Inner) -> Result<()> {
@@ -215,10 +228,12 @@ impl Agent {
         let setup = self.setup.snapshot().await;
         let input_setup = self.input_setup.snapshot().await;
         let inner = self.inner.lock().await;
-        serde_json::json!({"version":env!("CARGO_PKG_VERSION"),"id":self.endpoint.id().to_string(),"name":inner.config.name,"network":self.network_mode,"address":self.address(),"platform":std::env::consts::OS,"capabilities":{"usb_export":cfg!(any(target_os="linux",target_os="macos",windows)),"usb_import":cfg!(any(target_os="linux",windows)),"import_reason":backend::import_unavailable_reason()},"input":{"receive_supported":cfg!(target_os="linux"),"setup_available":crate::setup::Setup::input_available(),"setup":input_setup,"ready":input_health.is_ok(),"error":input_health.err().map(|e|e.to_string()),"controllers":inner.config.input_controllers},"setup_available":crate::setup::Setup::available(),"setup":setup,"helper_ready":health.is_ok(),"helper_error":health.err().map(|e|e.to_string()),"devices":Self::devices(&inner, devices),"peers":inner.config.peers,"grants":inner.config.grants,"sessions":inner.sessions.values().map(|s|s.info.clone()).collect::<Vec<_>>(),"history":inner.history})
+        serde_json::json!({"account":Self::account_snapshot(&inner),"version":env!("CARGO_PKG_VERSION"),"id":self.endpoint.id().to_string(),"name":inner.config.name,"network":self.network_mode,"address":self.address(),"platform":std::env::consts::OS,"capabilities":{"usb_export":cfg!(any(target_os="linux",target_os="macos",windows)),"usb_import":cfg!(any(target_os="linux",windows)),"import_reason":backend::import_unavailable_reason()},"input":{"receive_supported":cfg!(target_os="linux"),"setup_available":crate::setup::Setup::input_available(),"setup":input_setup,"ready":input_health.is_ok(),"error":input_health.err().map(|e|e.to_string()),"controllers":inner.config.input_controllers},"setup_available":crate::setup::Setup::available(),"setup":setup,"helper_ready":health.is_ok(),"helper_error":health.err().map(|e|e.to_string()),"devices":Self::devices(&inner, devices),"peers":inner.config.peers,"grants":inner.config.grants,"sessions":inner.sessions.values().map(|s|s.info.clone()).collect::<Vec<_>>(),"history":inner.history})
     }
     pub async fn action(self: &Arc<Self>, action: Action) -> Result<serde_json::Value> {
         match action {
+            Action::AccountLogin => self.account_login().await,
+            Action::AccountLogout => self.account_logout().await,
             Action::InputAllow { peer, allowed } => self.allow_input(peer, allowed).await,
             Action::InputStatus { peer } => {
                 let address = self.peer(&peer).await?;
@@ -303,7 +318,18 @@ impl Agent {
                 if invite.address.id == self.endpoint.id() {
                     bail!("This invitation belongs to this computer");
                 }
-                let name = self.inner.lock().await.config.name.clone();
+                let name = {
+                    let inner = self.inner.lock().await;
+                    if inner
+                        .config
+                        .peers
+                        .get(&invite.address.id.to_string())
+                        .is_some_and(|p| p.account_id.is_some())
+                    {
+                        bail!("This computer is already managed by your account");
+                    }
+                    inner.config.name.clone()
+                };
                 let reply = self
                     .request(
                         invite.address.clone(),
@@ -331,6 +357,8 @@ impl Agent {
                                 name,
                                 address: invite.address,
                                 approved: true,
+                                account_id: None,
+                                online: None,
                             },
                         );
                         self.persist(&inner)?;
@@ -344,6 +372,14 @@ impl Agent {
             }
             Action::Approve { peer } => {
                 let mut inner = self.inner.lock().await;
+                if inner
+                    .config
+                    .peers
+                    .get(&peer)
+                    .is_some_and(|p| p.account_id.is_some())
+                {
+                    bail!("Account computers are approved by signing in, not manual approval");
+                }
                 inner
                     .config
                     .peers
@@ -353,19 +389,7 @@ impl Agent {
                 self.persist(&inner)?;
                 Ok(serde_json::json!({"message":"Computer approved"}))
             }
-            Action::Revoke { peer } => {
-                let mut inner = self.inner.lock().await;
-                inner.config.peers.remove(&peer);
-                inner.config.input_controllers.retain(|p| p != &peer);
-                for g in inner.config.grants.values_mut() {
-                    g.peers.retain(|x| x != &peer);
-                }
-                for s in inner.sessions.values().filter(|s| s.info.peer == peer) {
-                    s.cancel.cancel();
-                }
-                self.persist(&inner)?;
-                Ok(serde_json::json!({"message":"Trust revoked; active sessions are closing"}))
-            }
+            Action::Revoke { peer } => self.revoke_peer(&peer).await,
             Action::BluetoothSettings => {
                 crate::settings::open_bluetooth()?;
                 Ok(
@@ -702,6 +726,14 @@ impl Agent {
             if inner.config.peers.len() >= 64 && !inner.config.peers.contains_key(remote) {
                 bail!("Peer limit reached");
             }
+            if inner
+                .config
+                .peers
+                .get(remote)
+                .is_some_and(|p| p.account_id.is_some())
+            {
+                bail!("This computer is already managed by your account");
+            }
             inner.invitations.remove(index);
             // Re-pairing never silently restores revoked sharing grants.
             inner.config.input_controllers.retain(|p| p != remote);
@@ -711,6 +743,8 @@ impl Agent {
                     name,
                     address,
                     approved: false,
+                    account_id: None,
+                    online: None,
                 },
             );
             for g in inner.config.grants.values_mut() {
@@ -1566,3 +1600,6 @@ mod tests {
         owner.shutdown().await;
     }
 }
+
+#[path = "account_agent.rs"]
+mod account_control;

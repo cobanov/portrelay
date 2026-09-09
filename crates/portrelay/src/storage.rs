@@ -15,6 +15,10 @@ pub struct Peer {
     pub name: String,
     pub address: EndpointAddr,
     pub approved: bool,
+    #[serde(default)]
+    pub account_id: Option<String>,
+    #[serde(default)]
+    pub online: Option<bool>,
 }
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Grant {
@@ -23,6 +27,8 @@ pub struct Grant {
 }
 #[derive(Serialize, Deserialize)]
 pub struct Config {
+    #[serde(default)]
+    pub account: Option<crate::account::Account>,
     pub secret_key: String,
     pub name: String,
     #[serde(default)]
@@ -98,6 +104,7 @@ impl Config {
             serde_json::from_slice(&fs::read(&path)?)?
         } else {
             Self {
+                account: None,
                 secret_key: random_secret(),
                 name: name.clone().unwrap_or_else(|| {
                     fs::read_to_string("/proc/sys/kernel/hostname")
